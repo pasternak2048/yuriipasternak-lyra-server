@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@inject IHttpContextAccessor HttpContextAccessor
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -25,6 +28,29 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
                         </li>
+                    </ul>
+
+                    <ul class="navbar-nav ms-auto align-items-center">
+                        @if (HttpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false)
+                        {
+                            <li class="nav-item me-2">
+                                <span class="nav-link text-dark d-flex align-items-center">
+                                    <i class="bi bi-person-fill text-primary me-1"></i>
+                                    @HttpContextAccessor.HttpContext.User.Identity?.Name
+                                </span>
+                            </li>
+                            <li class="nav-item">
+                                <form method="post" action="/account/logout" class="d-inline">
+                                    <button class="nav-link btn btn-link text-danger p-0">Logout</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-primary" href="/account/login">Login</a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>

@@ -37,6 +37,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme);
 builder.Services.AddAuthorization();
 
+builder.Services.AddHttpContextAccessor();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
