@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36121.58
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LYRA.Server", "LYRA.Server\LYRA.Server.csproj", "{A55FC9F2-EB1A-4C40-9C49-152A9CE760DA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A55FC9F2-EB1A-4C40-9C49-152A9CE760DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A55FC9F2-EB1A-4C40-9C49-152A9CE760DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A55FC9F2-EB1A-4C40-9C49-152A9CE760DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A55FC9F2-EB1A-4C40-9C49-152A9CE760DA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5A27877A-FCC7-418E-B43D-4EEB53261DAC}
+	EndGlobalSection
+EndGlobal
