@@ -1,0 +1,39 @@
+﻿@page
+@model LYRA.Server.Pages.Dashboard.IndexModel
+
+<div class="container mt-5">
+    <div class="bg-lyra-dark text-light p-5 rounded shadow-sm">
+        <h1 class="mb-4 fw-bold">
+            <i class="bi bi-bar-chart-line me-2"></i> Dashboard
+        </h1>
+
+        <p class="text-light-emphasis">
+            Welcome to your LYRA.Server dashboard. This space will help you monitor access, manage service trust, and control validation behavior.
+        </p>
+
+        <hr class="border-secondary" />
+
+        <div class="d-flex flex-wrap gap-4 justify-content-start mt-4">
+            <div class="dashboard-card bg-lyra-dark shadow-sm p-4" style="width: 280px;">
+                <h6 class="fw-semibold mb-2">
+                    <i class="bi bi-lock-fill me-2 text-light"></i> Active Policies
+                </h6>
+                <p class="text-light-emphasis mb-0">4 defined policies</p>
+            </div>
+
+            <div class="dashboard-card bg-lyra-dark shadow-sm p-4" style="width: 280px;">
+                <h6 class="fw-semibold mb-2">
+                    <i class="bi bi-shield-check me-2 text-light"></i> Trusted Services
+                </h6>
+                <p class="text-light-emphasis mb-0">3 registered endpoints</p>
+            </div>
+
+            <div class="dashboard-card bg-lyra-dark shadow-sm p-4" style="width: 280px;">
+                <h6 class="fw-semibold mb-2">
+                    <i class="bi bi-journal-code me-2 text-light"></i> Recent Signatures
+                </h6>
+                <p class="text-light-emphasis mb-0">23 successful verifications</p>
+            </div>
+        </div>
+    </div>
+</div>
