@@ -1,10 +1,56 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Welcome";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container mt-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-semibold text-dark">LYRA.Server</h1>
+        <p class="text-muted fs-5 mb-1">
+            <span class="text-dark fw-semibold">L</span>et
+            <span class="text-dark fw-semibold">Y</span>ourself
+            <span class="text-dark fw-semibold">R</span>emain
+            <span class="text-dark fw-semibold">A</span>uthenticated
+        </p>
+        <p class="text-muted fs-5">
+            LYRA is a lightweight, policy-driven platform for signed, trusted communication between services.
+        </p>
+    </div>
+
+    <div class="d-flex flex-wrap justify-content-center gap-4">
+        <div class="feature-card bg-lyra-dark p-4 shadow-sm" style="width: 300px;">
+            <h5 class="fw-normal mb-2">
+                <i class="bi bi-shield-lock-fill me-2 text-light"></i> Authentication
+            </h5>
+            <p class="mb-0 lyra-muted">
+                Role-based access, secure cookie login, and protected service endpoints.
+            </p>
+        </div>
+
+        <div class="feature-card bg-lyra-dark p-4 shadow-sm" style="width: 300px;">
+            <h5 class="fw-normal mb-2">
+                <i class="bi bi-diagram-3-fill me-2 text-light"></i> Policies
+            </h5>
+            <p class="mb-0 lyra-muted">
+                Flexible control of access permissions between trusted services.
+            </p>
+        </div>
+
+        <div class="feature-card bg-lyra-dark p-4 shadow-sm" style="width: 300px;">
+            <h5 class="fw-normal mb-2">
+                <i class="bi bi-pencil-square me-2 text-light"></i> Signature
+            </h5>
+            <p class="mb-0 lyra-muted">
+                Fast SHA512 request signing and validation using trusted secrets.
+            </p>
+        </div>
+    </div>
+
+    <div class="text-center mt-5">
+        <a href="/Dashboard/Index" class="btn btn-dark btn-lg d-inline-flex align-items-center gap-2">
+            <i class="bi bi-bar-chart-line"></i>
+            Go to Dashboard
+        </a>
+    </div>
 </div>
