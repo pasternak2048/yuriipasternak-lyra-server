@@ -1,0 +1,26 @@
+﻿.feature-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 0.5rem;
+    color: #f8f9fa;
+}
+
+    .feature-card.bg-lyra-dark {
+        background: linear-gradient(135deg, #303030, #121212);
+    }
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.lyra-muted {
+    color: #cfcfcf;
+}
+
+.bg-lyra-dark {
+    background: linear-gradient(135deg, #2a2a2a, #0d0d0d);
+}
+
+.text-light-emphasis {
+    color: #cfcfcf;
+}

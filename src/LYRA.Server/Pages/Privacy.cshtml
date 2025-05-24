@@ -3,6 +3,51 @@
 @{
     ViewData["Title"] = "Privacy Policy";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="container mt-5">
+    <div class="bg-lyra-dark text-light p-5 rounded shadow-sm">
+        <h1 class="mb-4 fw-bold">
+            <i class="bi bi-shield-lock-fill me-2"></i> Privacy Policy
+        </h1>
+
+        <p class="text-light-emphasis">
+            This Privacy Policy outlines how <strong>LYRA.Server</strong> processes authentication and service-level communication data in your infrastructure.
+        </p>
+
+        <hr class="border-secondary" />
+
+        <h5 class="fw-semibold mt-4">
+            <i class="bi bi-clipboard-data me-2 text-light"></i> What We Collect
+        </h5>
+        <ul class="text-light-emphasis">
+            <li>Secure password hashes (no plain-text storage)</li>
+            <li>Login activity metadata (e.g., timestamps)</li>
+            <li>Signed request verification logs</li>
+            <li>Access policies linked to service identities</li>
+        </ul>
+
+        <h5 class="fw-semibold mt-4">
+            <i class="bi bi-bullseye me-2 text-light"></i> Why We Collect It
+        </h5>
+        <p class="text-light-emphasis">
+            We collect this data solely to ensure secure access, enforce service-level rules, and validate trust across your backend systems.
+        </p>
+
+        <h5 class="fw-semibold mt-4">
+            <i class="bi bi-x-octagon me-2 text-light"></i> What We Don’t Store
+        </h5>
+        <ul class="text-light-emphasis">
+            <li>No personal user data or session payloads</li>
+            <li>No unencrypted credentials or tokens</li>
+            <li>No behavioral tracking or analytics</li>
+        </ul>
+
+        <h5 class="fw-semibold mt-4">
+            <i class="bi bi-person-lines-fill me-2 text-light"></i> Contact
+        </h5>
+        <p class="text-light-emphasis">
+            This system is developed and maintained by <strong>Yurii Pasternak</strong> (<a href="mailto:pasternak2048@gmail.com" class="text-info">pasternak2048@gmail.com</a>).
+            Visit the project on <a href="https://github.com/pasternak2048" target="_blank" class="text-info">GitHub</a> for details and contributions.
+        </p>
+    </div>
+</div>
