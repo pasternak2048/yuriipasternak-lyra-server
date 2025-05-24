@@ -1,0 +1,42 @@
+﻿.sidebar {
+    background: linear-gradient(to bottom, #1a1a1a, #000000);
+    color: white;
+}
+
+.sidebar .title {
+    font-weight: 300;
+    font-size: 2rem;
+    color: white;
+    letter-spacing: 0.5px;
+}
+
+.sidebar .nav-link {
+    color: #bbb;
+    transition: background-color 0.2s, color 0.2s;
+    padding: 10px 12px;
+    border-radius: 6px;
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.sidebar .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.sidebar .btn {
+    font-size: 0.9rem;
+}
+
+.sidebar .btn-outline-light {
+    color: #ffffff;
+    border-color: #ffffff;
+}
+
+.sidebar .btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
