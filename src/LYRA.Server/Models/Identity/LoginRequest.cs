@@ -1,4 +1,4 @@
-﻿namespace LYRA.Server.Models
+﻿namespace LYRA.Server.Models.Identity
 {
     public class LoginRequest
     {

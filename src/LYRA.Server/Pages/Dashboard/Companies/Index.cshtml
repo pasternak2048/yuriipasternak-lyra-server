@@ -1,0 +1,67 @@
+﻿@page
+@model LYRA.Server.Pages.Dashboard.Companies.IndexModel
+@{
+    ViewData["Title"] = "Companies";
+}
+
+<div class="container mt-5">
+    <div class="bg-lyra-dark text-light p-4 rounded shadow-sm">
+        <h2 class="fw-bold mb-4">
+            <i class="bi bi-building me-2"></i> Companies
+        </h2>
+
+        <form method="get" class="mb-4 d-flex gap-2">
+            <input type="text" name="SearchTerm" class="form-control" placeholder="Search by name..." value="@Model.Filters.SearchTerm" />
+            <button type="submit" class="btn btn-outline-light">Search</button>
+        </form>
+
+        <table class="table table-dark table-hover table-bordered align-middle">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Display Name</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th style="width: 140px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var company in Model.Companies.Items)
+                {
+                    <tr>
+                        <td>@company.Name</td>
+                        <td>@company.DisplayName</td>
+                        <td>
+                            @if (company.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                        </td>
+                        <td>@company.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd")</td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a asp-page="Edit" asp-route-id="@company.Id" class="btn btn-sm btn-outline-light">Edit</a>
+                                <a asp-page="Delete" asp-route-id="@company.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <nav aria-label="Pagination" class="mt-4">
+            <ul class="pagination">
+                @for (int i = 1; i <= Model.Companies.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.Filters.Page ? "active" : "")">
+                        <a class="page-link" href="?page=@i&SearchTerm=@Model.Filters.SearchTerm">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+</div>
