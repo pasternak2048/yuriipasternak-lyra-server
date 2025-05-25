@@ -10,9 +10,11 @@
             <i class="bi bi-building me-2"></i> Companies
         </h2>
 
-        <form method="get" class="mb-4 d-flex gap-2">
-            <input type="text" name="SearchTerm" class="form-control" placeholder="Search by name..." value="@Model.Filters.Name" />
-            <button type="submit" class="btn btn-outline-light">Search</button>
+        <form method="get" class="mb-4 d-flex gap-2 align-items-end">
+            <input type="text" name="Name" class="form-control" placeholder="Search by name..." value="@Model.Filters.Name" />
+            <button type="submit" class="btn btn-outline-light d-flex align-items-center">
+                <i class="bi bi-search me-1"></i> Search
+            </button>
         </form>
         <a asp-page="Create" class="btn btn-outline-success mb-3">
             <i class="bi bi-plus-circle me-1"></i> New Company
