@@ -1,5 +1,5 @@
 using LYRA.Server.Data;
-using LYRA.Server.Entities;
+using LYRA.Server.Entities.Identity;
 using LYRA.Server.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

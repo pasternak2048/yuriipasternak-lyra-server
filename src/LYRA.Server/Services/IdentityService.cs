@@ -1,4 +1,4 @@
-﻿using LYRA.Server.Entities;
+﻿using LYRA.Server.Entities.Identity;
 using Microsoft.AspNetCore.Identity;
 
 namespace LYRA.Server.Services
