@@ -41,8 +41,10 @@ namespace LYRA.Server.Services
                     Id = a.Id,
                     Name = a.Name,
                     CompanyName = a.Company.Name,
+                    Secret = a.Secret,
+                    UseCompanySecret = a.UseCompanySecret,
                     IsActive = a.IsActive,
-                    Mode = a.Mode.ToString(),
+                    Mode = a.Mode,
                     CreatedAt = a.CreatedAt
                 })
                 .ToListAsync();
@@ -66,8 +68,10 @@ namespace LYRA.Server.Services
                 Id = entity.Id,
                 Name = entity.Name,
                 CompanyName = entity.Company.Name,
+                Secret = entity.Secret,
+                UseCompanySecret = entity.UseCompanySecret,
                 IsActive = entity.IsActive,
-                Mode = entity.Mode.ToString(),
+                Mode = entity.Mode,
                 CreatedAt = entity.CreatedAt
             };
         }
@@ -129,8 +133,10 @@ namespace LYRA.Server.Services
                     Id = a.Id,
                     Name = a.Name,
                     CompanyName = a.Company.Name,
+                    Secret = a.Secret,
+                    UseCompanySecret = a.UseCompanySecret,
                     IsActive = a.IsActive,
-                    Mode = a.Mode.ToString(),
+                    Mode = a.Mode,
                     CreatedAt = a.CreatedAt
                 })
                 .ToListAsync();
