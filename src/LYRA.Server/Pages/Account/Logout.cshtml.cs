@@ -1,4 +1,4 @@
-using LYRA.Server.Entities;
+using LYRA.Server.Entities.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;

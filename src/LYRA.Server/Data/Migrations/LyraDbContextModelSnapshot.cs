@@ -17,40 +17,78 @@ namespace LYRA.Server.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.16");
 
-            modelBuilder.Entity("LYRA.Server.Entities.AccessPolicy", b =>
+            modelBuilder.Entity("LYRA.Server.Entities.AccessPolicyEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Caller")
-                        .IsRequired()
+                    b.Property<Guid>("CallerAgentId")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("CompanyId")
-                        .IsRequired()
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Method")
                         .IsRequired()
+                        .HasMaxLength(10)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PathPattern")
                         .IsRequired()
+                        .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Target")
+                    b.Property<Guid>("TargetAgentId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TargetAgentId");
+
+                    b.HasIndex("CallerAgentId", "TargetAgentId", "Method", "PathPattern")
+                        .IsUnique();
+
+                    b.ToTable("AccessPolicies");
+                });
+
+            modelBuilder.Entity("LYRA.Server.Entities.CompanyEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DisplayName")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Secret")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompanyId", "Caller", "Target", "Method", "PathPattern");
+                    b.HasIndex("Name")
+                        .IsUnique();
 
-                    b.ToTable("AccessPolicies");
+                    b.ToTable("Companies");
                 });
 
-            modelBuilder.Entity("LYRA.Server.Entities.ApplicationUser", b =>
+            modelBuilder.Entity("LYRA.Server.Entities.Identity.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -114,18 +152,28 @@ namespace LYRA.Server.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("LYRA.Server.Entities.TrustedService", b =>
+            modelBuilder.Entity("LYRA.Server.Entities.TrustedAgentEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("CompanyId")
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Mode")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Secret")
@@ -140,7 +188,7 @@ namespace LYRA.Server.Data.Migrations
                     b.HasIndex("CompanyId", "Name")
                         .IsUnique();
 
-                    b.ToTable("TrustedServices");
+                    b.ToTable("TrustedAgents");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -271,6 +319,36 @@ namespace LYRA.Server.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("LYRA.Server.Entities.AccessPolicyEntity", b =>
+                {
+                    b.HasOne("LYRA.Server.Entities.TrustedAgentEntity", "CallerAgent")
+                        .WithMany("OutgoingPolicies")
+                        .HasForeignKey("CallerAgentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LYRA.Server.Entities.TrustedAgentEntity", "TargetAgent")
+                        .WithMany("IncomingPolicies")
+                        .HasForeignKey("TargetAgentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CallerAgent");
+
+                    b.Navigation("TargetAgent");
+                });
+
+            modelBuilder.Entity("LYRA.Server.Entities.TrustedAgentEntity", b =>
+                {
+                    b.HasOne("LYRA.Server.Entities.CompanyEntity", "Company")
+                        .WithMany("Agents")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -282,7 +360,7 @@ namespace LYRA.Server.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("LYRA.Server.Entities.ApplicationUser", null)
+                    b.HasOne("LYRA.Server.Entities.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -291,7 +369,7 @@ namespace LYRA.Server.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("LYRA.Server.Entities.ApplicationUser", null)
+                    b.HasOne("LYRA.Server.Entities.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -306,7 +384,7 @@ namespace LYRA.Server.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("LYRA.Server.Entities.ApplicationUser", null)
+                    b.HasOne("LYRA.Server.Entities.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -315,11 +393,23 @@ namespace LYRA.Server.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("LYRA.Server.Entities.ApplicationUser", null)
+                    b.HasOne("LYRA.Server.Entities.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("LYRA.Server.Entities.CompanyEntity", b =>
+                {
+                    b.Navigation("Agents");
+                });
+
+            modelBuilder.Entity("LYRA.Server.Entities.TrustedAgentEntity", b =>
+                {
+                    b.Navigation("IncomingPolicies");
+
+                    b.Navigation("OutgoingPolicies");
                 });
 #pragma warning restore 612, 618
         }

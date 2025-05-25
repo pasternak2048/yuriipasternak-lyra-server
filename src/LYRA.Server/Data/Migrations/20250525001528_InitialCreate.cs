@@ -12,22 +12,6 @@ namespace LYRA.Server.Data.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "AccessPolicies",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    CompanyId = table.Column<string>(type: "TEXT", nullable: false),
-                    Caller = table.Column<string>(type: "TEXT", nullable: false),
-                    Target = table.Column<string>(type: "TEXT", nullable: false),
-                    Method = table.Column<string>(type: "TEXT", nullable: false),
-                    PathPattern = table.Column<string>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AccessPolicies", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
                 {
@@ -67,18 +51,19 @@ namespace LYRA.Server.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TrustedServices",
+                name: "Companies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    CompanyId = table.Column<string>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    DisplayName = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
                     Secret = table.Column<string>(type: "TEXT", nullable: false),
-                    UseCompanySecret = table.Column<bool>(type: "INTEGER", nullable: false)
+                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TrustedServices", x => x.Id);
+                    table.PrimaryKey("PK_Companies", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -187,10 +172,69 @@ namespace LYRA.Server.Data.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "TrustedAgents",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    CompanyId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Secret = table.Column<string>(type: "TEXT", nullable: false),
+                    UseCompanySecret = table.Column<bool>(type: "INTEGER", nullable: false),
+                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Mode = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TrustedAgents", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TrustedAgents_Companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "Companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AccessPolicies",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    CallerAgentId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    TargetAgentId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Method = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
+                    PathPattern = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    IsEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AccessPolicies", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AccessPolicies_TrustedAgents_CallerAgentId",
+                        column: x => x.CallerAgentId,
+                        principalTable: "TrustedAgents",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AccessPolicies_TrustedAgents_TargetAgentId",
+                        column: x => x.TargetAgentId,
+                        principalTable: "TrustedAgents",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
-                name: "IX_AccessPolicies_CompanyId_Caller_Target_Method_PathPattern",
+                name: "IX_AccessPolicies_CallerAgentId_TargetAgentId_Method_PathPattern",
                 table: "AccessPolicies",
-                columns: new[] { "CompanyId", "Caller", "Target", "Method", "PathPattern" });
+                columns: new[] { "CallerAgentId", "TargetAgentId", "Method", "PathPattern" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AccessPolicies_TargetAgentId",
+                table: "AccessPolicies",
+                column: "TargetAgentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -230,8 +274,14 @@ namespace LYRA.Server.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_TrustedServices_CompanyId_Name",
-                table: "TrustedServices",
+                name: "IX_Companies_Name",
+                table: "Companies",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TrustedAgents_CompanyId_Name",
+                table: "TrustedAgents",
                 columns: new[] { "CompanyId", "Name" },
                 unique: true);
         }
@@ -258,13 +308,16 @@ namespace LYRA.Server.Data.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "TrustedServices");
+                name: "TrustedAgents");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Companies");
         }
     }
 }
