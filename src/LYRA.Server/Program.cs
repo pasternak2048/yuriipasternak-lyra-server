@@ -1,6 +1,7 @@
 using LYRA.Server.Data;
 using LYRA.Server.Entities.Identity;
 using LYRA.Server.Services;
+using LYRA.Server.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddDefaultTokenProviders();
 
 builder.Services.AddScoped<IIdentityService, IdentityService>();
+builder.Services.AddScoped<ICompanyService, CompanyService>();
 
 builder.Services.AddRazorPages();
 

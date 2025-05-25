@@ -1,4 +1,4 @@
-﻿namespace LYRA.Server.Services
+﻿namespace LYRA.Server.Services.Interfaces
 {
     public interface IIdentityService
     {
