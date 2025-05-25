@@ -5,6 +5,8 @@ namespace LYRA.Server.Services.Interfaces
 {
     public interface ICompanyService
     {
+        Task<List<CompanyDto>> GetLightweightAsync();
+
         Task<PaginatedResult<CompanyDto>> GetPagedAsync(CompanyFilters filters);
 
         Task<CompanyDto?> GetByIdAsync(Guid id);
