@@ -18,6 +18,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 
 builder.Services.AddScoped<IIdentityService, IdentityService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<ITrustedAgentService, TrustedAgentService>();
 
 builder.Services.AddRazorPages();
 
