@@ -4,9 +4,9 @@
     color: #f8f9fa;
 }
 
-    .feature-card.bg-lyra-dark {
-        background: linear-gradient(135deg, #303030, #121212);
-    }
+.feature-card.bg-lyra-dark {
+    background: linear-gradient(135deg, #303030, #121212);
+}
 
 .feature-card:hover {
     transform: translateY(-4px);
@@ -33,7 +33,17 @@
     transition: all 0.2s ease;
 }
 
-    .dashboard-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
-    }
+.dashboard-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.blurred {
+    filter: blur(6px);
+    transition: filter 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.blurred.reveal {
+    filter: none;
+}
