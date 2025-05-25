@@ -1,3 +1,4 @@
+using LYRA.Server.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -6,8 +7,20 @@ namespace LYRA.Server.Pages.Dashboard
     [Authorize]
     public class IndexModel : PageModel
     {
-        public void OnGet()
+        private readonly ICompanyService _companyService;
+
+        public IndexModel(ICompanyService companyService)
         {
+            _companyService = companyService;
+        }
+
+        public int CompanyCount { get; set; }
+        public int AgentCount { get; set; }
+
+        public async Task OnGetAsync()
+        {
+            CompanyCount = await _companyService.GetTotalCompanyCountAsync();
+            AgentCount = 0;
         }
     }
 }

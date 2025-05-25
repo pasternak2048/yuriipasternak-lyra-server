@@ -2,9 +2,10 @@
 using LYRA.Server.Entities;
 using LYRA.Server.Models.Companies;
 using LYRA.Server.Models.Pagination;
+using LYRA.Server.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace LYRA.Server.Services.Interfaces
+namespace LYRA.Server.Services
 {
     public class CompanyService : ICompanyService
     {
@@ -23,7 +24,7 @@ namespace LYRA.Server.Services.Interfaces
             {
                 query = query.Where(c =>
                     c.Name.Contains(filters.SearchTerm) ||
-                    (c.DisplayName != null && c.DisplayName.Contains(filters.SearchTerm)));
+                    c.DisplayName != null && c.DisplayName.Contains(filters.SearchTerm));
             }
 
             var totalItems = await query.CountAsync();
@@ -102,6 +103,11 @@ namespace LYRA.Server.Services.Interfaces
                 _context.Companies.Remove(entity);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        public async Task<int> GetTotalCompanyCountAsync()
+        {
+            return await _context.Companies.CountAsync();
         }
     }
 }
