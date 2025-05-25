@@ -2,19 +2,10 @@
 
 namespace LYRA.Server.Models.Companies
 {
-    public class CompanyUpdateRequest
+    public class CompanyUpdateRequest : CompanyCreateRequest
     {
         [Required]
         public Guid Id { get; set; }
-
-        [Required, MaxLength(100)]
-        public string Name { get; set; } = null!;
-
-        [MaxLength(200)]
-        public string? DisplayName { get; set; }
-
-        [Required]
-        public string Secret { get; set; } = null!;
 
         public bool IsActive { get; set; }
     }

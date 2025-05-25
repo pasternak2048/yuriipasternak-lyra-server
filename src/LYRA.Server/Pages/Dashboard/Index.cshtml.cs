@@ -8,10 +8,12 @@ namespace LYRA.Server.Pages.Dashboard
     public class IndexModel : PageModel
     {
         private readonly ICompanyService _companyService;
+        private readonly ITrustedAgentService _trustedAgentService;
 
-        public IndexModel(ICompanyService companyService)
+        public IndexModel(ICompanyService companyService, ITrustedAgentService trustedAgentService)
         {
             _companyService = companyService;
+            _trustedAgentService = trustedAgentService;
         }
 
         public int CompanyCount { get; set; }
@@ -20,7 +22,7 @@ namespace LYRA.Server.Pages.Dashboard
         public async Task OnGetAsync()
         {
             CompanyCount = await _companyService.GetTotalCompanyCountAsync();
-            AgentCount = 0;
+            AgentCount = await _trustedAgentService.GetTotalAgentCountAsync();
         }
     }
 }

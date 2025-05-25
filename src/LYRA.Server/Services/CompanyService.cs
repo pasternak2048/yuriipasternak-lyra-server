@@ -20,11 +20,11 @@ namespace LYRA.Server.Services
         {
             var query = _context.Companies.AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(filters.SearchTerm))
+            if (!string.IsNullOrWhiteSpace(filters.Name))
             {
                 query = query.Where(c =>
-                    c.Name.Contains(filters.SearchTerm) ||
-                    c.DisplayName != null && c.DisplayName.Contains(filters.SearchTerm));
+                    c.Name.Contains(filters.Name) ||
+                    c.DisplayName != null && c.DisplayName.Contains(filters.Name));
             }
 
             var totalItems = await query.CountAsync();
