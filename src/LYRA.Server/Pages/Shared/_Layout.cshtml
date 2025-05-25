@@ -26,8 +26,11 @@
                 <a class="nav-link @(Context.Request.Path == "/" ? "active" : "")" asp-page="/Index">
                     <i class="bi bi-house me-2"></i> Home
                 </a>
-                <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Dashboard") ? "active" : "")" asp-page="/Dashboard/Index">
+                <a class="nav-link @(Context.Request.Path == "/Dashboard" ? "active" : "")" asp-page="/Dashboard/Index">
                     <i class="bi bi-bar-chart-line me-2"></i> Dashboard
+                </a>
+                <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Dashboard/Companies") ? "active" : "") ms-4" asp-page="/Dashboard/Companies/Index">
+                    <i class="bi bi-building me-2"></i> Companies
                 </a>
                 <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Privacy") ? "active" : "")" asp-page="/Privacy">
                     <i class="bi bi-lock me-2"></i> Privacy
