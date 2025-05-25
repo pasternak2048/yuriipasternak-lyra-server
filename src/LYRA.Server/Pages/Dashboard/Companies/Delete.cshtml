@@ -1,0 +1,36 @@
+﻿@page "{id:guid}"
+@model LYRA.Server.Pages.Dashboard.Companies.DeleteModel
+@{
+    ViewData["Title"] = "Delete Company";
+}
+
+<div class="container mt-5">
+    <div class="bg-lyra-dark text-light p-4 rounded shadow-sm">
+        <h2 class="fw-bold mb-4 text-danger">
+            <i class="bi bi-trash3 me-2"></i> Delete Company
+        </h2>
+
+        <p class="text-light-emphasis">
+            Are you sure you want to permanently delete the following company?
+        </p>
+
+        <dl class="row">
+            <dt class="col-sm-3">Name</dt>
+            <dd class="col-sm-9">@Model.Company?.Name</dd>
+
+            <dt class="col-sm-3">Display Name</dt>
+            <dd class="col-sm-9">@Model.Company?.DisplayName</dd>
+
+            <dt class="col-sm-3">Created</dt>
+            <dd class="col-sm-9">@Model.Company?.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd")</dd>
+        </dl>
+
+        <form method="post">
+            <input type="hidden" asp-for="CompanyId" />
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash me-1"></i> Delete
+            </button>
+            <a asp-page="Index" class="btn btn-outline-light ms-2">Cancel</a>
+        </form>
+    </div>
+</div>
