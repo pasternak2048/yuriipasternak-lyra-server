@@ -1,49 +1,116 @@
 # 🛡️ LYRA — *Let Yourself Remain Authenticated*
 
-**LYRA** is a lightweight, policy-driven platform for signed, trusted communication between services.
+**LYRA** is a lightweight, policy-driven **authorization platform**  
+for verifying **signed incoming service-to-service requests** between companies or internal systems.
 
-This repository contains the **LYRA.Server** — a centralized service that issues and verifies cryptographic request signatures, enforcing access policies between microservices.
+LYRA provides a centralized mechanism to verify trust between components  
+through the concepts of **TrustedAgent** and **AccessPolicy**.
 
 ---
 
 ## 🌐 What is LYRA?
 
-LYRA verifies the authenticity of every request.
-
-It issues cryptographic signatures (`/sign`) and validates them (`/verify`),  
-enforcing service-to-service access policies with speed, elegance, and minimal configuration.
-
----
-
-## 🔧 Features
-
-- 🔐 HMAC-based request signing (SHA-512)
-- 📜 Centralized access policy enforcement
-- 🛡 `/sign` and `/verify` endpoints
-- ⚙️ JSON-based configuration (no DB required)
-- 🧪 Optional bypass mode for development
-- 🎛 Optional Blazor admin panel (coming soon)
+- 🧱 **LYRA.Server** — the authorization server deployed by the target company
+- ⚙️ **LYRA.Client** — a client library to sign outgoing requests
+- 🛡️ **AccessPolicy** — a rule that allows one agent to access another under defined conditions
 
 ---
 
-## 🔍 Example: Verify Signature
+## 🧠 Core Concepts
 
-```http
-POST /verify
-Content-Type: application/json
+| Concept           | Description |
+|------------------|-------------|
+| `Company`         | An organization that owns one or more agents |
+| `TrustedAgent`    | A logical unit (e.g. service/module) that can act as a **Caller** or **Target** |
+| `AgentMode`       | Defines agent's role: `CallerOnly`, `TargetOnly`, or `Both` |
+| `AccessPolicy`    | A rule that determines whether a caller agent is allowed to access a target agent for a specific route and method |
 
+---
+
+## 🔁 Authorization Flow
+
+1. Agent B (`gateway@bcorp`) signs and sends a request:
+    ```json
+    {
+      "caller": "bcorp::gateway",
+      "target": "acorp::billing",
+      "method": "POST",
+      "path": "/subscribe",
+      "payloadHash": "sha512(...)",
+      "signature": "..."
+    }
+    ```
+
+2. LYRA.Server (hosted by `acorp`) receives and processes the request:
+    - Looks up the `CallerAgent`
+    - Verifies signature using its secret
+    - Confirms existence of a valid policy allowing access to `billing@acorp`
+    - Approves (200) or denies (403) the request
+
+---
+
+## 📦 Entity Structure
+
+```csharp
+Company
+ └── TrustedAgents
+       ├── Mode: CallerOnly / TargetOnly / Both
+       ├── Secret (for signing)
+       ├── OutgoingPolicies → AccessPolicy
+       └── IncomingPolicies ← AccessPolicy
+```
+
+---
+
+## ✅ Access Policy Example
+
+> "Agent `gateway` of `bcorp` is allowed to call `billing` of `acorp` via POST `/subscribe`"
+
+```csharp
+new AccessPolicyEntity
 {
-  "serviceName": "catalog",
-  "unixTime": 1716400000,
-  "payloadHash": "sha512(...payload...)",
-  "signature": "...",
-  "targetService": "subscription",
-  "method": "POST",
-  "path": "/subscribe"
+    CallerAgentId = gateway.Id,
+    TargetAgentId = billing.Id,
+    Method = "POST",
+    PathPattern = "/subscribe"
 }
 ```
+
+---
+
+## 💡 Highlights
+
+- ✅ Supports flexible route matching (`/invoice/*`, `/v1/payment/{id}`)
+- ✅ AgentMode ensures strict role separation
+- ✅ One-way trust — A → B ≠ B → A
+- ✅ Agent-level or Company-level secret usage
+- ✅ Agents unique within a company
+- ✅ Fast runtime signature verification
+
+---
+
+## 🔧 Tech Stack
+
+- ASP.NET Core + EF Core
+- SQLite or SQL Server
+- Optional JWT integration
+- Deployable locally, via Docker, or as part of a Gateway
+
+---
+
+## 🚀 Roadmap
+
+- 🔐 Add support for `RSA` / `ECDSA` keys
+- 📊 Admin dashboard for visualizing connections
+- 🧩 Policy DSL integration
+- 📘 Auto-generated integration docs for partners
+
+---
+
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
 
 LYRA. She signs. She verifies. She protects.
+---
+*"LYRA is your internal firewall. Chaos outside. Order inside."*
