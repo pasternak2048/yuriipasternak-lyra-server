@@ -8,6 +8,8 @@
 
         public string? DisplayName { get; set; }
 
+        public string Secret { get; set; } = null!;
+
         public bool IsActive { get; set; }
 
         public DateTime CreatedAt { get; set; }

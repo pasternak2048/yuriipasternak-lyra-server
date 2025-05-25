@@ -1,4 +1,6 @@
-﻿namespace LYRA.Server.Models.Agents
+﻿using LYRA.Server.Enums;
+
+namespace LYRA.Server.Models.Agents
 {
     public class TrustedAgentDto
     {
@@ -8,9 +10,13 @@
 
         public string CompanyName { get; set; } = null!;
 
+        public string Secret { get; set; } = null!;
+
+        public bool UseCompanySecret { get; set; } = false;
+
         public bool IsActive { get; set; }
 
-        public string Mode { get; set; } = null!;
+        public AgentMode Mode { get; set; }
 
         public DateTime CreatedAt { get; set; }
     }

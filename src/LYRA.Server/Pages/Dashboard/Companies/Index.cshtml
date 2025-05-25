@@ -22,7 +22,7 @@
                     <th>Display Name</th>
                     <th>Status</th>
                     <th>Created</th>
-                    <th style="width: 140px;">Actions</th>
+                    <th style="width: 180px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -44,6 +44,7 @@
                         <td>@company.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd")</td>
                         <td>
                             <div class="d-flex gap-1">
+                                <a asp-page="Details" asp-route-id="@company.Id" class="btn btn-sm btn-outline-info">Details</a>
                                 <a asp-page="Edit" asp-route-id="@company.Id" class="btn btn-sm btn-outline-light">Edit</a>
                                 <a asp-page="Delete" asp-route-id="@company.Id" class="btn btn-sm btn-outline-danger">Delete</a>
                             </div>
@@ -65,3 +66,4 @@
         </nav>
     </div>
 </div>
+

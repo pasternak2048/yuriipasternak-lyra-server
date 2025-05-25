@@ -37,6 +37,7 @@ namespace LYRA.Server.Services
                     Id = c.Id,
                     Name = c.Name,
                     DisplayName = c.DisplayName,
+                    Secret = c.Secret,
                     IsActive = c.IsActive,
                     CreatedAt = c.CreatedAt
                 })
@@ -61,6 +62,7 @@ namespace LYRA.Server.Services
                 Id = entity.Id,
                 Name = entity.Name,
                 DisplayName = entity.DisplayName,
+                Secret = entity.Secret,
                 IsActive = entity.IsActive,
                 CreatedAt = entity.CreatedAt
             };
