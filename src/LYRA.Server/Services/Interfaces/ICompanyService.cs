@@ -14,5 +14,7 @@ namespace LYRA.Server.Services.Interfaces
         Task UpdateAsync(CompanyUpdateRequest request);
 
         Task DeleteAsync(Guid id);
+
+        Task<int> GetTotalCompanyCountAsync();
     }
 }
