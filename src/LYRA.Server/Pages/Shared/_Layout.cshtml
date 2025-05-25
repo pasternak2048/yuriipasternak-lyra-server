@@ -32,6 +32,9 @@
                 <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Dashboard/Companies") ? "active" : "") ms-4" asp-page="/Dashboard/Companies/Index">
                     <i class="bi bi-building me-2"></i> Companies
                 </a>
+                <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Dashboard/TrustedAgents") ? "active" : "")" asp-page="/Dashboard/TrustedAgents/Index">
+                    <i class="bi bi-person-badge me-2"></i> Trusted Agents
+                </a>
                 <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Privacy") ? "active" : "")" asp-page="/Privacy">
                     <i class="bi bi-lock me-2"></i> Privacy
                 </a>

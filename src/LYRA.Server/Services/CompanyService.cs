@@ -16,6 +16,18 @@ namespace LYRA.Server.Services
             _context = context;
         }
 
+        public async Task<List<CompanyDto>> GetLightweightAsync()
+        {
+            return await _context.Companies
+                .OrderBy(c => c.Name)
+                .Select(c => new CompanyDto
+                {
+                    Id = c.Id,
+                    Name = c.Name
+                })
+                .ToListAsync();
+        }
+
         public async Task<PaginatedResult<CompanyDto>> GetPagedAsync(CompanyFilters filters)
         {
             var query = _context.Companies.AsQueryable();
