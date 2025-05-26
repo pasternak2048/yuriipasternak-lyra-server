@@ -12,22 +12,21 @@
 
         <form method="post">
             <div class="mb-3">
-                <label asp-for="Input.Name" class="form-label">Name</label>
-                <input asp-for="Input.Name" class="form-control" />
-                <span asp-validation-for="Input.Name" class="text-danger small"></span>
+                <label class="form-label">Display Name</label>
+                <input asp-for="Input.DisplayName" class="form-control" id="displayNameInput" oninput="lyra.updateSlug('displayNameInput', 'generatedName')" />
+                <span asp-validation-for="Input.DisplayName" class="text-danger small"></span>
             </div>
 
             <div class="mb-3">
-                <label asp-for="Input.DisplayName" class="form-label">Display Name</label>
-                <input asp-for="Input.DisplayName" class="form-control" />
-                <span asp-validation-for="Input.DisplayName" class="text-danger small"></span>
+                <label class="form-label">Generated Name (readonly)</label>
+                <input type="text" class="form-control" id="generatedName" readonly />
             </div>
 
             <div class="mb-3">
                 <label asp-for="Input.Secret" class="form-label">Secret</label>
                 <div class="input-group">
                     <input asp-for="Input.Secret" class="form-control" id="secretInput" />
-                    <button type="button" class="btn btn-outline-secondary" onclick="generateSecret()">Generate</button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="lyra.generateSecret('secretInput')">Generate</button>
                 </div>
                 <span asp-validation-for="Input.Secret" class="text-danger small"></span>
             </div>
@@ -42,11 +41,8 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/lyra-utils.js" asp-append-version="true"></script>
     <script>
-        function generateSecret() {
-            const random = crypto.getRandomValues(new Uint8Array(16));
-            const base64 = btoa(String.fromCharCode(...random));
-            document.getElementById("secretInput").value = base64;
-        }
+        lyra.updateSlug('displayNameInput', 'generatedName'); // sync on load
     </script>
 }

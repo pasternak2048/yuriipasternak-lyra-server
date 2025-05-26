@@ -10,20 +10,27 @@
             <i class="bi bi-building me-2"></i> Companies
         </h2>
 
-        <form method="get" class="mb-4 d-flex gap-2 align-items-end">
-            <input type="text" name="Name" class="form-control" placeholder="Search by name..." value="@Model.Filters.Name" />
-            <button type="submit" class="btn btn-outline-light d-flex align-items-center">
-                <i class="bi bi-search me-1"></i> Search
-            </button>
+        <form method="get" class="mb-4 row g-2 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label">Search</label>
+                <input type="text" name="Name" class="form-control" placeholder="Search by name or display name..." value="@Model.Filters.Name" />
+            </div>
+            <div class="col-md-auto d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-light">
+                    <i class="bi bi-search me-1"></i> Search
+                </button>
+            </div>
         </form>
+
         <a asp-page="Create" class="btn btn-outline-success mb-3">
             <i class="bi bi-plus-circle me-1"></i> New Company
         </a>
+
         <table class="table table-dark table-hover table-bordered align-middle">
             <thead>
                 <tr>
-                    <th>Name</th>
                     <th>Display Name</th>
+                    <th>System Name</th>
                     <th>Status</th>
                     <th>Created</th>
                     <th style="width: 180px;">Actions</th>
@@ -33,8 +40,8 @@
                 @foreach (var company in Model.Companies.Items)
                 {
                     <tr>
-                        <td>@company.Name</td>
                         <td>@company.DisplayName</td>
+                        <td><code>@company.Name</code></td>
                         <td>
                             @if (company.IsActive)
                             {
@@ -63,11 +70,10 @@
                 @for (int i = 1; i <= Model.Companies.TotalPages; i++)
                 {
                     <li class="page-item @(i == Model.Filters.Page ? "active" : "")">
-                        <a class="page-link" href="?page=@i&SearchTerm=@Model.Filters.Name">@i</a>
+                        <a class="page-link" href="?page=@i&Name=@Model.Filters.Name">@i</a>
                     </li>
                 }
             </ul>
         </nav>
     </div>
 </div>
-

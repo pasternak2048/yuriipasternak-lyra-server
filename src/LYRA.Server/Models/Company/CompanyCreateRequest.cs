@@ -4,13 +4,9 @@ namespace LYRA.Server.Models.Company
 {
     public class CompanyCreateRequest
     {
-        [Required, MaxLength(100)]
-        public string Name { get; set; } = null!;
-
-
+        [Required]
         [MaxLength(200)]
-        public string? DisplayName { get; set; }
-
+        public string DisplayName { get; set; } = null!;
 
         [Required]
         public string Secret { get; set; } = null!;
