@@ -8,6 +8,10 @@
 
         public string DisplayName { get; set; } = default!;
 
+        public bool IsActive { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
         public string SecretPlaintext { get; set; } = default!;
     }
 }

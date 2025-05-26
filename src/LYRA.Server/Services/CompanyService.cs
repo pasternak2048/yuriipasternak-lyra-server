@@ -119,6 +119,8 @@ namespace LYRA.Server.Services
                 Id = entity.Id,
                 Name = entity.Name,
                 DisplayName = entity.DisplayName,
+                IsActive = entity.IsActive,
+                CreatedAt = entity.CreatedAt,
                 SecretPlaintext = generatedSecret
             };
         }

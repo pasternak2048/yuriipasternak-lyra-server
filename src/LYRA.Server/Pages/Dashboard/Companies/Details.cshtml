@@ -38,11 +38,6 @@
                 }
             </dd>
 
-            <dt class="col-sm-3">Secret</dt>
-            <dd class="col-sm-9">
-                <code class="blurred secret-toggle">@Model.Company?.Secret</code>
-            </dd>
-
             <dt class="col-sm-3">Created At</dt>
             <dd class="col-sm-9">@Model.Company?.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</dd>
         </dl>
@@ -62,7 +57,6 @@
                         <th>System Name</th>
                         <th>Status</th>
                         <th>Use Company Secret</th>
-                        <th>Secret</th>
                         <th>Mode</th>
                         <th>Created</th>
                     </tr>
@@ -91,18 +85,6 @@
                                 else
                                 {
                                     <span class="badge bg-secondary">No</span>
-                                }
-                            </td>
-                            <td>
-                                @if (t.Mode == TouchpointMode.CallerOnly || t.Mode == TouchpointMode.Both)
-                                {
-                                    <div class="small text-muted mt-1">
-                                        <code class="blurred secret-toggle">@(t.UseCompanySecret? Model.Company?.Secret : t.Secret)</code>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="small text-muted mt-1">–</div>
                                 }
                             </td>
                             <td>@t.Mode.ToString()</td>
