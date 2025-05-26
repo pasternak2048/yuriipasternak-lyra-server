@@ -18,5 +18,7 @@ namespace LYRA.Server.Services.Interfaces
         Task DeleteAsync(Guid id);
 
         Task<int> GetTotalCompanyCountAsync();
+
+        Task<bool> ExistsByNameAsync(string name, Guid? excludeId = null);
     }
 }

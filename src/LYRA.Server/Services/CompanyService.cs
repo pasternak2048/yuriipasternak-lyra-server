@@ -131,5 +131,14 @@ namespace LYRA.Server.Services
         {
             return await _context.Companies.CountAsync();
         }
+
+        public async Task<bool> ExistsByNameAsync(string name, Guid? excludeId = null)
+        {
+            var normalized = name.ToLowerInvariant();
+
+            return await _context.Companies.AnyAsync(c =>
+                c.Name == normalized &&
+                (!excludeId.HasValue || c.Id != excludeId.Value));
+        }
     }
 }

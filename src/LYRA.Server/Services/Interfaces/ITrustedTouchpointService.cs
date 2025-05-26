@@ -17,6 +17,10 @@ namespace LYRA.Server.Services.Interfaces
 
         Task<int> GetTotalTouchpointCountAsync();
 
+        Task<bool> ExistsByNameAsync(string name, Guid? excludeId = null);
+
+        Task<bool> ExistsByCompanyAndNameAsync(Guid companyId, string name);
+
         Task<List<TrustedTouchpointDto>> GetByCompanyAsync(Guid companyId);
     }
 }

@@ -155,6 +155,34 @@ namespace LYRA.Server.Services
         }
 
         /// <summary>
+        /// Checks if a Trusted Touchpoint with the given name (normalized) already exists in the database.
+        /// Optionally excludes a specific Touchpoint ID from the check (useful for update scenarios).
+        /// </summary>
+        public async Task<bool> ExistsByNameAsync(string name, Guid? excludeId = null)
+        {
+            var normalized = name.ToLowerInvariant();
+
+            return await _context.TrustedTouchpoints.AnyAsync(c =>
+                c.Name == normalized &&
+                (!excludeId.HasValue || c.Id != excludeId.Value));
+        }
+
+        /// <summary>
+        /// Checks whether a trusted touchpoint with the given normalized name
+        /// already exists for the specified company. This is used to enforce the
+        /// uniqueness constraint on (CompanyId, Name) combination.
+        /// </summary>
+        /// <param name="companyId">ID of the company to check within</param>
+        /// <param name="name">Normalized (slugified) name of the touchpoint</param>
+        /// <returns>True if a touchpoint with the same name exists in the company</returns>
+
+        public async Task<bool> ExistsByCompanyAndNameAsync(Guid companyId, string name)
+        {
+            return await _context.TrustedTouchpoints
+                .AnyAsync(t => t.CompanyId == companyId && t.Name == name);
+        }
+
+        /// <summary>
         /// Returns all trusted touchpoints that belong to a specific company
         /// </summary>
         public async Task<List<TrustedTouchpointDto>> GetByCompanyAsync(Guid companyId)
