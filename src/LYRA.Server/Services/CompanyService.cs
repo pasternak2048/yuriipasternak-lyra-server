@@ -87,11 +87,18 @@ namespace LYRA.Server.Services
         /// </summary>
         public async Task AddAsync(CompanyCreateRequest request)
         {
-            var normalizedName = SlugHelper.Slugify(request.DisplayName);
+            var normalizedName = NameHelper.NormalizeAndValidate(request.DisplayName);
 
-            if (string.IsNullOrWhiteSpace(normalizedName))
+            if (string.IsNullOrWhiteSpace(request.Secret))
             {
-                throw new InvalidOperationException("Generated name from display name cannot be empty.");
+                throw new ArgumentException("Secret must not be empty.");
+            }
+
+            var exists = await ExistsByNameAsync(normalizedName);
+
+            if (exists)
+            {
+                throw new InvalidOperationException($"A company with name '{normalizedName}' already exists.");
             }
 
             var entity = new CompanyEntity
@@ -113,11 +120,18 @@ namespace LYRA.Server.Services
         /// </summary>
         public async Task UpdateAsync(CompanyUpdateRequest request)
         {
-            var normalizedName = SlugHelper.Slugify(request.DisplayName);
+            var normalizedName = NameHelper.NormalizeAndValidate(request.DisplayName);
 
-            if (string.IsNullOrWhiteSpace(normalizedName))
+            if (string.IsNullOrWhiteSpace(request.Secret))
             {
-                throw new InvalidOperationException("Generated name from display name cannot be empty.");
+                throw new ArgumentException("Secret must not be empty.");
+            }
+
+            var exists = await ExistsByNameAsync(normalizedName, request.Id);
+
+            if (exists)
+            {
+                throw new InvalidOperationException($"A company with name '{normalizedName}' already exists.");
             }
 
             var entity = await _context.Companies.FindAsync(request.Id);
