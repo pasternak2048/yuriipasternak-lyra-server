@@ -97,12 +97,18 @@ namespace LYRA.Server.Services
         /// </summary>
         public async Task AddAsync(TrustedTouchpointCreateRequest request)
         {
-            var normalizedName = SlugHelper.Slugify(request.DisplayName);
+            var normalizedName = NameHelper.NormalizeAndValidate(request.DisplayName);
 
-            if (string.IsNullOrWhiteSpace(normalizedName))
-            {
-                throw new InvalidOperationException("Generated name from display name cannot be empty.");
-            }
+            var exists = await ExistsByCompanyAndNameAsync(request.CompanyId, normalizedName);
+            if (exists)
+                throw new InvalidOperationException($"A touchpoint with name '{normalizedName}' already exists in this company.");
+
+            var companyExists = await _context.Companies.AnyAsync(c => c.Id == request.CompanyId);
+            if (!companyExists)
+                throw new InvalidOperationException("Target company does not exist.");
+
+            if (!request.UseCompanySecret && string.IsNullOrWhiteSpace(request.Secret))
+                throw new ArgumentException("Secret must be provided if 'UseCompanySecret' is false.");
 
             var entity = new TrustedTouchpointEntity
             {
@@ -127,15 +133,25 @@ namespace LYRA.Server.Services
         /// </summary>
         public async Task UpdateAsync(TrustedTouchpointUpdateRequest request)
         {
-            var normalizedName = SlugHelper.Slugify(request.DisplayName);
+            var normalizedName = NameHelper.NormalizeAndValidate(request.DisplayName);
 
-            if (string.IsNullOrWhiteSpace(normalizedName))
+            var exists = await ExistsByCompanyAndNameAsync(request.CompanyId, normalizedName);
+            if (exists)
             {
-                throw new InvalidOperationException("Generated name from display name cannot be empty.");
+                var other = await _context.TrustedTouchpoints
+                    .Where(t => t.CompanyId == request.CompanyId && t.Name == normalizedName)
+                    .Select(t => t.Id)
+                    .FirstOrDefaultAsync();
+
+                if (other != request.Id)
+                    throw new InvalidOperationException($"Another touchpoint with name '{normalizedName}' already exists.");
             }
 
             var entity = await _context.TrustedTouchpoints.FindAsync(request.Id);
             if (entity == null) return;
+
+            if (!request.UseCompanySecret && string.IsNullOrWhiteSpace(request.Secret))
+                throw new ArgumentException("Secret must be provided if 'UseCompanySecret' is false.");
 
             entity.Name = normalizedName;
             entity.DisplayName = request.DisplayName;
