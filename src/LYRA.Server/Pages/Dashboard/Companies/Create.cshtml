@@ -43,6 +43,11 @@
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/lyra-utils.js" asp-append-version="true"></script>
     <script>
-        lyra.updateSlug('displayNameInput', 'generatedName'); // sync on load
+        lyra.updateSlug('displayNameInput', 'generatedName');
+
+        document.getElementById('displayNameInput')?.addEventListener('input', () => {
+            lyra.updateSlug('displayNameInput', 'generatedName');
+        });
     </script>
+}
 }
