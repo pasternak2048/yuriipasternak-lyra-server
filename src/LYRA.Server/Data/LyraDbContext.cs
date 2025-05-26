@@ -29,11 +29,13 @@ namespace LYRA.Server.Data
                 .HasConversion(
                     v => v.ToLowerInvariant(),
                     v => v
-                );
+                )
+                .IsUnicode(false)
+                .HasColumnType("varchar(100)");
 
             // TrustedTouchpoint
             modelBuilder.Entity<TrustedTouchpointEntity>()
-                .HasIndex(t => new { t.CompanyId, t.Name })
+                .HasIndex(t => new { t.CompanyId, t.Name }) // Ensure slug is unique within company
                 .IsUnique();
 
             modelBuilder.Entity<CompanyEntity>()
@@ -61,6 +63,15 @@ namespace LYRA.Server.Data
             modelBuilder.Entity<TrustedTouchpointEntity>()
                 .Property(t => t.SignatureType)
                 .HasConversion<string>();
+
+            modelBuilder.Entity<TrustedTouchpointEntity>()
+                .Property(t => t.Name)
+                .HasConversion(
+                    v => v.ToLowerInvariant(),
+                    v => v
+                )
+                .IsUnicode(false)
+                .HasColumnType("varchar(100)");
 
             // AccessPolicy
             modelBuilder.Entity<AccessPolicyEntity>()

@@ -20,6 +20,13 @@ namespace LYRA.Server.Entities
         public string Name { get; set; } = null!;
 
         /// <summary>
+        /// Display name (UI-friendly, required)
+        /// </summary>
+        [Required]
+        [MaxLength(200)]
+        public string DisplayName { get; set; } = null!;
+
+        /// <summary>
         /// Unique secret or public key used for signature verification
         /// </summary>
         [Required]

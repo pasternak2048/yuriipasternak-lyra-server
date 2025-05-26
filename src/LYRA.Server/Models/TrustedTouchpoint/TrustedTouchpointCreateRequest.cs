@@ -11,11 +11,11 @@ namespace LYRA.Server.Models.TrustedTouchpoint
         public Guid CompanyId { get; set; }
 
         /// <summary>
-        /// Human-readable name of the touchpoint
+        /// Display name (used for UI and auto-generating the name)
         /// </summary>
         [Required]
-        [MaxLength(100)]
-        public string Name { get; set; } = null!;
+        [MaxLength(200)]
+        public string DisplayName { get; set; } = null!;
 
         /// <summary>
         /// Secret or public key for the touchpoint

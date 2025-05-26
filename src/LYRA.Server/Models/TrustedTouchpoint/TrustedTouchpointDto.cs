@@ -1,4 +1,5 @@
 ﻿using LYRA.Server.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace LYRA.Server.Models.TrustedTouchpoint
 {
@@ -10,9 +11,14 @@ namespace LYRA.Server.Models.TrustedTouchpoint
         public Guid Id { get; set; }
 
         /// <summary>
-        /// Human-readable name of the touchpoint
+        /// Machine-readable name (used for lookup)
         /// </summary>
         public string Name { get; set; } = null!;
+
+        /// <summary>
+        /// Display name (shown in UI)
+        /// </summary>
+        public string DisplayName { get; set; } = null!;
 
         /// <summary>
         /// Company name (for display only)

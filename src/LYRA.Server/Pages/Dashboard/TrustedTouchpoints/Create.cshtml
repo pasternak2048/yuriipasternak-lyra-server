@@ -1,0 +1,102 @@
+﻿@page
+@model LYRA.Server.Pages.Dashboard.TrustedTouchpoints.CreateModel
+@{
+    ViewData["Title"] = "Create Trusted Touchpoint";
+}
+
+<div class="container mt-5">
+    <div class="bg-lyra-dark text-light p-4 rounded shadow-sm">
+        <h2 class="fw-bold mb-4">
+            <i class="bi bi-plus-circle me-2"></i> Create Trusted Touchpoint
+        </h2>
+
+        <form method="post">
+            <div class="mb-3">
+                <label asp-for="Input.CompanyId" class="form-label">Company</label>
+                <select asp-for="Input.CompanyId" class="form-select">
+                    <option value="">Select a company...</option>
+                    @foreach (var company in Model.Companies)
+                    {
+                        <option value="@company.Id">@company.Name</option>
+                    }
+                </select>
+                <span asp-validation-for="Input.CompanyId" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.DisplayName" class="form-label">Display Name</label>
+                <input asp-for="Input.DisplayName" class="form-control" id="displayNameInput" oninput="lyra.updateSlug()" />
+                <span asp-validation-for="Input.DisplayName" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Generated Name (readonly)</label>
+                <input type="text" class="form-control" id="generatedName" readonly />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.Secret" class="form-label">Secret</label>
+                <div class="input-group">
+                    <input asp-for="Input.Secret" class="form-control" id="secretInput" />
+                    <button type="button" class="btn btn-outline-secondary" onclick="lyra.generateSecret('secretInput')">Generate</button>
+                </div>
+                <span asp-validation-for="Input.Secret" class="text-danger small"></span>
+            </div>
+
+            <div class="form-check form-switch mb-3">
+                <input asp-for="Input.UseCompanySecret" class="form-check-input" type="checkbox" />
+                <label asp-for="Input.UseCompanySecret" class="form-check-label">Use Company Secret</label>
+            </div>
+
+            <div class="form-check form-switch mb-3">
+                <input asp-for="Input.IsActive" class="form-check-input" type="checkbox" />
+                <label asp-for="Input.IsActive" class="form-check-label">Is Active</label>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.Mode" class="form-label">Touchpoint Mode</label>
+                <select asp-for="Input.Mode" class="form-select">
+                    <option value="CallerOnly">CallerOnly</option>
+                    <option value="TargetOnly">TargetOnly</option>
+                    <option value="Both">Both</option>
+                </select>
+                <span asp-validation-for="Input.Mode" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.SignatureType" class="form-label">Signature Type</label>
+                <select asp-for="Input.SignatureType" class="form-select">
+                    <option value="HMAC">HMAC</option>
+                    <option value="RSA">RSA</option>
+                    <option value="None">None</option>
+                </select>
+                <span asp-validation-for="Input.SignatureType" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.Description" class="form-label">Description (optional)</label>
+                <textarea asp-for="Input.Description" class="form-control" rows="2"></textarea>
+                <span asp-validation-for="Input.Description" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.AllowedSourceIp" class="form-label">Allowed Source IP (optional)</label>
+                <input asp-for="Input.AllowedSourceIp" class="form-control" />
+                <span asp-validation-for="Input.AllowedSourceIp" class="text-danger small"></span>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <a asp-page="Index" class="btn btn-outline-light">Cancel</a>
+                <button type="submit" class="btn btn-primary">Create</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="~/js/lyra-utils.js" asp-append-version="true"></script>
+<script>
+    lyra.updateSlug("displayNameInput", "generatedName");
+    document.getElementById("displayNameInput")?.addEventListener("input", () => {
+        lyra.updateSlug("displayNameInput", "generatedName");
+    });
+</script>
