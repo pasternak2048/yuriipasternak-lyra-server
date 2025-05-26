@@ -11,7 +11,7 @@ namespace LYRA.Server.Data
 
         public DbSet<CompanyEntity> Companies=> Set<CompanyEntity>();
 
-        public DbSet<TrustedAgentEntity> TrustedAgents => Set<TrustedAgentEntity>();
+        public DbSet<TrustedTouchpointEntity> TrustedTouchpoints => Set<TrustedTouchpointEntity>();
 
         public DbSet<AccessPolicyEntity> AccessPolicies => Set<AccessPolicyEntity>();
 
@@ -19,6 +19,7 @@ namespace LYRA.Server.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Company
             modelBuilder.Entity<CompanyEntity>()
                 .HasIndex(c => c.Name)
                 .IsUnique();
@@ -30,39 +31,50 @@ namespace LYRA.Server.Data
                     v => v
                 );
 
-            modelBuilder.Entity<TrustedAgentEntity>()
-                .HasIndex(a => new { a.CompanyId, a.Name })
+            // TrustedTouchpoint
+            modelBuilder.Entity<TrustedTouchpointEntity>()
+                .HasIndex(t => new { t.CompanyId, t.Name })
                 .IsUnique();
 
             modelBuilder.Entity<CompanyEntity>()
-                .HasMany(c => c.Agents)
-                .WithOne(a => a.Company)
-                .HasForeignKey(a => a.CompanyId)
+                .HasMany(c => c.TrustedTouchpoints)
+                .WithOne(t => t.Company)
+                .HasForeignKey(t => t.CompanyId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<TrustedAgentEntity>()
-                .HasMany(a => a.OutgoingPolicies)
-                .WithOne(p => p.CallerAgent)
-                .HasForeignKey(p => p.CallerAgentId)
+            modelBuilder.Entity<TrustedTouchpointEntity>()
+                .HasMany(t => t.OutgoingPolicies)
+                .WithOne(p => p.Caller)
+                .HasForeignKey(p => p.CallerId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<TrustedAgentEntity>()
-                .HasMany(a => a.IncomingPolicies)
-                .WithOne(p => p.TargetAgent)
-                .HasForeignKey(p => p.TargetAgentId)
+            modelBuilder.Entity<TrustedTouchpointEntity>()
+                .HasMany(t => t.IncomingPolicies)
+                .WithOne(p => p.Target)
+                .HasForeignKey(p => p.TargetId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<TrustedAgentEntity>()
-                .Property(a => a.Mode)
+            modelBuilder.Entity<TrustedTouchpointEntity>()
+                .Property(t => t.Mode)
                 .HasConversion<string>();
 
+            modelBuilder.Entity<TrustedTouchpointEntity>()
+                .Property(t => t.SignatureType)
+                .HasConversion<string>();
+
+            // AccessPolicy
             modelBuilder.Entity<AccessPolicyEntity>()
-                .HasIndex(p => new {
-                    p.CallerAgentId,
-                    p.TargetAgentId,
-                    p.Method,
-                    p.PathPattern
+                .HasIndex(p => new
+                {
+                    p.CallerId,
+                    p.TargetId,
+                    p.Context,
+                    p.Operation
                 }).IsUnique();
+
+            modelBuilder.Entity<AccessPolicyEntity>()
+                .Property(p => p.Context)
+                .HasConversion<string>();
         }
     }
 }

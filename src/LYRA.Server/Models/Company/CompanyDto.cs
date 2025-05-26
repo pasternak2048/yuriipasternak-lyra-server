@@ -1,4 +1,4 @@
-﻿namespace LYRA.Server.Models.Companies
+﻿namespace LYRA.Server.Models.Company
 {
     public class CompanyDto
     {

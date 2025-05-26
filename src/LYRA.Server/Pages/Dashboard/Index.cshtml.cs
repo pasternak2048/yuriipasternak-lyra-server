@@ -8,21 +8,21 @@ namespace LYRA.Server.Pages.Dashboard
     public class IndexModel : PageModel
     {
         private readonly ICompanyService _companyService;
-        private readonly ITrustedAgentService _trustedAgentService;
+        private readonly ITrustedTouchpointService _trustedTouchpointService;
 
-        public IndexModel(ICompanyService companyService, ITrustedAgentService trustedAgentService)
+        public IndexModel(ICompanyService companyService, ITrustedTouchpointService trustedTouchpointService)
         {
             _companyService = companyService;
-            _trustedAgentService = trustedAgentService;
+            _trustedTouchpointService = trustedTouchpointService;
         }
 
         public int CompanyCount { get; set; }
-        public int AgentCount { get; set; }
+        public int TouchpointCount { get; set; }
 
         public async Task OnGetAsync()
         {
             CompanyCount = await _companyService.GetTotalCompanyCountAsync();
-            AgentCount = await _trustedAgentService.GetTotalAgentCountAsync();
+            TouchpointCount = await _trustedTouchpointService.GetTotalTouchpointCountAsync();
         }
     }
 }
