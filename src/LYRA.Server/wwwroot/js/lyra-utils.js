@@ -35,3 +35,12 @@ window.lyra.updateSlug = function (inputId, outputId) {
         output.value = window.lyra.slugify(input.value);
     }
 };
+
+/**
+ * Filters the DisplayName input to allow only:
+ * Latin letters, numbers, space, and . , - _ /
+ */
+window.lyra.filterDisplayName = function (input) {
+    if (!input || !input.value) return;
+    input.value = input.value.replace(/[^a-zA-Z0-9 .,\-_/]/g, '');
+};

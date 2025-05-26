@@ -13,7 +13,7 @@
         <form method="post">
             <div class="mb-3">
                 <label class="form-label">Display Name</label>
-                <input asp-for="Input.DisplayName" class="form-control" id="displayNameInput" oninput="lyra.updateSlug('displayNameInput', 'generatedName')" />
+                <input asp-for="Input.DisplayName" class="form-control" id="displayNameInput" oninput="lyra.filterDisplayName(this); lyra.updateSlug('displayNameInput', 'generatedName');" />
                 <span asp-validation-for="Input.DisplayName" class="text-danger small"></span>
             </div>
 
@@ -43,11 +43,14 @@
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/lyra-utils.js" asp-append-version="true"></script>
     <script>
-        lyra.updateSlug('displayNameInput', 'generatedName');
+        const input = document.getElementById('displayNameInput');
+        if (input) {
+            input.addEventListener('input', () => {
+                lyra.filterDisplayName(input);
+                lyra.updateSlug('displayNameInput', 'generatedName');
+            });
 
-        document.getElementById('displayNameInput')?.addEventListener('input', () => {
             lyra.updateSlug('displayNameInput', 'generatedName');
-        });
+        }
     </script>
-}
 }

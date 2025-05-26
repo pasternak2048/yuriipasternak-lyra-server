@@ -43,6 +43,13 @@ namespace LYRA.Server.Pages.Dashboard.Companies
                 return Page();
 
             var normalizedName = SlugHelper.Slugify(Input.DisplayName);
+
+            if (string.IsNullOrWhiteSpace(normalizedName))
+            {
+                ModelState.AddModelError("Input.DisplayName", "Display name must contain at least one alphanumeric character.");
+                return Page();
+            }
+
             var exists = await _companyService.ExistsByNameAsync(normalizedName, Input.Id);
 
             if (exists)
