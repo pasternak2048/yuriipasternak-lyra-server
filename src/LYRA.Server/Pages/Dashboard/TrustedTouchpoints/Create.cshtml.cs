@@ -39,6 +39,13 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
                 return Page();
 
             var normalizedName = SlugHelper.Slugify(Input.DisplayName);
+
+            if (string.IsNullOrWhiteSpace(normalizedName))
+            {
+                ModelState.AddModelError("Input.DisplayName", "Display name must contain at least one alphanumeric character.");
+                return Page();
+            }
+
             var exists = await _touchpointService.ExistsByCompanyAndNameAsync(Input.CompanyId, normalizedName);
 
             if (exists)

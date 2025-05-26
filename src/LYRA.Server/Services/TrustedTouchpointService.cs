@@ -97,11 +97,18 @@ namespace LYRA.Server.Services
         /// </summary>
         public async Task AddAsync(TrustedTouchpointCreateRequest request)
         {
+            var normalizedName = SlugHelper.Slugify(request.DisplayName);
+
+            if (string.IsNullOrWhiteSpace(normalizedName))
+            {
+                throw new InvalidOperationException("Generated name from display name cannot be empty.");
+            }
+
             var entity = new TrustedTouchpointEntity
             {
                 Id = Guid.NewGuid(),
                 CompanyId = request.CompanyId,
-                Name = SlugHelper.Slugify(request.DisplayName),
+                Name = normalizedName,
                 DisplayName = request.DisplayName,
                 Secret = request.Secret,
                 UseCompanySecret = request.UseCompanySecret,
@@ -120,10 +127,17 @@ namespace LYRA.Server.Services
         /// </summary>
         public async Task UpdateAsync(TrustedTouchpointUpdateRequest request)
         {
+            var normalizedName = SlugHelper.Slugify(request.DisplayName);
+
+            if (string.IsNullOrWhiteSpace(normalizedName))
+            {
+                throw new InvalidOperationException("Generated name from display name cannot be empty.");
+            }
+
             var entity = await _context.TrustedTouchpoints.FindAsync(request.Id);
             if (entity == null) return;
 
-            entity.Name = SlugHelper.Slugify(request.DisplayName);
+            entity.Name = normalizedName;
             entity.DisplayName = request.DisplayName;
             entity.Secret = request.Secret;
             entity.UseCompanySecret = request.UseCompanySecret;
