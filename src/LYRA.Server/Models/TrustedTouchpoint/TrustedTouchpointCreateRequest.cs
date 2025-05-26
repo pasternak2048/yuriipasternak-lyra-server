@@ -18,12 +18,6 @@ namespace LYRA.Server.Models.TrustedTouchpoint
         public string DisplayName { get; set; } = null!;
 
         /// <summary>
-        /// Secret or public key for the touchpoint
-        /// </summary>
-        [Required]
-        public string Secret { get; set; } = null!;
-
-        /// <summary>
         /// Whether to use the company-wide secret instead of individual one
         /// </summary>
         public bool UseCompanySecret { get; set; }

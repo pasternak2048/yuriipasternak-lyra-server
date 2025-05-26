@@ -1,5 +1,6 @@
 ﻿using LYRA.Server.Models.Company;
 using LYRA.Server.Models.Pagination;
+using LYRA.Server.Models.Shared;
 
 namespace LYRA.Server.Services.Interfaces
 {
@@ -11,7 +12,7 @@ namespace LYRA.Server.Services.Interfaces
 
         Task<CompanyDto?> GetByIdAsync(Guid id);
 
-        Task AddAsync(CompanyCreateRequest request);
+        Task<CompanyCreatedDto> AddAsync(CompanyCreateRequest request);
 
         Task UpdateAsync(CompanyUpdateRequest request);
 
@@ -20,5 +21,7 @@ namespace LYRA.Server.Services.Interfaces
         Task<int> GetTotalCompanyCountAsync();
 
         Task<bool> ExistsByNameAsync(string name, Guid? excludeId = null);
+
+        Task<SecretRotationResult?> RotateSecretAsync(Guid companyId);
     }
 }

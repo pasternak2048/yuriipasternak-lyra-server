@@ -26,11 +26,6 @@ namespace LYRA.Server.Models.TrustedTouchpoint
         public string CompanyName { get; set; } = null!;
 
         /// <summary>
-        /// Secret assigned to this touchpoint (may be masked in UI)
-        /// </summary>
-        public string Secret { get; set; } = null!;
-
-        /// <summary>
         /// Indicates whether this touchpoint uses the company-wide secret
         /// </summary>
         public bool UseCompanySecret { get; set; }

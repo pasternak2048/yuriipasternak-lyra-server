@@ -1,4 +1,5 @@
 ﻿using LYRA.Server.Models.Pagination;
+using LYRA.Server.Models.Shared;
 using LYRA.Server.Models.TrustedTouchpoint;
 
 namespace LYRA.Server.Services.Interfaces
@@ -9,7 +10,7 @@ namespace LYRA.Server.Services.Interfaces
 
         Task<TrustedTouchpointDto?> GetByIdAsync(Guid id);
 
-        Task AddAsync(TrustedTouchpointCreateRequest request);
+        Task<TrustedTouchpointCreatedDto> AddAsync(TrustedTouchpointCreateRequest request);
 
         Task UpdateAsync(TrustedTouchpointUpdateRequest request);
 
@@ -22,5 +23,7 @@ namespace LYRA.Server.Services.Interfaces
         Task<bool> ExistsByCompanyAndNameAsync(Guid companyId, string name);
 
         Task<List<TrustedTouchpointDto>> GetByCompanyAsync(Guid companyId);
+
+        Task<SecretRotationResult?> RotateSecretAsync(Guid companyId);
     }
 }

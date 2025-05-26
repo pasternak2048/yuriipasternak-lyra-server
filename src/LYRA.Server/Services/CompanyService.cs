@@ -1,9 +1,12 @@
 ﻿using LYRA.Server.Data;
 using LYRA.Server.Entities;
+using LYRA.Server.Enums;
 using LYRA.Server.Models.Company;
 using LYRA.Server.Models.Pagination;
+using LYRA.Server.Models.Shared;
 using LYRA.Server.Services.Interfaces;
 using LYRA.Server.Utilities;
+using LYRA.Server.Utilities.Security;
 using Microsoft.EntityFrameworkCore;
 
 namespace LYRA.Server.Services
@@ -51,7 +54,6 @@ namespace LYRA.Server.Services
                     Id = c.Id,
                     Name = c.Name,
                     DisplayName = c.DisplayName,
-                    Secret = c.Secret,
                     IsActive = c.IsActive,
                     CreatedAt = c.CreatedAt
                 })
@@ -76,7 +78,6 @@ namespace LYRA.Server.Services
                 Id = entity.Id,
                 Name = entity.Name,
                 DisplayName = entity.DisplayName,
-                Secret = entity.Secret,
                 IsActive = entity.IsActive,
                 CreatedAt = entity.CreatedAt
             };
@@ -85,34 +86,41 @@ namespace LYRA.Server.Services
         /// <summary>
         /// Creates a new company. The machine-readable Name is auto-generated from DisplayName.
         /// </summary>
-        public async Task AddAsync(CompanyCreateRequest request)
+        public async Task<CompanyCreatedDto> AddAsync(CompanyCreateRequest request)
         {
             var normalizedName = NameHelper.NormalizeAndValidate(request.DisplayName);
 
-            if (string.IsNullOrWhiteSpace(request.Secret))
-            {
-                throw new ArgumentException("Secret must not be empty.");
-            }
-
             var exists = await ExistsByNameAsync(normalizedName);
-
             if (exists)
-            {
                 throw new InvalidOperationException($"A company with name '{normalizedName}' already exists.");
-            }
 
+            string? generatedSecret = null;
+
+            generatedSecret = SecretGenerator.Generate();
+
+            if (string.IsNullOrWhiteSpace(generatedSecret))
+                throw new InvalidOperationException("Failed to generate secret.");
+            
             var entity = new CompanyEntity
             {
                 Id = Guid.NewGuid(),
                 Name = normalizedName,
                 DisplayName = request.DisplayName,
-                Secret = request.Secret,
+                Secret = HashHelper.HashSecret(generatedSecret),
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
 
             _context.Companies.Add(entity);
             await _context.SaveChangesAsync();
+
+            return new CompanyCreatedDto
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                DisplayName = entity.DisplayName,
+                SecretPlaintext = generatedSecret
+            };
         }
 
         /// <summary>
@@ -122,24 +130,16 @@ namespace LYRA.Server.Services
         {
             var normalizedName = NameHelper.NormalizeAndValidate(request.DisplayName);
 
-            if (string.IsNullOrWhiteSpace(request.Secret))
-            {
-                throw new ArgumentException("Secret must not be empty.");
-            }
-
             var exists = await ExistsByNameAsync(normalizedName, request.Id);
 
             if (exists)
-            {
                 throw new InvalidOperationException($"A company with name '{normalizedName}' already exists.");
-            }
 
             var entity = await _context.Companies.FindAsync(request.Id);
             if (entity == null) return;
 
             entity.Name = normalizedName;
             entity.DisplayName = request.DisplayName;
-            entity.Secret = request.Secret;
             entity.IsActive = request.IsActive;
 
             await _context.SaveChangesAsync();
@@ -167,6 +167,24 @@ namespace LYRA.Server.Services
             return await _context.Companies.AnyAsync(c =>
                 c.Name == normalized &&
                 (!excludeId.HasValue || c.Id != excludeId.Value));
+        }
+
+        public async Task<SecretRotationResult?> RotateSecretAsync(Guid companyId)
+        {
+            var company = await _context.Companies.FindAsync(companyId);
+            if (company == null) return null;
+
+            var newSecret = SecretGenerator.Generate();
+            company.Secret = HashHelper.HashSecret(newSecret);
+
+            await _context.SaveChangesAsync();
+
+            return new SecretRotationResult
+            {
+                EntityId = company.Id,
+                OwnerType = SecretOwnerType.Company,
+                SecretPlaintext = newSecret
+            };
         }
     }
 }
