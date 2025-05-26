@@ -1,35 +1,35 @@
 # 🛡️ LYRA — *Let Yourself Remain Authenticated*
 
-**LYRA** is a lightweight, policy-driven **authorization platform**  
-for verifying **signed incoming service-to-service requests** between companies or internal systems.
+**LYRA** is a centralized, policy-based **authorization server** designed to verify **signed requests** between trusted systems — both **internally** and **between companies**.
 
-LYRA provides a centralized mechanism to verify trust between components  
-through the concepts of **TrustedAgent** and **AccessPolicy**.
+It introduces the concept of **Trusted Touchpoints** and **Access Policies** to ensure **secure, controlled access** across boundaries.
 
 ---
 
 ## 🌐 What is LYRA?
 
-- 🧱 **LYRA.Server** — the authorization server deployed by the target company
-- ⚙️ **LYRA.Client** — a client library to sign outgoing requests
-- 🛡️ **AccessPolicy** — a rule that allows one agent to access another under defined conditions
+- 🧱 **LYRA.Server** — a self-hosted authorization and verification center for backend systems  
+- ⚙️ **LYRA.Client** — a lightweight client for signing outgoing requests (HMAC, RSA, etc.)  
+- 🛡️ **AccessPolicy** — rules defining which system can talk to which, and under what conditions  
 
 ---
 
 ## 🧠 Core Concepts
 
-| Concept           | Description |
-|------------------|-------------|
-| `Company`         | An organization that owns one or more agents |
-| `TrustedAgent`    | A logical unit (e.g. service/module) that can act as a **Caller** or **Target** |
-| `AgentMode`       | Defines agent's role: `CallerOnly`, `TargetOnly`, or `Both` |
-| `AccessPolicy`    | A rule that determines whether a caller agent is allowed to access a target agent for a specific route and method |
+| Concept             | Description |
+|--------------------|-------------|
+| `Company`           | A tenant or organization managing multiple systems |
+| `TrustedTouchpoint` | A service or system component acting as a **Caller**, **Target**, or **Both** |
+| `TouchpointMode`    | Defines direction: `CallerOnly`, `TargetOnly`, or `Both` |
+| `AccessPolicy`      | A rule that grants a caller the right to access a specific target |
+| `AccessContext`     | Type of interaction: `Http`, `Event`, `Cache`, `Grpc`, `Internal`, or `Soap` |
+| `SignatureType`     | Signature algorithm: `HMAC`, `RSA`, or `None` |
 
 ---
 
 ## 🔁 Authorization Flow
 
-1. Agent B (`gateway@bcorp`) signs and sends a request:
+1. A service from `bcorp` sends a signed request:
     ```json
     {
       "caller": "bcorp::gateway",
@@ -37,25 +37,28 @@ through the concepts of **TrustedAgent** and **AccessPolicy**.
       "method": "POST",
       "path": "/subscribe",
       "payloadHash": "sha512(...)",
-      "signature": "..."
+      "signature": "base64(...)"
     }
     ```
 
-2. LYRA.Server (hosted by `acorp`) receives and processes the request:
-    - Looks up the `CallerAgent`
-    - Verifies signature using its secret
-    - Confirms existence of a valid policy allowing access to `billing@acorp`
+2. `acorp`'s **LYRA.Server** receives and validates:
+    - Looks up the **Caller Touchpoint**
+    - Verifies the **signature**
+    - Confirms an `AccessPolicy` exists for the call
     - Approves (200) or denies (403) the request
 
 ---
 
-## 📦 Entity Structure
+## 🧱 Entity Structure
 
 ```csharp
 Company
- └── TrustedAgents
+ └── TrustedTouchpoints
        ├── Mode: CallerOnly / TargetOnly / Both
-       ├── Secret (for signing)
+       ├── Secret or PublicKey
+       ├── UseCompanySecret
+       ├── SignatureType
+       ├── AllowedSourceIp
        ├── OutgoingPolicies → AccessPolicy
        └── IncomingPolicies ← AccessPolicy
 ```
@@ -64,15 +67,15 @@ Company
 
 ## ✅ Access Policy Example
 
-> "Agent `gateway` of `bcorp` is allowed to call `billing` of `acorp` via POST `/subscribe`"
+> "`gateway` of `bcorp` can call `billing` of `acorp` via POST `/subscribe`"
 
 ```csharp
 new AccessPolicyEntity
 {
-    CallerAgentId = gateway.Id,
-    TargetAgentId = billing.Id,
-    Method = "POST",
-    PathPattern = "/subscribe"
+    CallerId = gateway.Id,
+    TargetId = billing.Id,
+    Context = AccessContext.Http,
+    Operation = "POST /subscribe"
 }
 ```
 
@@ -80,37 +83,28 @@ new AccessPolicyEntity
 
 ## 💡 Highlights
 
-- ✅ Supports flexible route matching (`/invoice/*`, `/v1/payment/{id}`)
-- ✅ AgentMode ensures strict role separation
-- ✅ One-way trust — A → B ≠ B → A
-- ✅ Agent-level or Company-level secret usage
-- ✅ Agents unique within a company
-- ✅ Fast runtime signature verification
+- ✅ Clean company-to-company and service-to-service trust boundaries  
+- ✅ Each touchpoint has a strict role + secret/key + audit  
+- ✅ Fast, stateless request verification  
+- ✅ Supports `HMAC`, `RSA`, and future key types  
+- ✅ Frontend for managing companies, touchpoints, and policies  
+- ✅ All names auto-slugified from Display Names  
 
 ---
 
 ## 🔧 Tech Stack
 
-- ASP.NET Core + EF Core
-- SQLite or SQL Server
-- Optional JWT integration
-- Deployable locally, via Docker, or as part of a Gateway
-
----
-
-## 🚀 Roadmap
-
-- 🔐 Add support for `RSA` / `ECDSA` keys
-- 📊 Admin dashboard for visualizing connections
-- 🧩 Policy DSL integration
-- 📘 Auto-generated integration docs for partners
+- ASP.NET Core 8 + Razor Pages + EF Core  
+- SQLite or SQL Server  
+- HMAC / RSA verification  
+- Docker / local deploy-ready  
+- Designed to integrate with **API Gateways** or microservice boundaries  
 
 ---
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+Licensed under the [MIT License](LICENSE).
 
-LYRA. She signs. She verifies. She protects.
----
+**LYRA. She signs. She verifies. She protects.**  
 *"LYRA is your internal firewall. Chaos outside. Order inside."*
