@@ -1,5 +1,5 @@
-using LYRA.Server.Models.Agents;
-using LYRA.Server.Models.Companies;
+using LYRA.Server.Models.Company;
+using LYRA.Server.Models.TrustedTouchpoint;
 using LYRA.Server.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,23 +11,24 @@ namespace LYRA.Server.Pages.Dashboard.Companies
     public class DetailsModel : PageModel
     {
         private readonly ICompanyService _companyService;
-        private readonly ITrustedAgentService _agentService;
+        private readonly ITrustedTouchpointService _touchpointService;
 
-        public DetailsModel(ICompanyService companyService, ITrustedAgentService agentService)
+        public DetailsModel(ICompanyService companyService, ITrustedTouchpointService touchpointService)
         {
             _companyService = companyService;
-            _agentService = agentService;
+            _touchpointService = touchpointService;
         }
 
         public CompanyDto? Company { get; set; }
-        public List<TrustedAgentDto> Agents { get; set; } = new();
+        public List<TrustedTouchpointDto> Touchpoints { get; set; } = new();
 
         public async Task<IActionResult> OnGetAsync(Guid id)
         {
             Company = await _companyService.GetByIdAsync(id);
-            if (Company == null) return NotFound();
+            if (Company == null)
+                return NotFound();
 
-            Agents = await _agentService.GetByCompanyAsync(id);
+            Touchpoints = await _touchpointService.GetByCompanyAsync(id);
             return Page();
         }
     }

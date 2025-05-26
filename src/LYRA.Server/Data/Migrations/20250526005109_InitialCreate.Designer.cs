@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LYRA.Server.Data.Migrations
 {
     [DbContext(typeof(LyraDbContext))]
-    [Migration("20250525001528_InitialCreate")]
+    [Migration("20250526005109_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -26,7 +26,11 @@ namespace LYRA.Server.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("CallerAgentId")
+                    b.Property<Guid>("CallerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Context")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
@@ -35,24 +39,19 @@ namespace LYRA.Server.Data.Migrations
                     b.Property<bool>("IsEnabled")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Method")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PathPattern")
+                    b.Property<string>("Operation")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("TargetAgentId")
+                    b.Property<Guid>("TargetId")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TargetAgentId");
+                    b.HasIndex("TargetId");
 
-                    b.HasIndex("CallerAgentId", "TargetAgentId", "Method", "PathPattern")
+                    b.HasIndex("CallerId", "TargetId", "Context", "Operation")
                         .IsUnique();
 
                     b.ToTable("AccessPolicies");
@@ -155,16 +154,24 @@ namespace LYRA.Server.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("LYRA.Server.Entities.TrustedAgentEntity", b =>
+            modelBuilder.Entity("LYRA.Server.Entities.TrustedTouchpointEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AllowedSourceIp")
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("CompanyId")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(300)
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsActive")
@@ -183,6 +190,10 @@ namespace LYRA.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("SignatureType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("UseCompanySecret")
                         .HasColumnType("INTEGER");
 
@@ -191,7 +202,7 @@ namespace LYRA.Server.Data.Migrations
                     b.HasIndex("CompanyId", "Name")
                         .IsUnique();
 
-                    b.ToTable("TrustedAgents");
+                    b.ToTable("TrustedTouchpoints");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -324,27 +335,27 @@ namespace LYRA.Server.Data.Migrations
 
             modelBuilder.Entity("LYRA.Server.Entities.AccessPolicyEntity", b =>
                 {
-                    b.HasOne("LYRA.Server.Entities.TrustedAgentEntity", "CallerAgent")
+                    b.HasOne("LYRA.Server.Entities.TrustedTouchpointEntity", "Caller")
                         .WithMany("OutgoingPolicies")
-                        .HasForeignKey("CallerAgentId")
+                        .HasForeignKey("CallerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("LYRA.Server.Entities.TrustedAgentEntity", "TargetAgent")
+                    b.HasOne("LYRA.Server.Entities.TrustedTouchpointEntity", "Target")
                         .WithMany("IncomingPolicies")
-                        .HasForeignKey("TargetAgentId")
+                        .HasForeignKey("TargetId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CallerAgent");
+                    b.Navigation("Caller");
 
-                    b.Navigation("TargetAgent");
+                    b.Navigation("Target");
                 });
 
-            modelBuilder.Entity("LYRA.Server.Entities.TrustedAgentEntity", b =>
+            modelBuilder.Entity("LYRA.Server.Entities.TrustedTouchpointEntity", b =>
                 {
                     b.HasOne("LYRA.Server.Entities.CompanyEntity", "Company")
-                        .WithMany("Agents")
+                        .WithMany("TrustedTouchpoints")
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -405,10 +416,10 @@ namespace LYRA.Server.Data.Migrations
 
             modelBuilder.Entity("LYRA.Server.Entities.CompanyEntity", b =>
                 {
-                    b.Navigation("Agents");
+                    b.Navigation("TrustedTouchpoints");
                 });
 
-            modelBuilder.Entity("LYRA.Server.Entities.TrustedAgentEntity", b =>
+            modelBuilder.Entity("LYRA.Server.Entities.TrustedTouchpointEntity", b =>
                 {
                     b.Navigation("IncomingPolicies");
 

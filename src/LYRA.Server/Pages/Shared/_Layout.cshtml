@@ -14,33 +14,35 @@
     <link rel="stylesheet" href="~/LYRA.Server.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/lyra-sidebar.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/lyra-features.css" asp-append-version="true" />
-    
 </head>
 <body>
-    <div class="d-flex" style="min-height: 100vh;">
+    <div class="layout-grid">
         <!-- Sidebar -->
-        <div class="sidebar d-flex flex-column p-3 shadow-sm" style="width: 240px;">
-            <div class="text-center mb-4 title">LYRA.Server</div>
+        <div class="sidebar shadow-sm">
+            <div>
+                <div class="text-center mb-4 title">LYRA.Server</div>
 
-            <nav class="nav flex-column">
-                <a class="nav-link @(Context.Request.Path == "/" ? "active" : "")" asp-page="/Index">
-                    <i class="bi bi-house me-2"></i> Home
-                </a>
-                <a class="nav-link @(Context.Request.Path == "/Dashboard" ? "active" : "")" asp-page="/Dashboard/Index">
-                    <i class="bi bi-bar-chart-line me-2"></i> Dashboard
-                </a>
-                <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Dashboard/Companies") ? "active" : "") ms-4" asp-page="/Dashboard/Companies/Index">
-                    <i class="bi bi-building me-2"></i> Companies
-                </a>
-                <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Dashboard/TrustedAgents") ? "active" : "") ms-4" asp-page="/Dashboard/TrustedAgents/Index">
-                    <i class="bi bi-shield-check me-2"></i> Trusted Agents
-                </a>
-                <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Privacy") ? "active" : "")" asp-page="/Privacy">
-                    <i class="bi bi-lock me-2"></i> Privacy
-                </a>
-            </nav>
+                <nav class="nav flex-column">
+                    <a class="nav-link @(Context.Request.Path == "/" ? "active" : "")" asp-page="/Index">
+                        <i class="bi bi-house me-2"></i> Home
+                    </a>
+                    <a class="nav-link @(Context.Request.Path == "/Dashboard" ? "active" : "")" asp-page="/Dashboard/Index">
+                        <i class="bi bi-bar-chart-line me-2"></i> Dashboard
+                    </a>
+                    <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Dashboard/Companies") ? "active" : "") ms-4" asp-page="/Dashboard/Companies/Index">
+                        <i class="bi bi-building me-2"></i> Companies
+                    </a>
+                    <a class="nav-link text-nowrap @(Context.Request.Path.StartsWithSegments("/Dashboard/TrustedTouchpoints") ? "active" : "") ms-4" asp-page="/Dashboard/TrustedTouchpoints/Index">
+                        <i class="bi bi-diagram-3 me-2"></i> Trusted Touchpoints
+                    </a>
+                    <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Privacy") ? "active" : "")" asp-page="/Privacy">
+                        <i class="bi bi-lock me-2"></i> Privacy
+                    </a>
+                </nav>
+            </div>
 
-            <div class="mt-auto pt-4 border-top border-white-50">
+            <!-- Footer -->
+            <div class="sidebar-footer">
                 @if (HttpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false)
                 {
                     <div class="d-flex align-items-center gap-2 text-white-50 small mb-3">
@@ -60,7 +62,7 @@
         </div>
 
         <!-- Main content -->
-        <div class="flex-grow-1 p-4 bg-light">
+        <div class="main">
             <main role="main" class="pb-3">
                 @RenderBody()
             </main>

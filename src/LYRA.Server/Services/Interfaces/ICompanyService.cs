@@ -1,4 +1,4 @@
-﻿using LYRA.Server.Models.Companies;
+﻿using LYRA.Server.Models.Company;
 using LYRA.Server.Models.Pagination;
 
 namespace LYRA.Server.Services.Interfaces

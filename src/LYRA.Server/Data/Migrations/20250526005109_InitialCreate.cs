@@ -173,7 +173,7 @@ namespace LYRA.Server.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TrustedAgents",
+                name: "TrustedTouchpoints",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
@@ -183,13 +183,16 @@ namespace LYRA.Server.Data.Migrations
                     UseCompanySecret = table.Column<bool>(type: "INTEGER", nullable: false),
                     IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Mode = table.Column<string>(type: "TEXT", nullable: false)
+                    Mode = table.Column<string>(type: "TEXT", nullable: false),
+                    SignatureType = table.Column<string>(type: "TEXT", nullable: false),
+                    Description = table.Column<string>(type: "TEXT", maxLength: 300, nullable: true),
+                    AllowedSourceIp = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TrustedAgents", x => x.Id);
+                    table.PrimaryKey("PK_TrustedTouchpoints", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_TrustedAgents_Companies_CompanyId",
+                        name: "FK_TrustedTouchpoints_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
                         principalColumn: "Id",
@@ -201,10 +204,10 @@ namespace LYRA.Server.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    CallerAgentId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    TargetAgentId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Method = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
-                    PathPattern = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    CallerId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    TargetId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Operation = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    Context = table.Column<string>(type: "TEXT", nullable: false),
                     IsEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
@@ -212,29 +215,29 @@ namespace LYRA.Server.Data.Migrations
                 {
                     table.PrimaryKey("PK_AccessPolicies", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_AccessPolicies_TrustedAgents_CallerAgentId",
-                        column: x => x.CallerAgentId,
-                        principalTable: "TrustedAgents",
+                        name: "FK_AccessPolicies_TrustedTouchpoints_CallerId",
+                        column: x => x.CallerId,
+                        principalTable: "TrustedTouchpoints",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_AccessPolicies_TrustedAgents_TargetAgentId",
-                        column: x => x.TargetAgentId,
-                        principalTable: "TrustedAgents",
+                        name: "FK_AccessPolicies_TrustedTouchpoints_TargetId",
+                        column: x => x.TargetId,
+                        principalTable: "TrustedTouchpoints",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_AccessPolicies_CallerAgentId_TargetAgentId_Method_PathPattern",
+                name: "IX_AccessPolicies_CallerId_TargetId_Context_Operation",
                 table: "AccessPolicies",
-                columns: new[] { "CallerAgentId", "TargetAgentId", "Method", "PathPattern" },
+                columns: new[] { "CallerId", "TargetId", "Context", "Operation" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_AccessPolicies_TargetAgentId",
+                name: "IX_AccessPolicies_TargetId",
                 table: "AccessPolicies",
-                column: "TargetAgentId");
+                column: "TargetId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -280,8 +283,8 @@ namespace LYRA.Server.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_TrustedAgents_CompanyId_Name",
-                table: "TrustedAgents",
+                name: "IX_TrustedTouchpoints_CompanyId_Name",
+                table: "TrustedTouchpoints",
                 columns: new[] { "CompanyId", "Name" },
                 unique: true);
         }
@@ -308,7 +311,7 @@ namespace LYRA.Server.Data.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "TrustedAgents");
+                name: "TrustedTouchpoints");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

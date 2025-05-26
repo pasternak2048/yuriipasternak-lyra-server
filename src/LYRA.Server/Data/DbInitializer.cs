@@ -18,7 +18,7 @@ namespace LYRA.Server.Data
             const string adminEmail = "admin@lyra";
             const string adminPassword = "admin";
 
-            // 1. Seed admin user
+            // 1. Admin user
             if (await userManager.FindByEmailAsync(adminEmail) is null)
             {
                 var adminUser = new ApplicationUser
@@ -35,40 +35,27 @@ namespace LYRA.Server.Data
                 }
             }
 
-            // 2. Seed companies: bcorp and acorp
-            var bcorp = await EnsureCompanyAsync(context, "bcorp", "B Corp", "bcorp-secret");
-            var acorp = await EnsureCompanyAsync(context, "acorp", "A Corp", "acorp-secret");
+            // 2. Companies
+            var aCorp = await EnsureCompanyAsync(context, "acorp", "A Corp", "a-secret");
+            var bCorp = await EnsureCompanyAsync(context, "bcorp", "B Corp", "b-secret");
+            var cCorp = await EnsureCompanyAsync(context, "ccorp", "C Corp", "c-secret");
 
-            // 3. Seed agents
-            var gateway = await EnsureAgentAsync(context, bcorp, "gateway", "gateway-secret", AgentMode.CallerOnly);
-            var billing = await EnsureAgentAsync(context, acorp, "billing", "billing-secret", AgentMode.TargetOnly);
+            // 3. Touchpoints per company
+            var aBilling = await EnsureTouchpointAsync(context, aCorp, "billing", "a-billing-secret", TouchpointMode.TargetOnly);
+            var aPublicApi = await EnsureTouchpointAsync(context, aCorp, "public-api", "a-api-secret", TouchpointMode.TargetOnly);
 
-            // 4. Seed policy: bcorp::gateway → acorp::billing
-            if (!context.AccessPolicies.Any(p =>
-                p.CallerAgentId == gateway.Id && p.TargetAgentId == billing.Id &&
-                p.Method == "POST" && p.PathPattern == "/subscribe"))
-            {
-                context.AccessPolicies.Add(new AccessPolicyEntity
-                {
-                    Id = Guid.NewGuid(),
-                    CallerAgentId = gateway.Id,
-                    TargetAgentId = billing.Id,
-                    Method = "POST",
-                    PathPattern = "/subscribe",
-                    IsEnabled = true,
-                    CreatedAt = DateTime.UtcNow
-                });
+            var bGateway = await EnsureTouchpointAsync(context, bCorp, "gateway", "b-gateway-secret", TouchpointMode.CallerOnly);
+            var bReport = await EnsureTouchpointAsync(context, bCorp, "reporter", "b-report-secret", TouchpointMode.Both);
 
-                await context.SaveChangesAsync();
-            }
+            var cWorker = await EnsureTouchpointAsync(context, cCorp, "worker", "c-worker-secret", TouchpointMode.CallerOnly);
+            var cBot = await EnsureTouchpointAsync(context, cCorp, "bot", "c-bot-secret", TouchpointMode.Both);
+
+            // 4. Example Policy: bCorp::gateway → aCorp::billing (HTTP)
+            await EnsurePolicyAsync(context, bGateway.Id, aBilling.Id, "POST /subscribe", AccessContext.Http);
         }
 
-        // Helpers
-        private static async Task<CompanyEntity> EnsureCompanyAsync(
-            LyraDbContext context,
-            string name,
-            string displayName,
-            string secret)
+        // Company
+        private static async Task<CompanyEntity> EnsureCompanyAsync(LyraDbContext context, string name, string displayName, string secret)
         {
             var existing = await context.Companies.FirstOrDefaultAsync(c => c.Name == name);
             if (existing != null) return existing;
@@ -85,23 +72,22 @@ namespace LYRA.Server.Data
 
             context.Companies.Add(company);
             await context.SaveChangesAsync();
-
             return company;
         }
 
-        private static async Task<TrustedAgentEntity> EnsureAgentAsync(
+        // TrustedTouchpoint
+        private static async Task<TrustedTouchpointEntity> EnsureTouchpointAsync(
             LyraDbContext context,
             CompanyEntity company,
             string name,
             string secret,
-            AgentMode mode)
+            TouchpointMode mode)
         {
-            var existing = await context.TrustedAgents
-                .FirstOrDefaultAsync(a => a.CompanyId == company.Id && a.Name == name);
-
+            var existing = await context.TrustedTouchpoints
+                .FirstOrDefaultAsync(t => t.CompanyId == company.Id && t.Name == name);
             if (existing != null) return existing;
 
-            var agent = new TrustedAgentEntity
+            var touchpoint = new TrustedTouchpointEntity
             {
                 Id = Guid.NewGuid(),
                 CompanyId = company.Id,
@@ -110,13 +96,45 @@ namespace LYRA.Server.Data
                 UseCompanySecret = false,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
-                Mode = mode
+                Mode = mode,
+                SignatureType = SignatureType.HMAC
             };
 
-            context.TrustedAgents.Add(agent);
+            context.TrustedTouchpoints.Add(touchpoint);
             await context.SaveChangesAsync();
+            return touchpoint;
+        }
 
-            return agent;
+        // AccessPolicy
+        private static async Task EnsurePolicyAsync(
+            LyraDbContext context,
+            Guid callerId,
+            Guid targetId,
+            string operation,
+            AccessContext contextType)
+        {
+            bool exists = await context.AccessPolicies.AnyAsync(p =>
+                p.CallerId == callerId &&
+                p.TargetId == targetId &&
+                p.Operation == operation &&
+                p.Context == contextType);
+
+            if (!exists)
+            {
+                var policy = new AccessPolicyEntity
+                {
+                    Id = Guid.NewGuid(),
+                    CallerId = callerId,
+                    TargetId = targetId,
+                    Operation = operation,
+                    Context = contextType,
+                    IsEnabled = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                context.AccessPolicies.Add(policy);
+                await context.SaveChangesAsync();
+            }
         }
     }
 }

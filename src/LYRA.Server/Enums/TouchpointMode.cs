@@ -1,6 +1,6 @@
 ﻿namespace LYRA.Server.Enums
 {
-    public enum AgentMode
+    public enum TouchpointMode
     {
         CallerOnly,
         TargetOnly,
