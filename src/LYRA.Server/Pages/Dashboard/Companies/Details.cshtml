@@ -10,7 +10,7 @@
     <div class="bg-lyra-dark text-light p-4 rounded shadow-sm">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="fw-bold m-0">
-                <i class="bi bi-building me-2"></i> Company: @Model.Company?.Name
+                <i class="bi bi-building me-2"></i> @Model.Company?.DisplayName
             </h2>
             <div class="d-flex gap-2">
                 <a asp-page="Edit" asp-route-id="@Model.Company?.Id" class="btn btn-outline-light">
@@ -23,8 +23,8 @@
         </div>
 
         <dl class="row">
-            <dt class="col-sm-3">Display Name</dt>
-            <dd class="col-sm-9">@Model.Company?.DisplayName</dd>
+            <dt class="col-sm-3">System Name</dt>
+            <dd class="col-sm-9 text-light-emphasis"><code>@Model.Company?.Name</code></dd>
 
             <dt class="col-sm-3">Is Active</dt>
             <dd class="col-sm-9">
@@ -58,7 +58,8 @@
             <table class="table table-dark table-hover table-bordered align-middle mt-3">
                 <thead>
                     <tr>
-                        <th>Name</th>
+                        <th>Display Name</th>
+                        <th>System Name</th>
                         <th>Status</th>
                         <th>Use Company Secret</th>
                         <th>Secret</th>
@@ -70,7 +71,8 @@
                     @foreach (var t in Model.Touchpoints)
                     {
                         <tr>
-                            <td>@t.Name</td>
+                            <td>@t.DisplayName</td>
+                            <td><code>@t.Name</code></td>
                             <td>
                                 @if (t.IsActive)
                                 {
@@ -100,7 +102,7 @@
                                 }
                                 else
                                 {
-                                    <div class="small text-muted mt-1">-</div>
+                                    <div class="small text-muted mt-1">–</div>
                                 }
                             </td>
                             <td>@t.Mode.ToString()</td>

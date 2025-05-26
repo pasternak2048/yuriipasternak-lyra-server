@@ -55,7 +55,7 @@ namespace LYRA.Server.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Name = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: false),
                     DisplayName = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
                     Secret = table.Column<string>(type: "TEXT", nullable: false),
                     IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
@@ -178,7 +178,8 @@ namespace LYRA.Server.Data.Migrations
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     CompanyId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Name = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: false),
+                    DisplayName = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
                     Secret = table.Column<string>(type: "TEXT", nullable: false),
                     UseCompanySecret = table.Column<bool>(type: "INTEGER", nullable: false),
                     IsActive = table.Column<bool>(type: "INTEGER", nullable: false),

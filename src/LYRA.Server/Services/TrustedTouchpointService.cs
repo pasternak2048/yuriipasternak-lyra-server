@@ -4,6 +4,7 @@ using LYRA.Server.Enums;
 using LYRA.Server.Models.Pagination;
 using LYRA.Server.Models.TrustedTouchpoint;
 using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace LYRA.Server.Services
@@ -43,6 +44,7 @@ namespace LYRA.Server.Services
                 {
                     Id = t.Id,
                     Name = t.Name,
+                    DisplayName = t.DisplayName,
                     CompanyName = t.Company.Name,
                     Secret = t.Secret,
                     UseCompanySecret = t.UseCompanySecret,
@@ -78,6 +80,7 @@ namespace LYRA.Server.Services
             {
                 Id = entity.Id,
                 Name = entity.Name,
+                DisplayName = entity.DisplayName,
                 CompanyName = entity.Company.Name,
                 Secret = entity.Secret,
                 UseCompanySecret = entity.UseCompanySecret,
@@ -98,7 +101,8 @@ namespace LYRA.Server.Services
             {
                 Id = Guid.NewGuid(),
                 CompanyId = request.CompanyId,
-                Name = request.Name,
+                Name = SlugHelper.Slugify(request.DisplayName),
+                DisplayName = request.DisplayName,
                 Secret = request.Secret,
                 UseCompanySecret = request.UseCompanySecret,
                 IsActive = request.IsActive,
@@ -119,7 +123,8 @@ namespace LYRA.Server.Services
             var entity = await _context.TrustedTouchpoints.FindAsync(request.Id);
             if (entity == null) return;
 
-            entity.Name = request.Name;
+            entity.Name = SlugHelper.Slugify(request.DisplayName);
+            entity.DisplayName = request.DisplayName;
             entity.Secret = request.Secret;
             entity.UseCompanySecret = request.UseCompanySecret;
             entity.IsActive = request.IsActive;
@@ -161,6 +166,7 @@ namespace LYRA.Server.Services
                 {
                     Id = t.Id,
                     Name = t.Name,
+                    DisplayName = t.DisplayName,
                     CompanyName = t.Company.Name,
                     Secret = t.Secret,
                     UseCompanySecret = t.UseCompanySecret,

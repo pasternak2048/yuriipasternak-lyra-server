@@ -1,6 +1,7 @@
 ﻿using LYRA.Server.Entities;
 using LYRA.Server.Entities.Identity;
 using LYRA.Server.Enums;
+using LYRA.Server.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,14 +42,14 @@ namespace LYRA.Server.Data
             var cCorp = await EnsureCompanyAsync(context, "ccorp", "C Corp", "c-secret");
 
             // 3. Touchpoints per company
-            var aBilling = await EnsureTouchpointAsync(context, aCorp, "billing", "a-billing-secret", TouchpointMode.TargetOnly);
-            var aPublicApi = await EnsureTouchpointAsync(context, aCorp, "public-api", "a-api-secret", TouchpointMode.TargetOnly);
+            var aBilling = await EnsureTouchpointAsync(context, aCorp, "Billing API", "a-billing-secret", TouchpointMode.TargetOnly);
+            var aPublicApi = await EnsureTouchpointAsync(context, aCorp, "Public API", "a-api-secret", TouchpointMode.TargetOnly);
 
-            var bGateway = await EnsureTouchpointAsync(context, bCorp, "gateway", "b-gateway-secret", TouchpointMode.CallerOnly);
-            var bReport = await EnsureTouchpointAsync(context, bCorp, "reporter", "b-report-secret", TouchpointMode.Both);
+            var bGateway = await EnsureTouchpointAsync(context, bCorp, "Gateway", "b-gateway-secret", TouchpointMode.CallerOnly);
+            var bReport = await EnsureTouchpointAsync(context, bCorp, "Report Bot", "b-report-secret", TouchpointMode.Both);
 
-            var cWorker = await EnsureTouchpointAsync(context, cCorp, "worker", "c-worker-secret", TouchpointMode.CallerOnly);
-            var cBot = await EnsureTouchpointAsync(context, cCorp, "bot", "c-bot-secret", TouchpointMode.Both);
+            var cWorker = await EnsureTouchpointAsync(context, cCorp, "Worker Node", "c-worker-secret", TouchpointMode.CallerOnly);
+            var cBot = await EnsureTouchpointAsync(context, cCorp, "Bot Commander", "c-bot-secret", TouchpointMode.Both);
 
             // 4. Example Policy: bCorp::gateway → aCorp::billing (HTTP)
             await EnsurePolicyAsync(context, bGateway.Id, aBilling.Id, "POST /subscribe", AccessContext.Http);
@@ -79,12 +80,15 @@ namespace LYRA.Server.Data
         private static async Task<TrustedTouchpointEntity> EnsureTouchpointAsync(
             LyraDbContext context,
             CompanyEntity company,
-            string name,
+            string displayName,
             string secret,
             TouchpointMode mode)
         {
+            var name = SlugHelper.Slugify(displayName);
+
             var existing = await context.TrustedTouchpoints
                 .FirstOrDefaultAsync(t => t.CompanyId == company.Id && t.Name == name);
+
             if (existing != null) return existing;
 
             var touchpoint = new TrustedTouchpointEntity
@@ -92,6 +96,7 @@ namespace LYRA.Server.Data
                 Id = Guid.NewGuid(),
                 CompanyId = company.Id,
                 Name = name,
+                DisplayName = displayName,
                 Secret = secret,
                 UseCompanySecret = false,
                 IsActive = true,
