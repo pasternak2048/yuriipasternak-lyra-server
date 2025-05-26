@@ -6,7 +6,7 @@
 
         public string Name { get; set; } = null!;
 
-        public string? DisplayName { get; set; }
+        public string DisplayName { get; set; } = null!;
 
         public string Secret { get; set; } = null!;
 

@@ -17,8 +17,9 @@ namespace LYRA.Server.Entities
         /// <summary>
         /// Optional display name (UI-friendly)
         /// </summary>
+        [Required]
         [MaxLength(200)]
-        public string? DisplayName { get; set; }
+        public string DisplayName { get; set; } = null!;
 
         /// <summary>
         /// Company-wide shared secret (can be used by touchpoints if allowed)

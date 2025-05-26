@@ -19,7 +19,8 @@ namespace LYRA.Server.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Company
+            // ------------------- Company -------------------
+
             modelBuilder.Entity<CompanyEntity>()
                 .HasIndex(c => c.Name)
                 .IsUnique();
@@ -33,16 +34,44 @@ namespace LYRA.Server.Data
                 .IsUnicode(false)
                 .HasColumnType("varchar(100)");
 
-            // TrustedTouchpoint
-            modelBuilder.Entity<TrustedTouchpointEntity>()
-                .HasIndex(t => new { t.CompanyId, t.Name }) // Ensure slug is unique within company
-                .IsUnique();
+            modelBuilder.Entity<CompanyEntity>()
+                .Property(c => c.DisplayName)
+                .IsRequired()
+                .HasMaxLength(200);
 
             modelBuilder.Entity<CompanyEntity>()
                 .HasMany(c => c.TrustedTouchpoints)
                 .WithOne(t => t.Company)
                 .HasForeignKey(t => t.CompanyId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // ------------------- TrustedTouchpoint -------------------
+
+            modelBuilder.Entity<TrustedTouchpointEntity>()
+                .HasIndex(t => new { t.CompanyId, t.Name }) // Ensure slug is unique within company
+                .IsUnique();
+
+            modelBuilder.Entity<TrustedTouchpointEntity>()
+                .Property(t => t.Name)
+                .HasConversion(
+                    v => v.ToLowerInvariant(),
+                    v => v
+                )
+                .IsUnicode(false)
+                .HasColumnType("varchar(100)");
+
+            modelBuilder.Entity<TrustedTouchpointEntity>()
+                .Property(t => t.DisplayName)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<TrustedTouchpointEntity>()
+                .Property(t => t.Mode)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<TrustedTouchpointEntity>()
+                .Property(t => t.SignatureType)
+                .HasConversion<string>();
 
             modelBuilder.Entity<TrustedTouchpointEntity>()
                 .HasMany(t => t.OutgoingPolicies)
@@ -56,24 +85,8 @@ namespace LYRA.Server.Data
                 .HasForeignKey(p => p.TargetId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<TrustedTouchpointEntity>()
-                .Property(t => t.Mode)
-                .HasConversion<string>();
+            // ------------------- AccessPolicy -------------------
 
-            modelBuilder.Entity<TrustedTouchpointEntity>()
-                .Property(t => t.SignatureType)
-                .HasConversion<string>();
-
-            modelBuilder.Entity<TrustedTouchpointEntity>()
-                .Property(t => t.Name)
-                .HasConversion(
-                    v => v.ToLowerInvariant(),
-                    v => v
-                )
-                .IsUnicode(false)
-                .HasColumnType("varchar(100)");
-
-            // AccessPolicy
             modelBuilder.Entity<AccessPolicyEntity>()
                 .HasIndex(p => new
                 {

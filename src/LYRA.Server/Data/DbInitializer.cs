@@ -37,9 +37,9 @@ namespace LYRA.Server.Data
             }
 
             // 2. Companies
-            var aCorp = await EnsureCompanyAsync(context, "acorp", "A Corp", "a-secret");
-            var bCorp = await EnsureCompanyAsync(context, "bcorp", "B Corp", "b-secret");
-            var cCorp = await EnsureCompanyAsync(context, "ccorp", "C Corp", "c-secret");
+            var aCorp = await EnsureCompanyAsync(context, "A Corp", "a-secret");
+            var bCorp = await EnsureCompanyAsync(context, "B Corp", "b-secret");
+            var cCorp = await EnsureCompanyAsync(context, "C Corp", "c-secret");
 
             // 3. Touchpoints per company
             var aBilling = await EnsureTouchpointAsync(context, aCorp, "Billing API", "a-billing-secret", TouchpointMode.TargetOnly);
@@ -55,16 +55,18 @@ namespace LYRA.Server.Data
             await EnsurePolicyAsync(context, bGateway.Id, aBilling.Id, "POST /subscribe", AccessContext.Http);
         }
 
-        // Company
-        private static async Task<CompanyEntity> EnsureCompanyAsync(LyraDbContext context, string name, string displayName, string secret)
+        // Create or retrieve existing company
+        private static async Task<CompanyEntity> EnsureCompanyAsync(LyraDbContext context, string displayName, string secret)
         {
-            var existing = await context.Companies.FirstOrDefaultAsync(c => c.Name == name);
+            var slugName = SlugHelper.Slugify(displayName);
+
+            var existing = await context.Companies.FirstOrDefaultAsync(c => c.Name == slugName);
             if (existing != null) return existing;
 
             var company = new CompanyEntity
             {
                 Id = Guid.NewGuid(),
-                Name = name,
+                Name = slugName,
                 DisplayName = displayName,
                 Secret = secret,
                 IsActive = true,
@@ -76,7 +78,7 @@ namespace LYRA.Server.Data
             return company;
         }
 
-        // TrustedTouchpoint
+        // Create or retrieve existing touchpoint
         private static async Task<TrustedTouchpointEntity> EnsureTouchpointAsync(
             LyraDbContext context,
             CompanyEntity company,
@@ -110,7 +112,7 @@ namespace LYRA.Server.Data
             return touchpoint;
         }
 
-        // AccessPolicy
+        // Create or retrieve existing policy
         private static async Task EnsurePolicyAsync(
             LyraDbContext context,
             Guid callerId,

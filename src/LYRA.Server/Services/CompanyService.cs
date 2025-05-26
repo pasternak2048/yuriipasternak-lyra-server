@@ -3,6 +3,7 @@ using LYRA.Server.Entities;
 using LYRA.Server.Models.Company;
 using LYRA.Server.Models.Pagination;
 using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace LYRA.Server.Services
@@ -23,7 +24,8 @@ namespace LYRA.Server.Services
                 .Select(c => new CompanyDto
                 {
                     Id = c.Id,
-                    Name = c.Name
+                    Name = c.Name,
+                    DisplayName = c.DisplayName
                 })
                 .ToListAsync();
         }
@@ -80,12 +82,15 @@ namespace LYRA.Server.Services
             };
         }
 
+        /// <summary>
+        /// Creates a new company. The machine-readable Name is auto-generated from DisplayName.
+        /// </summary>
         public async Task AddAsync(CompanyCreateRequest request)
         {
             var entity = new CompanyEntity
             {
                 Id = Guid.NewGuid(),
-                Name = request.Name,
+                Name = SlugHelper.Slugify(request.DisplayName),
                 DisplayName = request.DisplayName,
                 Secret = request.Secret,
                 IsActive = true,
@@ -96,12 +101,15 @@ namespace LYRA.Server.Services
             await _context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Updates an existing company and regenerates its Name from the DisplayName.
+        /// </summary>
         public async Task UpdateAsync(CompanyUpdateRequest request)
         {
             var entity = await _context.Companies.FindAsync(request.Id);
             if (entity == null) return;
 
-            entity.Name = request.Name;
+            entity.Name = SlugHelper.Slugify(request.DisplayName);
             entity.DisplayName = request.DisplayName;
             entity.Secret = request.Secret;
             entity.IsActive = request.IsActive;
