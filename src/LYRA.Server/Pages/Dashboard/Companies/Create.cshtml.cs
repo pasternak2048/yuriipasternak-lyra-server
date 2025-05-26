@@ -30,9 +30,9 @@ namespace LYRA.Server.Pages.Dashboard.Companies
                 return Page();
 
             var normalizedName = SlugHelper.Slugify(Input.DisplayName);
-            var existing = await _companyService.GetLightweightAsync();
+            var exists = await _companyService.ExistsByNameAsync(normalizedName);
 
-            if (existing.Any(c => c.Name.Equals(normalizedName, StringComparison.OrdinalIgnoreCase)))
+            if (exists)
             {
                 ModelState.AddModelError("Input.DisplayName", "A company with this display name already exists.");
                 return Page();

@@ -38,10 +38,10 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
             if (!ModelState.IsValid)
                 return Page();
 
-            var existing = await _touchpointService.GetByCompanyAsync(Input.CompanyId);
             var normalizedName = SlugHelper.Slugify(Input.DisplayName);
+            var exists = await _touchpointService.ExistsByCompanyAndNameAsync(Input.CompanyId, normalizedName);
 
-            if (existing.Any(t => t.Name.Equals(normalizedName, StringComparison.OrdinalIgnoreCase)))
+            if (exists)
             {
                 ModelState.AddModelError("Input.DisplayName", "A touchpoint with this name already exists in the selected company.");
                 return Page();
