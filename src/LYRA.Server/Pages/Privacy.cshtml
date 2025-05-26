@@ -1,53 +1,61 @@
 ﻿@page
 @model PrivacyModel
 @{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Privacy Manifest";
 }
 
 <div class="container mt-5">
     <div class="bg-lyra-dark text-light p-5 rounded shadow-sm">
         <h1 class="mb-4 fw-bold">
-            <i class="bi bi-shield-lock-fill me-2"></i> Privacy Policy
+            <i class="bi bi-eye-slash-fill me-2"></i> Privacy Manifest
         </h1>
 
-        <p class="text-light-emphasis">
-            This Privacy Policy outlines how <strong>LYRA.Server</strong> processes authentication and service-level communication data in your infrastructure.
+        <p class="text-light-emphasis fs-5 mb-4">
+            In LYRA, privacy isn't just a checkbox. It's a boundary. A handshake. A pact between systems.
         </p>
 
         <hr class="border-secondary" />
 
         <h5 class="fw-semibold mt-4">
-            <i class="bi bi-clipboard-data me-2 text-light"></i> What We Collect
+            <i class="bi bi-shield-shaded me-2 text-light"></i> What LYRA Sees
         </h5>
         <ul class="text-light-emphasis">
-            <li>Secure password hashes (no plain-text storage)</li>
-            <li>Login activity metadata (e.g., timestamps)</li>
-            <li>Signed request verification logs</li>
-            <li>Access policies linked to service identities</li>
+            <li>Hashed passwords only — no readable secrets, ever</li>
+            <li>Service-level metadata: when, who, and how — not what</li>
+            <li>Access relationships between trusted systems</li>
+            <li>Validations of integrity, not inspections of content</li>
         </ul>
 
         <h5 class="fw-semibold mt-4">
-            <i class="bi bi-bullseye me-2 text-light"></i> Why We Collect It
-        </h5>
-        <p class="text-light-emphasis">
-            We collect this data solely to ensure secure access, enforce service-level rules, and validate trust across your backend systems.
-        </p>
-
-        <h5 class="fw-semibold mt-4">
-            <i class="bi bi-x-octagon me-2 text-light"></i> What We Don’t Store
+            <i class="bi bi-eye me-2 text-light"></i> What LYRA Refuses to See
         </h5>
         <ul class="text-light-emphasis">
             <li>No personal user data or session payloads</li>
-            <li>No unencrypted credentials or tokens</li>
-            <li>No behavioral tracking or analytics</li>
+            <li>No cookies beyond security essentials</li>
+            <li>No tracking, profiling, or fingerprinting</li>
+            <li>No metrics unless explicitly enabled</li>
         </ul>
 
         <h5 class="fw-semibold mt-4">
-            <i class="bi bi-person-lines-fill me-2 text-light"></i> Contact
+            <i class="bi bi-link-45deg me-2 text-light"></i> Trust is Contextual
         </h5>
         <p class="text-light-emphasis">
-            This system is developed and maintained by <strong>Yurii Pasternak</strong> (<a href="mailto:pasternak2048@gmail.com" class="text-info">pasternak2048@gmail.com</a>).
-            Visit the project on <a href="https://github.com/pasternak2048" target="_blank" class="text-info">GitHub</a> for details and contributions.
+            LYRA defines trust between systems using precise, transparent policies. Nothing is assumed. Every permission is granted deliberately.
+        </p>
+
+        <h5 class="fw-semibold mt-4">
+            <i class="bi bi-box-arrow-in-right me-2 text-light"></i> Self-Hosted. Yours Alone.
+        </h5>
+        <p class="text-light-emphasis">
+            LYRA.Server runs in <span class="fw-bold text-light">your environment</span>, with <span class="fw-bold text-light">your rules</span>. No external APIs. No backdoors. You own the keys.
+        </p>
+
+        <h5 class="fw-semibold mt-4">
+            <i class="bi bi-person-lines-fill me-2"></i> Maintained By
+        </h5>
+        <p class="text-light-emphasis">
+            Built and maintained by <strong>Yurii Pasternak</strong> (<a href="mailto:pasternak2048@gmail.com" class="text-info">pasternak2048@gmail.com</a>).<br />
+            View the project on <a href="https://github.com/pasternak2048" class="text-info" target="_blank">GitHub</a>.
         </p>
     </div>
 </div>
