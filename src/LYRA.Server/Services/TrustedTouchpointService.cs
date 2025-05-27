@@ -97,7 +97,7 @@ namespace LYRA.Server.Services
         /// </summary>
         public async Task<TrustedTouchpointCreatedDto> AddAsync(TrustedTouchpointCreateRequest request)
         {
-            var normalizedName = NameHelper.NormalizeAndValidate(request.DisplayName);
+            var normalizedName = NameHelper.EnsureSlug(request.DisplayName, "trusted-touchpoint");
 
             var exists = await ExistsByCompanyAndNameAsync(request.CompanyId, normalizedName);
             if (exists)
@@ -157,7 +157,7 @@ namespace LYRA.Server.Services
         /// </summary>
         public async Task UpdateAsync(TrustedTouchpointUpdateRequest request)
         {
-            var normalizedName = NameHelper.NormalizeAndValidate(request.DisplayName);
+            var normalizedName = NameHelper.EnsureSlug(request.DisplayName, "trusted-touchpoint");
 
             var exists = await ExistsByCompanyAndNameAsync(request.CompanyId, normalizedName);
             if (exists)

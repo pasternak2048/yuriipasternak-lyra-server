@@ -2,21 +2,17 @@
 {
     public static class NameHelper
     {
-        /// <summary>
-        /// Normalizes a display name into a slug and validates it is not empty.
-        /// Throws if input or result is empty.
-        /// </summary>
-        public static string NormalizeAndValidate(string displayName)
+        public static string EnsureSlug(string displayName, string? prefix = null)
         {
             if (string.IsNullOrWhiteSpace(displayName))
                 throw new ArgumentException("Display name must not be empty.");
 
-            var normalized = SlugHelper.Slugify(displayName);
+            var slug = SlugHelper.Slugify(displayName);
 
-            if (string.IsNullOrWhiteSpace(normalized))
+            if (string.IsNullOrWhiteSpace(slug))
                 throw new InvalidOperationException("Generated name from display name cannot be empty.");
 
-            return normalized;
+            return string.IsNullOrWhiteSpace(prefix) ? slug : $"{prefix}-{slug}";
         }
     }
 }
