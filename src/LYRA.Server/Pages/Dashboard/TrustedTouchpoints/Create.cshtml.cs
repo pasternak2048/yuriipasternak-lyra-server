@@ -25,6 +25,26 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
 
         public List<CompanyDto> Companies { get; set; } = new();
 
+        [TempData] public string? SecretPlaintext { get; set; }
+
+        [TempData] public string? DisplayName { get; set; }
+
+        [TempData] public string? Name { get; set; }
+
+        [TempData] public string? CompanyName { get; set; }
+
+        [TempData] public string? IsActive { get; set; }
+
+        [TempData] public string? UseCompanySecret { get; set; }
+
+        [TempData] public string? Mode { get; set; }
+
+        [TempData] public string? SignatureType { get; set; }
+
+        [TempData] public string? CreatedAt { get; set; }
+
+        [TempData] public Guid Id { get; set; }
+
         public async Task<IActionResult> OnGetAsync()
         {
             Companies = await _companyService.GetLightweightAsync();
@@ -54,8 +74,20 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
                 return Page();
             }
 
-            await _touchpointService.AddAsync(Input);
-            return RedirectToPage("Index");
+            var created = await _touchpointService.AddAsync(Input);
+
+            SecretPlaintext = created.SecretPlaintext;
+            DisplayName = created.DisplayName;
+            Name = created.Name;
+            CompanyName = created.CompanyName;
+            IsActive = created.IsActive.ToString();
+            UseCompanySecret = created.UseCompanySecret.ToString();
+            Mode = created.Mode.ToString();
+            SignatureType = created.SignatureType.ToString();
+            CreatedAt = created.CreatedAt.ToString("yyyy-MM-dd HH:mm");
+            Id = created.Id;
+
+            return RedirectToPage("Secret", new { id = created.Id });
         }
     }
 }

@@ -56,8 +56,10 @@
             <tbody>
                 @foreach (var t in Model.Touchpoints.Items)
                 {
-                    <tr>
-                        <td>@t.DisplayName</td>
+                    <tr style="cursor: pointer;" onclick="location.href='@Url.Page("Details", new { id = t.Id })'">
+                        <td class="fw-semibold text-decoration-underline text-info">
+                            @t.DisplayName
+                        </td>
                         <td><code>@t.Name</code></td>
                         <td>@t.CompanyName</td>
                         <td>
@@ -80,11 +82,8 @@
                                 <span class="badge bg-secondary">No</span>
                             }
                         </td>
-                        
                         <td>@t.Mode</td>
-                        <td>
-                            <span class="badge bg-dark">@t.SignatureType</span>
-                        </td>
+                        <td><span class="badge bg-dark">@t.SignatureType</span></td>
                         <td class="text-light-emphasis">
                             @(!string.IsNullOrWhiteSpace(t.Description) ? t.Description : "–")
                         </td>
@@ -106,5 +105,3 @@
         </nav>
     </div>
 </div>
-
-<script src="~/js/secret-toggle.js" asp-append-version="true"></script>
