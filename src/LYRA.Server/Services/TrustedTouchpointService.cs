@@ -2,9 +2,11 @@
 using LYRA.Server.Entities;
 using LYRA.Server.Enums;
 using LYRA.Server.Models.Pagination;
+using LYRA.Server.Models.Shared;
 using LYRA.Server.Models.TrustedTouchpoint;
 using LYRA.Server.Services.Interfaces;
 using LYRA.Server.Utilities;
+using LYRA.Server.Utilities.Security;
 using Microsoft.EntityFrameworkCore;
 
 namespace LYRA.Server.Services
@@ -46,7 +48,6 @@ namespace LYRA.Server.Services
                     Name = t.Name,
                     DisplayName = t.DisplayName,
                     CompanyName = t.Company.Name,
-                    Secret = t.Secret,
                     UseCompanySecret = t.UseCompanySecret,
                     IsActive = t.IsActive,
                     Mode = t.Mode,
@@ -82,7 +83,6 @@ namespace LYRA.Server.Services
                 Name = entity.Name,
                 DisplayName = entity.DisplayName,
                 CompanyName = entity.Company.Name,
-                Secret = entity.Secret,
                 UseCompanySecret = entity.UseCompanySecret,
                 IsActive = entity.IsActive,
                 Mode = entity.Mode,
@@ -95,7 +95,7 @@ namespace LYRA.Server.Services
         /// <summary>
         /// Adds a new trusted touchpoint
         /// </summary>
-        public async Task AddAsync(TrustedTouchpointCreateRequest request)
+        public async Task<TrustedTouchpointCreatedDto> AddAsync(TrustedTouchpointCreateRequest request)
         {
             var normalizedName = NameHelper.NormalizeAndValidate(request.DisplayName);
 
@@ -107,8 +107,18 @@ namespace LYRA.Server.Services
             if (!companyExists)
                 throw new InvalidOperationException("Target company does not exist.");
 
-            if (!request.UseCompanySecret && string.IsNullOrWhiteSpace(request.Secret))
-                throw new ArgumentException("Secret must be provided if 'UseCompanySecret' is false.");
+            string? generatedSecret = null;
+            string? hashedSecret = null;
+
+            if (!request.UseCompanySecret)
+            {
+                generatedSecret = SecretGenerator.Generate();
+
+                if (string.IsNullOrWhiteSpace(generatedSecret))
+                    throw new InvalidOperationException("Failed to generate secret.");
+
+                hashedSecret = HashHelper.HashSecret(generatedSecret);
+            }
 
             var entity = new TrustedTouchpointEntity
             {
@@ -116,16 +126,24 @@ namespace LYRA.Server.Services
                 CompanyId = request.CompanyId,
                 Name = normalizedName,
                 DisplayName = request.DisplayName,
-                Secret = request.Secret,
+                Secret = hashedSecret,
                 UseCompanySecret = request.UseCompanySecret,
                 IsActive = request.IsActive,
                 CreatedAt = DateTime.UtcNow,
                 Mode = Enum.Parse<TouchpointMode>(request.Mode),
-                SignatureType = SignatureType.HMAC // or take from request
+                SignatureType = SignatureType.HMAC
             };
 
             _context.TrustedTouchpoints.Add(entity);
             await _context.SaveChangesAsync();
+
+            return new TrustedTouchpointCreatedDto
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                DisplayName = entity.DisplayName,
+                SecretPlaintext = generatedSecret ?? "(using company secret)"
+            };
         }
 
         /// <summary>
@@ -150,12 +168,8 @@ namespace LYRA.Server.Services
             var entity = await _context.TrustedTouchpoints.FindAsync(request.Id);
             if (entity == null) return;
 
-            if (!request.UseCompanySecret && string.IsNullOrWhiteSpace(request.Secret))
-                throw new ArgumentException("Secret must be provided if 'UseCompanySecret' is false.");
-
             entity.Name = normalizedName;
             entity.DisplayName = request.DisplayName;
-            entity.Secret = request.Secret;
             entity.UseCompanySecret = request.UseCompanySecret;
             entity.IsActive = request.IsActive;
             entity.Mode = Enum.Parse<TouchpointMode>(request.Mode);
@@ -226,7 +240,6 @@ namespace LYRA.Server.Services
                     Name = t.Name,
                     DisplayName = t.DisplayName,
                     CompanyName = t.Company.Name,
-                    Secret = t.Secret,
                     UseCompanySecret = t.UseCompanySecret,
                     IsActive = t.IsActive,
                     Mode = t.Mode,
@@ -235,6 +248,24 @@ namespace LYRA.Server.Services
                     CreatedAt = t.CreatedAt
                 })
                 .ToListAsync();
+        }
+
+        public async Task<SecretRotationResult?> RotateSecretAsync(Guid touchpointId)
+        {
+            var touchpoint = await _context.TrustedTouchpoints.FindAsync(touchpointId);
+            if (touchpoint == null) return null;
+
+            var newSecret = SecretGenerator.Generate();
+            touchpoint.Secret = HashHelper.HashSecret(newSecret);
+
+            await _context.SaveChangesAsync();
+
+            return new SecretRotationResult
+            {
+                EntityId = touchpoint.Id,
+                OwnerType = SecretOwnerType.TrustedTouchpoint,
+                SecretPlaintext = newSecret
+            };
         }
     }
 }

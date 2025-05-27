@@ -1,6 +1,5 @@
 using LYRA.Server.Models.Company;
 using LYRA.Server.Services.Interfaces;
-using LYRA.Server.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -20,33 +19,35 @@ namespace LYRA.Server.Pages.Dashboard.Companies
         [BindProperty]
         public CompanyCreateRequest Input { get; set; } = new();
 
-        public void OnGet()
-        {
-        }
+        [TempData]
+        public string? SecretPlaintext { get; set; }
+
+        [TempData]
+        public string? DisplayName { get; set; }
+
+        [TempData]
+        public string? Name { get; set; }
+
+        [TempData]
+        public string? IsActive { get; set; }
+
+        [TempData]
+        public string? CreatedAt { get; set; }
 
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
                 return Page();
 
-            var normalizedName = SlugHelper.Slugify(Input.DisplayName);
+            var created = await _companyService.AddAsync(Input);
 
-            if (string.IsNullOrWhiteSpace(normalizedName))
-            {
-                ModelState.AddModelError("Input.DisplayName", "Display name must contain at least one alphanumeric character.");
-                return Page();
-            }
+            SecretPlaintext = created.SecretPlaintext;
+            DisplayName = created.DisplayName;
+            Name = created.Name;
+            IsActive = created.IsActive.ToString();
+            CreatedAt = created.CreatedAt.ToString("yyyy-MM-dd HH:mm");
 
-            var exists = await _companyService.ExistsByNameAsync(normalizedName);
-
-            if (exists)
-            {
-                ModelState.AddModelError("Input.DisplayName", "A company with this display name already exists.");
-                return Page();
-            }
-
-            await _companyService.AddAsync(Input);
-            return RedirectToPage("Index");
+            return RedirectToPage("Secret", new { id = created.Id });
         }
     }
 }

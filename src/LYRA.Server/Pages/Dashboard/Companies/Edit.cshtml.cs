@@ -30,7 +30,6 @@ namespace LYRA.Server.Pages.Dashboard.Companies
             {
                 Id = company.Id,
                 DisplayName = company.DisplayName,
-                Secret = company.Secret,
                 IsActive = company.IsActive
             };
 

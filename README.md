@@ -4,6 +4,8 @@
 
 It introduces the concept of **Trusted Touchpoints** and **Access Policies** to ensure **secure, controlled access** across boundaries.
 
+> ✨ Built to run anywhere. Designed to depend on no one.
+
 ---
 
 ## 🌐 What is LYRA?
@@ -11,6 +13,7 @@ It introduces the concept of **Trusted Touchpoints** and **Access Policies** to 
 - 🧱 **LYRA.Server** — a self-hosted authorization and verification center for backend systems  
 - ⚙️ **LYRA.Client** — a lightweight client for signing outgoing requests (HMAC, RSA, etc.)  
 - 🛡️ **AccessPolicy** — rules defining which system can talk to which, and under what conditions  
+- 🧼 **Zero External Dependencies** — no third-party libraries; powered only by native .NET 8 APIs
 
 ---
 
@@ -89,6 +92,8 @@ new AccessPolicyEntity
 - ✅ Supports `HMAC`, `RSA`, and future key types  
 - ✅ Frontend for managing companies, touchpoints, and policies  
 - ✅ All names auto-slugified from Display Names  
+- ✅ Fully **zero-dependency**: no external packages, no third-party crypto libs, no validation frameworks  
+- ✅ Pure .NET 8 — only Microsoft-built building blocks  
 
 ---
 
@@ -96,9 +101,10 @@ new AccessPolicyEntity
 
 - ASP.NET Core 8 + Razor Pages + EF Core  
 - SQLite or SQL Server  
-- HMAC / RSA verification  
+- HMAC / RSA verification (System.Security.Cryptography)  
 - Docker / local deploy-ready  
 - Designed to integrate with **API Gateways** or microservice boundaries  
+- Built with **no third-party dependencies**
 
 ---
 

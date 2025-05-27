@@ -47,7 +47,6 @@
                     <th>Company</th>
                     <th>Status</th>
                     <th>Use Company Secret</th>
-                    <th>Secret</th>
                     <th>Mode</th>
                     <th>Signature</th>
                     <th>Description</th>
@@ -81,16 +80,7 @@
                                 <span class="badge bg-secondary">No</span>
                             }
                         </td>
-                        <td>
-                            @if (t.Mode == TouchpointMode.CallerOnly || t.Mode == TouchpointMode.Both)
-                            {
-                                <code class="blurred secret-toggle">@t.Secret</code>
-                            }
-                            else
-                            {
-                                <span class="text-muted small">–</span>
-                            }
-                        </td>
+                        
                         <td>@t.Mode</td>
                         <td>
                             <span class="badge bg-dark">@t.SignatureType</span>
