@@ -1,0 +1,30 @@
+﻿@model LYRA.Server.Models.Shared.ConfirmRotateModel
+
+<div class="modal fade" id="@Model.ModalId" tabindex="-1" aria-labelledby="@Model.ModalId-Label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-light border border-@Model.Highlight">
+            <div class="modal-header">
+                <h5 class="modal-title" id="@Model.ModalId-Label">
+                    <i class="bi bi-shield-lock-fill me-2 text-@Model.Highlight"></i> Confirm Secret Rotation
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to <strong>@Model.Message</strong> for <code>@Model.ObjectDisplayName</code>?<br />
+                This action will replace the current secret key and may invalidate existing clients.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post"
+                      asp-page="@Model.Page"
+                      asp-page-handler="@Model.Handler"
+                      asp-route-id="@Model.ObjectId"
+                      class="d-inline">
+                    <button type="submit" class="btn btn-@Model.Highlight">
+                        <i class="bi @Model.Icon me-1"></i> Yes, Rotate
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

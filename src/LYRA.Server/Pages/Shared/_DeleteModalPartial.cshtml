@@ -1,0 +1,30 @@
+﻿@model LYRA.Server.Models.Shared.ConfirmDeleteModel
+
+<div class="modal fade" id="@Model.ModalId" tabindex="-1" aria-labelledby="@Model.ModalId-Label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-light border border-danger">
+      <div class="modal-header">
+        <h5 class="modal-title" id="@Model.ModalId-Label">
+          <i class="bi bi-trash-fill me-2 text-danger"></i> Confirm Deletion
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete <strong>@Model.ObjectDisplayName</strong>?<br/>
+        This action cannot be undone.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post"
+                      asp-page="@Model.Page"
+                      asp-page-handler="@Model.Handler"
+                      asp-route-id="@Model.ObjectId"
+                      class="d-inline">
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash me-1"></i> Delete
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

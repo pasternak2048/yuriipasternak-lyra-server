@@ -33,14 +33,15 @@
                     <th>System Name</th>
                     <th>Status</th>
                     <th>Created</th>
-                    <th style="width: 180px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var company in Model.Companies.Items)
                 {
-                    <tr>
-                        <td>@company.DisplayName</td>
+                    <tr style="cursor: pointer;" onclick="location.href='@Url.Page("Details", new { id = company.Id })'">
+                        <td class="fw-semibold text-decoration-underline text-info">
+                            @company.DisplayName
+                        </td>
                         <td><code>@company.Name</code></td>
                         <td>
                             @if (company.IsActive)
@@ -53,13 +54,6 @@
                             }
                         </td>
                         <td>@company.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd")</td>
-                        <td>
-                            <div class="d-flex gap-1">
-                                <a asp-page="Details" asp-route-id="@company.Id" class="btn btn-sm btn-outline-info">Details</a>
-                                <a asp-page="Edit" asp-route-id="@company.Id" class="btn btn-sm btn-outline-light">Edit</a>
-                                <a asp-page="Delete" asp-route-id="@company.Id" class="btn btn-sm btn-outline-danger">Delete</a>
-                            </div>
-                        </td>
                     </tr>
                 }
             </tbody>
