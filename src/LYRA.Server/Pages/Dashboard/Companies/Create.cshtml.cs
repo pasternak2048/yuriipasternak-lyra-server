@@ -34,6 +34,8 @@ namespace LYRA.Server.Pages.Dashboard.Companies
         [TempData]
         public string? CreatedAt { get; set; }
 
+        [TempData] public Guid Id { get; set; }
+
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
@@ -46,6 +48,7 @@ namespace LYRA.Server.Pages.Dashboard.Companies
             Name = created.Name;
             IsActive = created.IsActive.ToString();
             CreatedAt = created.CreatedAt.ToString("yyyy-MM-dd HH:mm");
+            Id = created.Id;
 
             return RedirectToPage("Secret", new { id = created.Id });
         }
