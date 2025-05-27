@@ -17,6 +17,8 @@ namespace LYRA.Server.Pages.Dashboard.Companies
 
         [TempData] public string? CreatedAt { get; set; }
 
+        [TempData] public Guid Id { get; set; }
+
         public bool IsActiveBool => bool.TryParse(IsActive, out var active) && active;
 
         public async Task<IActionResult> OnGetAsync(Guid id)

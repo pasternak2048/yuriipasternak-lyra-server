@@ -103,8 +103,8 @@ namespace LYRA.Server.Services
             if (exists)
                 throw new InvalidOperationException($"A touchpoint with name '{normalizedName}' already exists in this company.");
 
-            var companyExists = await _context.Companies.AnyAsync(c => c.Id == request.CompanyId);
-            if (!companyExists)
+            var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == request.CompanyId);
+            if (company == null)
                 throw new InvalidOperationException("Target company does not exist.");
 
             string? generatedSecret = null;
@@ -142,6 +142,12 @@ namespace LYRA.Server.Services
                 Id = entity.Id,
                 Name = entity.Name,
                 DisplayName = entity.DisplayName,
+                CompanyName = company.Name,
+                Mode = entity.Mode.ToString(),
+                SignatureType = entity.SignatureType.ToString(),
+                IsActive = entity.IsActive,
+                UseCompanySecret = entity.UseCompanySecret,
+                CreatedAt = entity.CreatedAt,
                 SecretPlaintext = generatedSecret ?? "(using company secret)"
             };
         }
