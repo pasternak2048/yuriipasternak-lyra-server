@@ -58,7 +58,7 @@ It introduces the concept of **Trusted Touchpoints** and **Access Policies** to 
 Company
  └── TrustedTouchpoints
        ├── Mode: CallerOnly / TargetOnly / Both
-       ├── Secret or PublicKey
+       ├── Secret
        ├── UseCompanySecret
        ├── SignatureType
        ├── AllowedSourceIp
