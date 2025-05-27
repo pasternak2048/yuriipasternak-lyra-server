@@ -88,7 +88,7 @@ namespace LYRA.Server.Services
         /// </summary>
         public async Task<CompanyCreatedDto> AddAsync(CompanyCreateRequest request)
         {
-            var normalizedName = NameHelper.NormalizeAndValidate(request.DisplayName);
+            var normalizedName = NameHelper.EnsureSlug(request.DisplayName, "company");
 
             var exists = await ExistsByNameAsync(normalizedName);
             if (exists)
@@ -130,7 +130,7 @@ namespace LYRA.Server.Services
         /// </summary>
         public async Task UpdateAsync(CompanyUpdateRequest request)
         {
-            var normalizedName = NameHelper.NormalizeAndValidate(request.DisplayName);
+            var normalizedName = NameHelper.EnsureSlug(request.DisplayName, "company");
 
             var exists = await ExistsByNameAsync(normalizedName, request.Id);
 

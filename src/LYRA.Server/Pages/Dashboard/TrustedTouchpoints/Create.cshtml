@@ -25,13 +25,8 @@
 
             <div class="mb-3">
                 <label asp-for="Input.DisplayName" class="form-label">Display Name</label>
-                <input asp-for="Input.DisplayName" class="form-control" id="displayNameInput" oninput="lyra.filterDisplayName(this); lyra.updateSlug('displayNameInput', 'generatedName');" />
+                <input asp-for="Input.DisplayName" class="form-control" id="displayNameInput" />
                 <span asp-validation-for="Input.DisplayName" class="text-danger small"></span>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Generated Name (readonly)</label>
-                <input type="text" class="form-control" id="generatedName" readonly />
             </div>
 
             <div class="form-check form-switch mb-3">
@@ -87,15 +82,4 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/lyra-utils.js" asp-append-version="true"></script>
-    <script>
-        const input = document.getElementById('displayNameInput');
-        if (input) {
-            input.addEventListener('input', () => {
-                lyra.filterDisplayName(input);
-                lyra.updateSlug('displayNameInput', 'generatedName');
-            });
-
-            lyra.updateSlug('displayNameInput', 'generatedName');
-        }
-    </script>
 }

@@ -13,26 +13,13 @@ window.lyra.generateSecret = function (inputId, byteLength = 32) {
 };
 
 /**
- * Converts string into a slugified version
- */
-window.lyra.slugify = function (input) {
-    return input
-        .trim()
-        .toLowerCase()
-        .replace(/[\s_]+/g, "-")
-        .replace(/[^a-z0-9\-]/g, "")
-        .replace(/-+/g, "-")
-        .replace(/^-+|-+$/g, "");
-};
-
-/**
  * Reads from one input and writes the slugified version to another
  */
-window.lyra.updateSlug = function (inputId, outputId) {
+window.lyra.updateSlug = function (inputId, outputId, prefix = "") {
     const input = document.getElementById(inputId);
     const output = document.getElementById(outputId);
     if (input && output) {
-        output.value = window.lyra.slugify(input.value);
+        output.value = window.lyra.slugify(input.value, prefix);
     }
 };
 
