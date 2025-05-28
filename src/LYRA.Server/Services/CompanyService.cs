@@ -162,9 +162,9 @@ namespace LYRA.Server.Services
             return await _context.Companies.CountAsync();
         }
 
-        public async Task<bool> ExistsByNameAsync(string name, Guid? excludeId = null)
+        public async Task<bool> ExistsByNameAsync(string displayName, Guid? excludeId = null)
         {
-            var normalized = name.ToLowerInvariant();
+            var normalized = NameHelper.EnsureSlug(displayName, "company");
 
             return await _context.Companies.AnyAsync(c =>
                 c.Name == normalized &&

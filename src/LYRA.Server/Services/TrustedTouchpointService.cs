@@ -80,6 +80,7 @@ namespace LYRA.Server.Services
             return new TrustedTouchpointDto
             {
                 Id = entity.Id,
+                CompanyId = entity.CompanyId,
                 Name = entity.Name,
                 DisplayName = entity.DisplayName,
                 CompanyName = entity.Company.Name,
@@ -227,10 +228,12 @@ namespace LYRA.Server.Services
         /// <param name="name">Normalized (slugified) name of the touchpoint</param>
         /// <returns>True if a touchpoint with the same name exists in the company</returns>
 
-        public async Task<bool> ExistsByCompanyAndNameAsync(Guid companyId, string name)
+        public async Task<bool> ExistsByCompanyAndNameAsync(Guid companyId, string name, Guid? excludeId = null)
         {
-            return await _context.TrustedTouchpoints
-                .AnyAsync(t => t.CompanyId == companyId && t.Name == name);
+            return await _context.TrustedTouchpoints.AnyAsync(t =>
+                t.CompanyId == companyId &&
+                t.Name == name &&
+                (!excludeId.HasValue || t.Id != excludeId.Value));
         }
 
         /// <summary>

@@ -20,7 +20,7 @@ namespace LYRA.Server.Services.Interfaces
 
         Task<bool> ExistsByNameAsync(string name, Guid? excludeId = null);
 
-        Task<bool> ExistsByCompanyAndNameAsync(Guid companyId, string name);
+        Task<bool> ExistsByCompanyAndNameAsync(Guid companyId, string name, Guid? excludeId = null);
 
         Task<List<TrustedTouchpointDto>> GetByCompanyAsync(Guid companyId);
 
