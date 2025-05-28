@@ -131,7 +131,7 @@ namespace LYRA.Server.Services
                 IsActive = request.IsActive,
                 CreatedAt = DateTime.UtcNow,
                 Mode = Enum.Parse<TouchpointMode>(request.Mode),
-                SignatureType = SignatureType.HMAC
+                SignatureType = Enum.Parse<SignatureType>(request.SignatureType)
             };
 
             _context.TrustedTouchpoints.Add(entity);
@@ -179,6 +179,7 @@ namespace LYRA.Server.Services
             entity.UseCompanySecret = request.UseCompanySecret;
             entity.IsActive = request.IsActive;
             entity.Mode = Enum.Parse<TouchpointMode>(request.Mode);
+            entity.SignatureType = Enum.Parse<SignatureType>(request.SignatureType);
 
             await _context.SaveChangesAsync();
         }
