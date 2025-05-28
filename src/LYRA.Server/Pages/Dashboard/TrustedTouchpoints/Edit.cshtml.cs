@@ -60,16 +60,8 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
 
             if (!ModelState.IsValid)
                 return Page();
-
-            try
-            {
-                await _touchpointService.UpdateAsync(Input);
-            }
-            catch (InvalidOperationException ex)
-            {
-                ModelState.AddModelError("Input.DisplayName", ex.Message);
-                return Page();
-            }
+            
+            await _touchpointService.UpdateAsync(Input);
 
             return RedirectToPage("Details", new { id = Input.Id });
         }
