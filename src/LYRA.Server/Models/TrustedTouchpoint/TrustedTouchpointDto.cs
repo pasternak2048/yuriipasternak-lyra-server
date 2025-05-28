@@ -21,6 +21,11 @@ namespace LYRA.Server.Models.TrustedTouchpoint
         public string DisplayName { get; set; } = null!;
 
         /// <summary>
+        /// ID of the company that owns the touchpoint
+        /// </summary>
+        public Guid CompanyId { get; set; }
+
+        /// <summary>
         /// Company name (for display only)
         /// </summary>
         public string CompanyName { get; set; } = null!;
@@ -54,5 +59,10 @@ namespace LYRA.Server.Models.TrustedTouchpoint
         /// Date and time the touchpoint was created
         /// </summary>
         public DateTime CreatedAt { get; set; }
+
+        /// <summary>
+        /// Optional expected source IP or CIDR
+        /// </summary>
+        public string? AllowedSourceIp { get; set; }
     }
 }

@@ -49,7 +49,6 @@
                     <th>Use Company Secret</th>
                     <th>Mode</th>
                     <th>Signature</th>
-                    <th>Description</th>
                     <th>Created</th>
                 </tr>
             </thead>
@@ -84,9 +83,6 @@
                         </td>
                         <td>@t.Mode</td>
                         <td><span class="badge bg-dark">@t.SignatureType</span></td>
-                        <td class="text-light-emphasis">
-                            @(!string.IsNullOrWhiteSpace(t.Description) ? t.Description : "–")
-                        </td>
                         <td>@t.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd")</td>
                     </tr>
                 }

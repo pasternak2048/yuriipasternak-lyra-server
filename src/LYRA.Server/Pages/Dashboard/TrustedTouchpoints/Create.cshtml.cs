@@ -1,3 +1,4 @@
+using LYRA.Server.Enums;
 using LYRA.Server.Models.Company;
 using LYRA.Server.Models.TrustedTouchpoint;
 using LYRA.Server.Services.Interfaces;
@@ -5,6 +6,7 @@ using LYRA.Server.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
 {
@@ -24,6 +26,8 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
         public TrustedTouchpointCreateRequest Input { get; set; } = new();
 
         public List<CompanyDto> Companies { get; set; } = new();
+
+        public List<SelectListItem> SignatureTypes { get; set; } = new();
 
         [TempData] public string? SecretPlaintext { get; set; }
 
@@ -48,12 +52,14 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
         public async Task<IActionResult> OnGetAsync()
         {
             Companies = await _companyService.GetLightweightAsync();
+            SignatureTypes = EnumHelper.GetSelectList<SignatureType>();
             return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
             Companies = await _companyService.GetLightweightAsync();
+            SignatureTypes = EnumHelper.GetSelectList<SignatureType>();
 
             if (!ModelState.IsValid)
                 return Page();

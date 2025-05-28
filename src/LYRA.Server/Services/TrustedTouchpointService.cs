@@ -80,6 +80,7 @@ namespace LYRA.Server.Services
             return new TrustedTouchpointDto
             {
                 Id = entity.Id,
+                CompanyId = entity.CompanyId,
                 Name = entity.Name,
                 DisplayName = entity.DisplayName,
                 CompanyName = entity.Company.Name,
@@ -131,7 +132,7 @@ namespace LYRA.Server.Services
                 IsActive = request.IsActive,
                 CreatedAt = DateTime.UtcNow,
                 Mode = Enum.Parse<TouchpointMode>(request.Mode),
-                SignatureType = SignatureType.HMAC
+                SignatureType = Enum.Parse<SignatureType>(request.SignatureType)
             };
 
             _context.TrustedTouchpoints.Add(entity);
@@ -157,28 +158,14 @@ namespace LYRA.Server.Services
         /// </summary>
         public async Task UpdateAsync(TrustedTouchpointUpdateRequest request)
         {
-            var normalizedName = NameHelper.EnsureSlug(request.DisplayName, "trusted-touchpoint");
-
-            var exists = await ExistsByCompanyAndNameAsync(request.CompanyId, normalizedName);
-            if (exists)
-            {
-                var other = await _context.TrustedTouchpoints
-                    .Where(t => t.CompanyId == request.CompanyId && t.Name == normalizedName)
-                    .Select(t => t.Id)
-                    .FirstOrDefaultAsync();
-
-                if (other != request.Id)
-                    throw new InvalidOperationException($"Another touchpoint with name '{normalizedName}' already exists.");
-            }
-
             var entity = await _context.TrustedTouchpoints.FindAsync(request.Id);
             if (entity == null) return;
 
-            entity.Name = normalizedName;
             entity.DisplayName = request.DisplayName;
             entity.UseCompanySecret = request.UseCompanySecret;
             entity.IsActive = request.IsActive;
             entity.Mode = Enum.Parse<TouchpointMode>(request.Mode);
+            entity.SignatureType = Enum.Parse<SignatureType>(request.SignatureType);
 
             await _context.SaveChangesAsync();
         }
@@ -226,10 +213,12 @@ namespace LYRA.Server.Services
         /// <param name="name">Normalized (slugified) name of the touchpoint</param>
         /// <returns>True if a touchpoint with the same name exists in the company</returns>
 
-        public async Task<bool> ExistsByCompanyAndNameAsync(Guid companyId, string name)
+        public async Task<bool> ExistsByCompanyAndNameAsync(Guid companyId, string name, Guid? excludeId = null)
         {
-            return await _context.TrustedTouchpoints
-                .AnyAsync(t => t.CompanyId == companyId && t.Name == name);
+            return await _context.TrustedTouchpoints.AnyAsync(t =>
+                t.CompanyId == companyId &&
+                t.Name == name &&
+                (!excludeId.HasValue || t.Id != excludeId.Value));
         }
 
         /// <summary>

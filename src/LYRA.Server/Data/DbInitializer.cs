@@ -16,6 +16,9 @@ namespace LYRA.Server.Data
 
             context.Database.EnsureCreated();
 
+            if (await context.Companies.AnyAsync())
+                return;
+
             const string adminEmail = "admin@lyra";
             const string adminPassword = "admin";
 
@@ -51,11 +54,10 @@ namespace LYRA.Server.Data
             var cWorker = await EnsureTouchpointAsync(context, cCorp, "Worker Node", "c-worker-secret", TouchpointMode.CallerOnly);
             var cBot = await EnsureTouchpointAsync(context, cCorp, "Bot Commander", "c-bot-secret", TouchpointMode.Both);
 
-            // 4. Example Policy: bCorp::gateway → aCorp::billing (HTTP)
+            // 4. Example Policy
             await EnsurePolicyAsync(context, bGateway.Id, aBilling.Id, "POST /subscribe", AccessContext.Http);
         }
 
-        // Create or retrieve existing company
         private static async Task<CompanyEntity> EnsureCompanyAsync(LyraDbContext context, string displayName, string secret)
         {
             var slugName = SlugHelper.Slugify(displayName);
@@ -78,7 +80,6 @@ namespace LYRA.Server.Data
             return company;
         }
 
-        // Create or retrieve existing touchpoint
         private static async Task<TrustedTouchpointEntity> EnsureTouchpointAsync(
             LyraDbContext context,
             CompanyEntity company,
@@ -112,7 +113,6 @@ namespace LYRA.Server.Data
             return touchpoint;
         }
 
-        // Create or retrieve existing policy
         private static async Task EnsurePolicyAsync(
             LyraDbContext context,
             Guid callerId,

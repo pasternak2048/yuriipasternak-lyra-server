@@ -1,5 +1,6 @@
 using LYRA.Server.Models.Company;
 using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -40,6 +41,15 @@ namespace LYRA.Server.Pages.Dashboard.Companies
         {
             if (!ModelState.IsValid)
                 return Page();
+
+            var normalizedName = NameHelper.EnsureSlug(Input.DisplayName, "company");
+
+            var exists = await _companyService.ExistsByNameAsync(normalizedName);
+            if (exists)
+            {
+                ModelState.AddModelError("Input.DisplayName", "A company with this system name already exists.");
+                return Page();
+            }
 
             var created = await _companyService.AddAsync(Input);
 
