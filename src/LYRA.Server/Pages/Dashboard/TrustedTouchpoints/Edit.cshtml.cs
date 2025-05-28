@@ -61,22 +61,6 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
             if (!ModelState.IsValid)
                 return Page();
 
-            var normalizedName = NameHelper.EnsureSlug(Input.DisplayName, "trusted-touchpoint");
-
-            if (string.IsNullOrWhiteSpace(normalizedName))
-            {
-                ModelState.AddModelError("Input.DisplayName", "Display name must contain at least one alphanumeric character.");
-                return Page();
-            }
-
-            var exists = await _touchpointService.ExistsByCompanyAndNameAsync(Input.CompanyId, normalizedName, Input.Id);
-
-            if (exists)
-            {
-                ModelState.AddModelError("Input.DisplayName", "A touchpoint with this name already exists in the selected company.");
-                return Page();
-            }
-
             try
             {
                 await _touchpointService.UpdateAsync(Input);

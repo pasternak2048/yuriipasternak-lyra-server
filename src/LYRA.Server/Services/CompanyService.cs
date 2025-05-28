@@ -130,17 +130,9 @@ namespace LYRA.Server.Services
         /// </summary>
         public async Task UpdateAsync(CompanyUpdateRequest request)
         {
-            var normalizedName = NameHelper.EnsureSlug(request.DisplayName, "company");
-
-            var exists = await ExistsByNameAsync(normalizedName, request.Id);
-
-            if (exists)
-                throw new InvalidOperationException($"A company with name '{normalizedName}' already exists.");
-
             var entity = await _context.Companies.FindAsync(request.Id);
             if (entity == null) return;
 
-            entity.Name = normalizedName;
             entity.DisplayName = request.DisplayName;
             entity.IsActive = request.IsActive;
 

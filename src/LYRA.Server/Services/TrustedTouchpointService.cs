@@ -158,24 +158,9 @@ namespace LYRA.Server.Services
         /// </summary>
         public async Task UpdateAsync(TrustedTouchpointUpdateRequest request)
         {
-            var normalizedName = NameHelper.EnsureSlug(request.DisplayName, "trusted-touchpoint");
-
-            var exists = await ExistsByCompanyAndNameAsync(request.CompanyId, normalizedName);
-            if (exists)
-            {
-                var other = await _context.TrustedTouchpoints
-                    .Where(t => t.CompanyId == request.CompanyId && t.Name == normalizedName)
-                    .Select(t => t.Id)
-                    .FirstOrDefaultAsync();
-
-                if (other != request.Id)
-                    throw new InvalidOperationException($"Another touchpoint with name '{normalizedName}' already exists.");
-            }
-
             var entity = await _context.TrustedTouchpoints.FindAsync(request.Id);
             if (entity == null) return;
 
-            entity.Name = normalizedName;
             entity.DisplayName = request.DisplayName;
             entity.UseCompanySecret = request.UseCompanySecret;
             entity.IsActive = request.IsActive;
