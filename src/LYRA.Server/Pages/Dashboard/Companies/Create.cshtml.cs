@@ -35,16 +35,20 @@ namespace LYRA.Server.Pages.Dashboard.Companies
         [TempData]
         public string? CreatedAt { get; set; }
 
-        [TempData] public Guid Id { get; set; }
+        [TempData] 
+        public Guid Id { get; set; }
+
+        [TempData]
+        public string? Message { get; set; }
+
 
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
                 return Page();
 
-            var normalizedName = NameHelper.EnsureSlug(Input.DisplayName, "company");
+            var exists = await _companyService.ExistsByDisplayNameAsync(Input.DisplayName);
 
-            var exists = await _companyService.ExistsByNameAsync(normalizedName);
             if (exists)
             {
                 ModelState.AddModelError("Input.DisplayName", "A company with this system name already exists.");
@@ -60,6 +64,7 @@ namespace LYRA.Server.Pages.Dashboard.Companies
             CreatedAt = created.CreatedAt.ToString("yyyy-MM-dd HH:mm");
             Id = created.Id;
 
+            Message = $"Company '{DisplayName}' created successfully.";
             return RedirectToPage("Secret", new { id = created.Id });
         }
     }

@@ -22,17 +22,26 @@ namespace LYRA.Server.Pages.Dashboard.Companies
         public CompanyDto? Company { get; set; }
         public List<TrustedTouchpointDto> Touchpoints { get; set; } = new();
 
-        [TempData] public string? SecretPlaintext { get; set; }
+        [TempData] 
+        public string? SecretPlaintext { get; set; }
 
-        [TempData] public string? DisplayName { get; set; }
+        [TempData] 
+        public string? DisplayName { get; set; }
 
-        [TempData] public string? Name { get; set; }
+        [TempData] 
+        public string? Name { get; set; }
 
-        [TempData] public string? IsActive { get; set; }
+        [TempData] 
+        public string? IsActive { get; set; }
 
-        [TempData] public string? CreatedAt { get; set; }
+        [TempData] 
+        public string? CreatedAt { get; set; }
 
-        [TempData] public Guid Id { get; set; }
+        [TempData] 
+        public Guid Id { get; set; }
+
+        [TempData] 
+        public string? Message { get; set; }
 
         public async Task<IActionResult> OnGetAsync(Guid id)
         {

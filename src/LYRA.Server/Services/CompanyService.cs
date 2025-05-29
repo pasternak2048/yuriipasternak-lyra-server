@@ -14,15 +14,18 @@ namespace LYRA.Server.Services
     public class CompanyService : ICompanyService
     {
         private readonly LyraDbContext _context;
+        private readonly ILogger<CompanyService> _logger;
 
-        public CompanyService(LyraDbContext context)
+        public CompanyService(LyraDbContext context, ILogger<CompanyService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<List<CompanyDto>> GetLightweightAsync()
         {
             return await _context.Companies
+                .Where(c => c.IsActive)
                 .OrderBy(c => c.Name)
                 .Select(c => new CompanyDto
                 {
@@ -39,9 +42,10 @@ namespace LYRA.Server.Services
 
             if (!string.IsNullOrWhiteSpace(filters.Name))
             {
+                var nameFilter = filters.Name.Trim().ToLowerInvariant();
                 query = query.Where(c =>
-                    c.Name.Contains(filters.Name) ||
-                    c.DisplayName != null && c.DisplayName.Contains(filters.Name));
+                    c.Name.ToLower().Contains(nameFilter) ||
+                    (c.DisplayName != null && c.DisplayName.ToLower().Contains(nameFilter)));
             }
 
             var totalItems = await query.CountAsync();
@@ -71,48 +75,39 @@ namespace LYRA.Server.Services
         public async Task<CompanyDto?> GetByIdAsync(Guid id)
         {
             var entity = await _context.Companies.FindAsync(id);
-            if (entity == null) return null;
-
-            return new CompanyDto
-            {
-                Id = entity.Id,
-                Name = entity.Name,
-                DisplayName = entity.DisplayName,
-                IsActive = entity.IsActive,
-                CreatedAt = entity.CreatedAt
-            };
+            return entity == null
+                ? null
+                : MapToDto(entity);
         }
 
-        /// <summary>
-        /// Creates a new company. The machine-readable Name is auto-generated from DisplayName.
-        /// </summary>
         public async Task<CompanyCreatedDto> AddAsync(CompanyCreateRequest request)
         {
-            var normalizedName = NameHelper.EnsureSlug(request.DisplayName, "company");
+            if (string.IsNullOrWhiteSpace(request.DisplayName))
+                throw new ArgumentException("DisplayName is required.", nameof(request.DisplayName));
 
-            var exists = await ExistsByNameAsync(normalizedName);
+            var normalizedName = NormalizeName(request.DisplayName);
+            var exists = await _context.Companies.AnyAsync(c => c.Name == normalizedName);
             if (exists)
                 throw new InvalidOperationException($"A company with name '{normalizedName}' already exists.");
 
-            string? generatedSecret = null;
-
-            generatedSecret = SecretGenerator.Generate();
-
-            if (string.IsNullOrWhiteSpace(generatedSecret))
+            var secretPlaintext = SecretGenerator.Generate();
+            if (string.IsNullOrWhiteSpace(secretPlaintext))
                 throw new InvalidOperationException("Failed to generate secret.");
-            
+
             var entity = new CompanyEntity
             {
                 Id = Guid.NewGuid(),
                 Name = normalizedName,
                 DisplayName = request.DisplayName,
-                Secret = HashHelper.HashSecret(generatedSecret),
+                Secret = HashHelper.HashSecret(secretPlaintext),
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
 
             _context.Companies.Add(entity);
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Created new company: {CompanyName} ({CompanyId})", entity.Name, entity.Id);
 
             return new CompanyCreatedDto
             {
@@ -121,46 +116,46 @@ namespace LYRA.Server.Services
                 DisplayName = entity.DisplayName,
                 IsActive = entity.IsActive,
                 CreatedAt = entity.CreatedAt,
-                SecretPlaintext = generatedSecret
+                SecretPlaintext = secretPlaintext
             };
         }
 
-        /// <summary>
-        /// Updates an existing company and regenerates its Name from the DisplayName.
-        /// </summary>
         public async Task UpdateAsync(CompanyUpdateRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request.DisplayName))
+                throw new ArgumentException("DisplayName is required.", nameof(request.DisplayName));
+
             var entity = await _context.Companies.FindAsync(request.Id);
-            if (entity == null) return;
+            if (entity == null)
+                throw new KeyNotFoundException($"Company with ID '{request.Id}' not found.");
 
             entity.DisplayName = request.DisplayName;
             entity.IsActive = request.IsActive;
 
             await _context.SaveChangesAsync();
+            _logger.LogInformation("Updated company: {CompanyId}", entity.Id);
         }
 
         public async Task DeleteAsync(Guid id)
         {
-            var entity = await _context.Companies.FindAsync(id);
-            if (entity != null)
-            {
-                _context.Companies.Remove(entity);
-                await _context.SaveChangesAsync();
-            }
+            var entity = await _context.Companies
+                .Include(c => c.TrustedTouchpoints)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (entity == null) return;
+
+            if (entity.TrustedTouchpoints.Any())
+                throw new InvalidOperationException("Cannot delete company with existing trusted touchpoints.");
+
+            _context.Companies.Remove(entity);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Deleted company: {CompanyId}", id);
         }
 
         public async Task<int> GetTotalCompanyCountAsync()
         {
             return await _context.Companies.CountAsync();
-        }
-
-        public async Task<bool> ExistsByNameAsync(string displayName, Guid? excludeId = null)
-        {
-            var normalized = NameHelper.EnsureSlug(displayName, "company");
-
-            return await _context.Companies.AnyAsync(c =>
-                c.Name == normalized &&
-                (!excludeId.HasValue || c.Id != excludeId.Value));
         }
 
         public async Task<SecretRotationResult?> RotateSecretAsync(Guid companyId)
@@ -169,15 +164,51 @@ namespace LYRA.Server.Services
             if (company == null) return null;
 
             var newSecret = SecretGenerator.Generate();
-            company.Secret = HashHelper.HashSecret(newSecret);
+            if (string.IsNullOrWhiteSpace(newSecret))
+                throw new InvalidOperationException("Failed to generate secret.");
 
+            var oldSecret = company.Secret;
+            company.Secret = HashHelper.HashSecret(newSecret);
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Rotated secret for company: {CompanyId}", company.Id);
 
             return new SecretRotationResult
             {
                 EntityId = company.Id,
                 OwnerType = SecretOwnerType.Company,
                 SecretPlaintext = newSecret
+            };
+        }
+
+        public async Task<bool> ExistsByDisplayNameAsync(string displayName, Guid? excludeId = null)
+        {
+            if (string.IsNullOrWhiteSpace(displayName))
+                throw new ArgumentException("Display name is required.", nameof(displayName));
+
+            var normalized = NormalizeName(displayName);
+
+            return await _context.Companies.AnyAsync(c =>
+                c.Name == normalized &&
+                (!excludeId.HasValue || c.Id != excludeId.Value));
+        }
+
+        // --- Helpers ---
+
+        private static string NormalizeName(string displayName)
+        {
+            return NameHelper.EnsureSlug(displayName.Trim(), "company");
+        }
+
+        private static CompanyDto MapToDto(CompanyEntity entity)
+        {
+            return new CompanyDto
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                DisplayName = entity.DisplayName,
+                IsActive = entity.IsActive,
+                CreatedAt = entity.CreatedAt
             };
         }
     }
