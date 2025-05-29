@@ -62,15 +62,17 @@ namespace LYRA.Server.Services
 
         public async Task<TrustedTouchpointCreatedDto> AddAsync(TrustedTouchpointCreateRequest request)
         {
-            var normalizedName = NameHelper.EnsureSlug(request.DisplayName, "trusted-touchpoint");
-
-            var exists = await ExistsByCompanyAndNameAsync(request.CompanyId, normalizedName);
-            if (exists)
-                throw new InvalidOperationException($"A touchpoint with name '{normalizedName}' already exists in this company.");
-
             var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == request.CompanyId);
             if (company == null)
                 throw new InvalidOperationException("Target company does not exist.");
+
+            // Generate system name: {slugified-touchpoint}@{slugified-company}
+            var tpSlug = NameHelper.EnsureSlug(request.DisplayName);
+            var fullName = $"{tpSlug}@{company.Name}";
+
+            var exists = await _context.TrustedTouchpoints.AnyAsync(t => t.Name == fullName);
+            if (exists)
+                throw new InvalidOperationException($"A touchpoint with name '{fullName}' already exists.");
 
             string? generatedSecret = null;
             string? hashedSecret = null;
@@ -94,7 +96,7 @@ namespace LYRA.Server.Services
             {
                 Id = Guid.NewGuid(),
                 CompanyId = request.CompanyId,
-                Name = normalizedName,
+                Name = fullName,
                 DisplayName = request.DisplayName,
                 Secret = hashedSecret,
                 UseCompanySecret = request.UseCompanySecret,
@@ -131,7 +133,7 @@ namespace LYRA.Server.Services
             if (entity == null)
                 throw new KeyNotFoundException($"Trusted touchpoint with ID '{request.Id}' not found.");
 
-            // Name is immutable — do not change it
+            // Name is immutable
 
             entity.DisplayName = request.DisplayName;
             entity.UseCompanySecret = request.UseCompanySecret;
@@ -181,14 +183,6 @@ namespace LYRA.Server.Services
             return await _context.TrustedTouchpoints.AnyAsync(c =>
                 c.Name == normalized &&
                 (!excludeId.HasValue || c.Id != excludeId.Value));
-        }
-
-        public async Task<bool> ExistsByCompanyAndNameAsync(Guid companyId, string name, Guid? excludeId = null)
-        {
-            return await _context.TrustedTouchpoints.AnyAsync(t =>
-                t.CompanyId == companyId &&
-                t.Name == name &&
-                (!excludeId.HasValue || t.Id != excludeId.Value));
         }
 
         public async Task<List<TrustedTouchpointDto>> GetByCompanyAsync(Guid companyId)

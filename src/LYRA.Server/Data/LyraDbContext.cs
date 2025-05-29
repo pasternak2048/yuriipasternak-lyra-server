@@ -48,7 +48,7 @@ namespace LYRA.Server.Data
             // ------------------- TrustedTouchpoint -------------------
 
             modelBuilder.Entity<TrustedTouchpointEntity>()
-                .HasIndex(t => new { t.CompanyId, t.Name }) // Ensure slug is unique within company
+                .HasIndex(t => t.Name) // Name is globally unique
                 .IsUnique();
 
             modelBuilder.Entity<TrustedTouchpointEntity>()

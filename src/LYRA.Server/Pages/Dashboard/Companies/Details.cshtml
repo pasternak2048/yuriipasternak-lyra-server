@@ -48,6 +48,18 @@
         {
             <div class="alert alert-success">@msg</div>
         }
+
+        @if (!ViewContext.ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
+        }
         <dl class="row">
             <dt class="col-sm-3">System Name</dt>
             <dd class="col-sm-9 text-light-emphasis"><code>@Model.Company?.Name</code></dd>
