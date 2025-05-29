@@ -45,7 +45,10 @@
                 </button>
             </div>
         </div>
-
+        @if (TempData["Message"] is string msg)
+        {
+            <div class="alert alert-success">@msg</div>
+        }
         <dl class="row">
             <dt class="col-sm-3">System Name</dt>
             <dd class="col-sm-9 text-light-emphasis"><code>@Model.Touchpoint?.Name</code></dd>

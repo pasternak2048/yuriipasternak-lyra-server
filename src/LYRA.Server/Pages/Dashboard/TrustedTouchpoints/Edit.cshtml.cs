@@ -29,6 +29,9 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
 
         public List<SelectListItem> SignatureTypes { get; set; } = new();
 
+        [TempData]
+        public string? Message { get; set; }
+
         public async Task<IActionResult> OnGetAsync(Guid id)
         {
             var touchpoint = await _touchpointService.GetByIdAsync(id);
@@ -37,7 +40,6 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
             Input = new TrustedTouchpointUpdateRequest
             {
                 Id = touchpoint.Id,
-                CompanyId = touchpoint.CompanyId,
                 DisplayName = touchpoint.DisplayName,
                 IsActive = touchpoint.IsActive,
                 UseCompanySecret = touchpoint.UseCompanySecret,
@@ -47,23 +49,32 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
                 AllowedSourceIp = touchpoint.AllowedSourceIp
             };
 
-            Companies = await _companyService.GetLightweightAsync();
             SignatureTypes = EnumHelper.GetSelectList<SignatureType>();
-
             return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
-            Companies = await _companyService.GetLightweightAsync();
             SignatureTypes = EnumHelper.GetSelectList<SignatureType>();
 
             if (!ModelState.IsValid)
                 return Page();
-            
-            await _touchpointService.UpdateAsync(Input);
 
-            return RedirectToPage("Details", new { id = Input.Id });
+            try
+            {
+                await _touchpointService.UpdateAsync(Input);
+                Message = $"Touchpoint '{Input.DisplayName}' updated successfully.";
+                return RedirectToPage("Details", new { id = Input.Id });
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return Page();
+            }
         }
     }
 }

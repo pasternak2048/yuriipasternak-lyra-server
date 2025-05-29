@@ -1,6 +1,5 @@
 using LYRA.Server.Models.Company;
 using LYRA.Server.Services.Interfaces;
-using LYRA.Server.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -47,25 +46,30 @@ namespace LYRA.Server.Pages.Dashboard.Companies
             if (!ModelState.IsValid)
                 return Page();
 
-            var exists = await _companyService.ExistsByDisplayNameAsync(Input.DisplayName);
-
-            if (exists)
+            try
             {
-                ModelState.AddModelError("Input.DisplayName", "A company with this system name already exists.");
+                var created = await _companyService.AddAsync(Input);
+
+                SecretPlaintext = created.SecretPlaintext;
+                DisplayName = created.DisplayName;
+                Name = created.Name;
+                IsActive = created.IsActive.ToString();
+                CreatedAt = created.CreatedAt.ToString("yyyy-MM-dd HH:mm");
+                Id = created.Id;
+
+                Message = $"Company '{DisplayName}' created successfully.";
+                return RedirectToPage("Secret", new { id = created.Id });
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
                 return Page();
             }
-
-            var created = await _companyService.AddAsync(Input);
-
-            SecretPlaintext = created.SecretPlaintext;
-            DisplayName = created.DisplayName;
-            Name = created.Name;
-            IsActive = created.IsActive.ToString();
-            CreatedAt = created.CreatedAt.ToString("yyyy-MM-dd HH:mm");
-            Id = created.Id;
-
-            Message = $"Company '{DisplayName}' created successfully.";
-            return RedirectToPage("Secret", new { id = created.Id });
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return Page();
+            }
         }
     }
 }

@@ -29,25 +29,38 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
 
         public List<SelectListItem> SignatureTypes { get; set; } = new();
 
-        [TempData] public string? SecretPlaintext { get; set; }
+        [TempData] 
+        public string? SecretPlaintext { get; set; }
 
-        [TempData] public string? DisplayName { get; set; }
+        [TempData] 
+        public string? DisplayName { get; set; }
 
-        [TempData] public string? Name { get; set; }
+        [TempData] 
+        public string? Name { get; set; }
 
-        [TempData] public string? CompanyName { get; set; }
+        [TempData] 
+        public string? CompanyName { get; set; }
 
-        [TempData] public string? IsActive { get; set; }
+        [TempData] 
+        public string? IsActive { get; set; }
 
-        [TempData] public string? UseCompanySecret { get; set; }
+        [TempData] 
+        public string? UseCompanySecret { get; set; }
 
-        [TempData] public string? Mode { get; set; }
+        [TempData] 
+        public string? Mode { get; set; }
 
-        [TempData] public string? SignatureType { get; set; }
+        [TempData] 
+        public string? SignatureType { get; set; }
 
-        [TempData] public string? CreatedAt { get; set; }
+        [TempData] 
+        public string? CreatedAt { get; set; }
 
-        [TempData] public Guid Id { get; set; }
+        [TempData]
+        public Guid Id { get; set; }
+
+        [TempData]
+        public string? Message { get; set; }
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -64,36 +77,34 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
             if (!ModelState.IsValid)
                 return Page();
 
-            var normalizedName = SlugHelper.Slugify(Input.DisplayName);
-
-            if (string.IsNullOrWhiteSpace(normalizedName))
+            try
             {
-                ModelState.AddModelError("Input.DisplayName", "Display name must contain at least one alphanumeric character.");
+                var created = await _touchpointService.AddAsync(Input);
+
+                SecretPlaintext = created.SecretPlaintext;
+                DisplayName = created.DisplayName;
+                Name = created.Name;
+                CompanyName = created.CompanyName;
+                IsActive = created.IsActive.ToString();
+                UseCompanySecret = created.UseCompanySecret.ToString();
+                Mode = created.Mode;
+                SignatureType = created.SignatureType;
+                CreatedAt = created.CreatedAt.ToString("yyyy-MM-dd HH:mm");
+                Id = created.Id;
+
+                Message = $"Trusted Touchpoint '{DisplayName}' created successfully.";
+                return RedirectToPage("Secret", new { id = created.Id });
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
                 return Page();
             }
-
-            var exists = await _touchpointService.ExistsByCompanyAndNameAsync(Input.CompanyId, normalizedName);
-
-            if (exists)
+            catch (ArgumentException ex)
             {
-                ModelState.AddModelError("Input.DisplayName", "A touchpoint with this name already exists in the selected company.");
+                ModelState.AddModelError(string.Empty, ex.Message);
                 return Page();
             }
-
-            var created = await _touchpointService.AddAsync(Input);
-
-            SecretPlaintext = created.SecretPlaintext;
-            DisplayName = created.DisplayName;
-            Name = created.Name;
-            CompanyName = created.CompanyName;
-            IsActive = created.IsActive.ToString();
-            UseCompanySecret = created.UseCompanySecret.ToString();
-            Mode = created.Mode.ToString();
-            SignatureType = created.SignatureType.ToString();
-            CreatedAt = created.CreatedAt.ToString("yyyy-MM-dd HH:mm");
-            Id = created.Id;
-
-            return RedirectToPage("Secret", new { id = created.Id });
         }
     }
 }
