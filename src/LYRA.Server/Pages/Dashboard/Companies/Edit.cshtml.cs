@@ -1,6 +1,5 @@
 using LYRA.Server.Models.Company;
 using LYRA.Server.Services.Interfaces;
-using LYRA.Server.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -19,6 +18,9 @@ namespace LYRA.Server.Pages.Dashboard.Companies
 
         [BindProperty]
         public CompanyUpdateRequest Input { get; set; } = new();
+
+        [TempData]
+        public string? Message { get; set; }
 
         public async Task<IActionResult> OnGetAsync(Guid id)
         {
@@ -41,8 +43,17 @@ namespace LYRA.Server.Pages.Dashboard.Companies
             if (!ModelState.IsValid)
                 return Page();
 
-            await _companyService.UpdateAsync(Input);
-            return RedirectToPage("Index");
+            try
+            {
+                await _companyService.UpdateAsync(Input);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+
+            Message = $"Company '{Input.DisplayName}' updated successfully.";
+            return RedirectToPage("Details", new { id = Input.Id });
         }
     }
 }

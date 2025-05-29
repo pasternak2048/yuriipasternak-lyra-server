@@ -20,8 +20,8 @@ namespace LYRA.Server.Services.Interfaces
 
         Task<int> GetTotalCompanyCountAsync();
 
-        Task<bool> ExistsByNameAsync(string name, Guid? excludeId = null);
-
         Task<SecretRotationResult?> RotateSecretAsync(Guid companyId);
+
+        Task<bool> ExistsByDisplayNameAsync(string displayName, Guid? excludeId = null);
     }
 }
