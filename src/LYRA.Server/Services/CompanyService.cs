@@ -84,8 +84,8 @@ namespace LYRA.Server.Services
         {
             if (string.IsNullOrWhiteSpace(request.DisplayName))
                 throw new ArgumentException("DisplayName is required.", nameof(request.DisplayName));
-
-            var normalizedName = NormalizeName(request.DisplayName);
+            
+            var normalizedName = NameHelper.EnsureSlug(request.DisplayName);
             var exists = await _context.Companies.AnyAsync(c => c.Name == normalizedName);
             if (exists)
                 throw new InvalidOperationException($"A company with name '{normalizedName}' already exists.");
@@ -181,24 +181,7 @@ namespace LYRA.Server.Services
             };
         }
 
-        public async Task<bool> ExistsByDisplayNameAsync(string displayName, Guid? excludeId = null)
-        {
-            if (string.IsNullOrWhiteSpace(displayName))
-                throw new ArgumentException("Display name is required.", nameof(displayName));
-
-            var normalized = NormalizeName(displayName);
-
-            return await _context.Companies.AnyAsync(c =>
-                c.Name == normalized &&
-                (!excludeId.HasValue || c.Id != excludeId.Value));
-        }
-
         // --- Helpers ---
-
-        private static string NormalizeName(string displayName)
-        {
-            return NameHelper.EnsureSlug(displayName.Trim(), "company");
-        }
 
         private static CompanyDto MapToDto(CompanyEntity entity)
         {
