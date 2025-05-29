@@ -18,25 +18,38 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
 
         public TrustedTouchpointDto? Touchpoint { get; set; }
 
-        [TempData] public string? SecretPlaintext { get; set; }
+        [TempData] 
+        public string? SecretPlaintext { get; set; }
 
-        [TempData] public string? DisplayName { get; set; }
+        [TempData] 
+        public string? DisplayName { get; set; }
 
-        [TempData] public string? Name { get; set; }
+        [TempData] 
+        public string? Name { get; set; }
 
-        [TempData] public string? CompanyName { get; set; }
+        [TempData] 
+        public string? CompanyName { get; set; }
 
-        [TempData] public string? IsActive { get; set; }
+        [TempData] 
+        public string? IsActive { get; set; }
 
-        [TempData] public string? UseCompanySecret { get; set; }
+        [TempData] 
+        public string? UseCompanySecret { get; set; }
 
-        [TempData] public string? Mode { get; set; }
+        [TempData] 
+        public string? Mode { get; set; }
 
-        [TempData] public string? SignatureType { get; set; }
+        [TempData] 
+        public string? SignatureType { get; set; }
 
-        [TempData] public string? CreatedAt { get; set; }
+        [TempData] 
+        public string? CreatedAt { get; set; }
 
-        [TempData] public Guid Id { get; set; }
+        [TempData]
+        public Guid Id { get; set; }
+
+        [TempData]
+        public string? Message { get; set; }
 
         public async Task<IActionResult> OnGetAsync(Guid id)
         {
