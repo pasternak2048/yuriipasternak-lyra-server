@@ -18,31 +18,31 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
 
         public TrustedTouchpointDto? Touchpoint { get; set; }
 
-        [TempData] 
+        [TempData]
         public string? SecretPlaintext { get; set; }
 
-        [TempData] 
+        [TempData]
         public string? DisplayName { get; set; }
 
-        [TempData] 
+        [TempData]
         public string? Name { get; set; }
 
-        [TempData] 
+        [TempData]
         public string? CompanyName { get; set; }
 
-        [TempData] 
+        [TempData]
         public string? IsActive { get; set; }
 
-        [TempData] 
+        [TempData]
         public string? UseCompanySecret { get; set; }
 
-        [TempData] 
+        [TempData]
         public string? Mode { get; set; }
 
-        [TempData] 
+        [TempData]
         public string? SignatureType { get; set; }
 
-        [TempData] 
+        [TempData]
         public string? CreatedAt { get; set; }
 
         [TempData]
@@ -54,38 +54,59 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
         public async Task<IActionResult> OnGetAsync(Guid id)
         {
             Touchpoint = await _touchpointService.GetByIdAsync(id);
-            if (Touchpoint == null) return NotFound();
+            if (Touchpoint == null)
+                return NotFound();
 
             return Page();
         }
 
         public async Task<IActionResult> OnPostRotateAsync(Guid id)
         {
-            var result = await _touchpointService.RotateSecretAsync(id);
-            if (result == null) return NotFound();
+            try
+            {
+                var result = await _touchpointService.RotateSecretAsync(id);
+                if (result == null)
+                    return NotFound();
 
-            var touchpoint = await _touchpointService.GetByIdAsync(id);
-            if (touchpoint == null) return NotFound();
+                var touchpoint = await _touchpointService.GetByIdAsync(id);
+                if (touchpoint == null)
+                    return NotFound();
 
-            SecretPlaintext = result.SecretPlaintext;
-            DisplayName = touchpoint.DisplayName;
-            Name = touchpoint.Name;
-            CompanyName = touchpoint.CompanyName;
-            IsActive = touchpoint.IsActive.ToString();
-            UseCompanySecret = touchpoint.UseCompanySecret.ToString();
-            Mode = touchpoint.Mode.ToString();
-            SignatureType = touchpoint.SignatureType.ToString();
-            CreatedAt = touchpoint.CreatedAt.ToString("yyyy-MM-dd HH:mm");
-            Id = touchpoint.Id;
+                SecretPlaintext = result.SecretPlaintext;
+                DisplayName = touchpoint.DisplayName;
+                Name = touchpoint.Name;
+                CompanyName = touchpoint.CompanyName;
+                IsActive = touchpoint.IsActive.ToString();
+                UseCompanySecret = touchpoint.UseCompanySecret.ToString();
+                Mode = touchpoint.Mode.ToString();
+                SignatureType = touchpoint.SignatureType.ToString();
+                CreatedAt = touchpoint.CreatedAt.ToString("yyyy-MM-dd HH:mm");
+                Id = touchpoint.Id;
 
-            return RedirectToPage("Secret", new { id });
+                return RedirectToPage("Secret", new { id });
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                Touchpoint = await _touchpointService.GetByIdAsync(id);
+                return Page();
+            }
         }
 
         public async Task<IActionResult> OnPostDeleteAsync(Guid id)
         {
-            await _touchpointService.DeleteAsync(id);
-            Message = $"Trusted Touchpoint deleted successfully.";
-            return RedirectToPage("Index");
+            try
+            {
+                await _touchpointService.DeleteAsync(id);
+                Message = "Trusted Touchpoint deleted successfully.";
+                return RedirectToPage("Index");
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                Touchpoint = await _touchpointService.GetByIdAsync(id);
+                return Page();
+            }
         }
     }
 }
