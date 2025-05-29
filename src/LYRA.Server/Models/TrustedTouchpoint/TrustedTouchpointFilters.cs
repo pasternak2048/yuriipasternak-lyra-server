@@ -7,7 +7,7 @@ namespace LYRA.Server.Models.TrustedTouchpoint
         /// <summary>
         /// Optional name filter (partial match)
         /// </summary>
-        public string? Name { get; set; }
+        public string? SystemName { get; set; }
 
         /// <summary>
         /// Optional filter by company ID

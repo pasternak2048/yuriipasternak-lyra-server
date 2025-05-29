@@ -17,7 +17,7 @@
         <form method="get" class="mb-4 row g-2 align-items-end">
             <div class="col-md-6">
                 <label class="form-label">Search</label>
-                <input type="text" name="Name" class="form-control" placeholder="Search by name or display name..." value="@Model.Filters.Name" />
+                <input type="text" name="SystemName" class="form-control" placeholder="Search by name or display name..." value="@Model.Filters.SystemName" />
             </div>
             <div class="col-md-auto d-flex align-items-end">
                 <button type="submit" class="btn btn-outline-light">
@@ -46,7 +46,7 @@
                         <td class="fw-semibold text-decoration-underline text-info">
                             @company.DisplayName
                         </td>
-                        <td><code>@company.Name</code></td>
+                        <td><code>@company.SystemName</code></td>
                         <td>
                             @if (company.IsActive)
                             {
@@ -68,7 +68,7 @@
                 @for (int i = 1; i <= Model.Companies.TotalPages; i++)
                 {
                     <li class="page-item @(i == Model.Filters.Page ? "active" : "")">
-                        <a class="page-link" href="?page=@i&Name=@Model.Filters.Name">@i</a>
+                        <a class="page-link" href="?page=@i&Name=@Model.Filters.SystemName">@i</a>
                     </li>
                 }
             </ul>

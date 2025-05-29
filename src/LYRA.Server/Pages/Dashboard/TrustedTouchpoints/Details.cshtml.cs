@@ -25,7 +25,7 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
         public string? DisplayName { get; set; }
 
         [TempData]
-        public string? Name { get; set; }
+        public string? SystemName { get; set; }
 
         [TempData]
         public string? CompanyName { get; set; }
@@ -74,7 +74,7 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
 
                 SecretPlaintext = result.SecretPlaintext;
                 DisplayName = touchpoint.DisplayName;
-                Name = touchpoint.Name;
+                SystemName = touchpoint.SystemName;
                 CompanyName = touchpoint.CompanyName;
                 IsActive = touchpoint.IsActive.ToString();
                 UseCompanySecret = touchpoint.UseCompanySecret.ToString();

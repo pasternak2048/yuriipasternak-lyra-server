@@ -26,11 +26,11 @@ namespace LYRA.Server.Services
         {
             return await _context.Companies
                 .Where(c => c.IsActive)
-                .OrderBy(c => c.Name)
+                .OrderBy(c => c.SystemName)
                 .Select(c => new CompanyDto
                 {
                     Id = c.Id,
-                    Name = c.Name,
+                    SystemName = c.SystemName,
                     DisplayName = c.DisplayName
                 })
                 .ToListAsync();
@@ -40,23 +40,23 @@ namespace LYRA.Server.Services
         {
             var query = _context.Companies.AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(filters.Name))
+            if (!string.IsNullOrWhiteSpace(filters.SystemName))
             {
-                var nameFilter = filters.Name.Trim().ToLowerInvariant();
+                var nameFilter = filters.SystemName.Trim().ToLowerInvariant();
                 query = query.Where(c =>
-                    c.Name.ToLower().Contains(nameFilter) ||
+                    c.SystemName.ToLower().Contains(nameFilter) ||
                     (c.DisplayName != null && c.DisplayName.ToLower().Contains(nameFilter)));
             }
 
             var totalItems = await query.CountAsync();
             var items = await query
-                .OrderBy(c => c.Name)
+                .OrderBy(c => c.SystemName)
                 .Skip((filters.Page - 1) * filters.PageSize)
                 .Take(filters.PageSize)
                 .Select(c => new CompanyDto
                 {
                     Id = c.Id,
-                    Name = c.Name,
+                    SystemName = c.SystemName,
                     DisplayName = c.DisplayName,
                     IsActive = c.IsActive,
                     CreatedAt = c.CreatedAt
@@ -86,7 +86,7 @@ namespace LYRA.Server.Services
                 throw new ArgumentException("DisplayName is required.", nameof(request.DisplayName));
             
             var normalizedName = NameHelper.EnsureSlug(request.DisplayName);
-            var exists = await _context.Companies.AnyAsync(c => c.Name == normalizedName);
+            var exists = await _context.Companies.AnyAsync(c => c.SystemName == normalizedName);
             if (exists)
                 throw new InvalidOperationException($"A company with name '{normalizedName}' already exists.");
 
@@ -97,7 +97,7 @@ namespace LYRA.Server.Services
             var entity = new CompanyEntity
             {
                 Id = Guid.NewGuid(),
-                Name = normalizedName,
+                SystemName = normalizedName,
                 DisplayName = request.DisplayName,
                 Secret = HashHelper.HashSecret(secretPlaintext),
                 IsActive = true,
@@ -107,12 +107,12 @@ namespace LYRA.Server.Services
             _context.Companies.Add(entity);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Created new company: {CompanyName} ({CompanyId})", entity.Name, entity.Id);
+            _logger.LogInformation("Created new company: {CompanyName} ({CompanyId})", entity.SystemName, entity.Id);
 
             return new CompanyCreatedDto
             {
                 Id = entity.Id,
-                Name = entity.Name,
+                SystemName = entity.SystemName,
                 DisplayName = entity.DisplayName,
                 IsActive = entity.IsActive,
                 CreatedAt = entity.CreatedAt,
@@ -188,7 +188,7 @@ namespace LYRA.Server.Services
             return new CompanyDto
             {
                 Id = entity.Id,
-                Name = entity.Name,
+                SystemName = entity.SystemName,
                 DisplayName = entity.DisplayName,
                 IsActive = entity.IsActive,
                 CreatedAt = entity.CreatedAt

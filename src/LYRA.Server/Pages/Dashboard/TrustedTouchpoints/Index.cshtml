@@ -22,14 +22,14 @@
                     @foreach (var c in Model.Companies)
                     {
                         <option value="@c.Id" selected="@(Model.Filters.CompanyId == c.Id ? "selected" : null)">
-                            @c.Name
+                            @c.SystemName
                         </option>
                     }
                 </select>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Name</label>
-                <input type="text" name="Name" class="form-control" value="@Model.Filters.Name" placeholder="Search by name..." />
+                <input type="text" name="SystemName" class="form-control" value="@Model.Filters.SystemName" placeholder="Search by name..." />
             </div>
             <div class="col-md-auto">
                 <button type="submit" class="btn btn-outline-light w-100">
@@ -62,7 +62,7 @@
                         <td class="fw-semibold text-decoration-underline text-info">
                             @t.DisplayName
                         </td>
-                        <td><code>@t.Name</code></td>
+                        <td><code>@t.SystemName</code></td>
                         <td>@t.CompanyName</td>
                         <td>
                             @if (t.IsActive)
@@ -97,7 +97,7 @@
                 @for (int i = 1; i <= Model.Touchpoints.TotalPages; i++)
                 {
                     <li class="page-item @(i == Model.Filters.Page ? "active" : "")">
-                        <a class="page-link" href="?CompanyId=@Model.Filters.CompanyId&Name=@Model.Filters.Name&page=@i">@i</a>
+                        <a class="page-link" href="?CompanyId=@Model.Filters.CompanyId&Name=@Model.Filters.SystemName&page=@i">@i</a>
                     </li>
                 }
             </ul>

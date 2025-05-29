@@ -17,7 +17,7 @@
     var rotateModel = new ConfirmRotateModel
     {
         ModalId = "confirmRotateCompanyModal",
-        ObjectDisplayName = Model.Company?.Name ?? "this company",
+        ObjectDisplayName = Model.Company?.SystemName ?? "this company",
         ObjectId = Model.Company!.Id,
         Handler = "Rotate",
         Highlight = "warning",
@@ -62,7 +62,7 @@
         }
         <dl class="row">
             <dt class="col-sm-3">System Name</dt>
-            <dd class="col-sm-9 text-light-emphasis"><code>@Model.Company?.Name</code></dd>
+            <dd class="col-sm-9 text-light-emphasis"><code>@Model.Company?.SystemName</code></dd>
 
             <dt class="col-sm-3">Is Active</dt>
             <dd class="col-sm-9">
@@ -104,7 +104,7 @@
                     {
                         <tr>
                             <td>@t.DisplayName</td>
-                            <td><code>@t.Name</code></td>
+                            <td><code>@t.SystemName</code></td>
                             <td>
                                 @if (t.IsActive)
                                 {

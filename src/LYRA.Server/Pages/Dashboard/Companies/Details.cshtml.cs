@@ -28,7 +28,7 @@ namespace LYRA.Server.Pages.Dashboard.Companies
         [TempData]
         public string? DisplayName { get; set; }
         [TempData]
-        public string? Name { get; set; }
+        public string? SystemName { get; set; }
         [TempData]
         public string? IsActive { get; set; }
         [TempData]
@@ -59,7 +59,7 @@ namespace LYRA.Server.Pages.Dashboard.Companies
 
                 SecretPlaintext = result.SecretPlaintext;
                 DisplayName = company.DisplayName;
-                Name = company.Name;
+                SystemName = company.SystemName;
                 IsActive = company.IsActive.ToString();
                 CreatedAt = company.CreatedAt.ToString("yyyy-MM-dd HH:mm");
                 Id = company.Id;

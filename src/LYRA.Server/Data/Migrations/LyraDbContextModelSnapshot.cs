@@ -71,19 +71,19 @@ namespace LYRA.Server.Data.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Secret")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SystemName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .IsUnicode(false)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<string>("Secret")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("SystemName")
                         .IsUnique();
 
                     b.ToTable("Companies");
@@ -185,12 +185,6 @@ namespace LYRA.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(100)");
-
                     b.Property<string>("Secret")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -199,12 +193,20 @@ namespace LYRA.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("SystemName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
                     b.Property<bool>("UseCompanySecret")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompanyId", "Name")
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("SystemName")
                         .IsUnique();
 
                     b.ToTable("TrustedTouchpoints");

@@ -4,6 +4,6 @@ namespace LYRA.Server.Models.Company
 {
     public class CompanyFilters : PaginationFilter
     {
-        public string? Name { get; set; }
+        public string? SystemName { get; set; }
     }
 }

@@ -28,15 +28,15 @@ namespace LYRA.Server.Services
                 .Include(t => t.Company)
                 .AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(filters.Name))
-                query = query.Where(t => t.Name.Contains(filters.Name));
+            if (!string.IsNullOrWhiteSpace(filters.SystemName))
+                query = query.Where(t => t.SystemName.Contains(filters.SystemName));
 
             if (filters.CompanyId.HasValue)
                 query = query.Where(t => t.CompanyId == filters.CompanyId.Value);
 
             var totalItems = await query.CountAsync();
             var items = await query
-                .OrderBy(t => t.Name)
+                .OrderBy(t => t.SystemName)
                 .Skip((filters.Page - 1) * filters.PageSize)
                 .Take(filters.PageSize)
                 .Select(t => MapToDto(t))
@@ -68,9 +68,9 @@ namespace LYRA.Server.Services
 
             // Generate system name: {slugified-touchpoint}@{slugified-company}
             var tpSlug = NameHelper.EnsureSlug(request.DisplayName);
-            var fullName = $"{tpSlug}@{company.Name}";
+            var fullName = $"{tpSlug}@{company.SystemName}";
 
-            var exists = await _context.TrustedTouchpoints.AnyAsync(t => t.Name == fullName);
+            var exists = await _context.TrustedTouchpoints.AnyAsync(t => t.SystemName == fullName);
             if (exists)
                 throw new InvalidOperationException($"A touchpoint with name '{fullName}' already exists.");
 
@@ -96,7 +96,7 @@ namespace LYRA.Server.Services
             {
                 Id = Guid.NewGuid(),
                 CompanyId = request.CompanyId,
-                Name = fullName,
+                SystemName = fullName,
                 DisplayName = request.DisplayName,
                 Secret = hashedSecret,
                 UseCompanySecret = request.UseCompanySecret,
@@ -110,14 +110,14 @@ namespace LYRA.Server.Services
             _context.TrustedTouchpoints.Add(entity);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Created touchpoint '{Name}' for Company {CompanyId}", entity.Name, entity.CompanyId);
+            _logger.LogInformation("Created touchpoint '{Name}' for Company {CompanyId}", entity.SystemName, entity.CompanyId);
 
             return new TrustedTouchpointCreatedDto
             {
                 Id = entity.Id,
-                Name = entity.Name,
+                SystemName = entity.SystemName,
                 DisplayName = entity.DisplayName,
-                CompanyName = company.Name,
+                CompanyName = company.SystemName,
                 Mode = entity.Mode.ToString(),
                 SignatureType = entity.SignatureType.ToString(),
                 IsActive = entity.IsActive,
@@ -181,7 +181,7 @@ namespace LYRA.Server.Services
             var normalized = name.ToLowerInvariant();
 
             return await _context.TrustedTouchpoints.AnyAsync(c =>
-                c.Name == normalized &&
+                c.SystemName == normalized &&
                 (!excludeId.HasValue || c.Id != excludeId.Value));
         }
 
@@ -189,7 +189,7 @@ namespace LYRA.Server.Services
         {
             return await _context.TrustedTouchpoints
                 .Where(t => t.CompanyId == companyId)
-                .OrderBy(t => t.Name)
+                .OrderBy(t => t.SystemName)
                 .Select(t => MapToDto(t))
                 .ToListAsync();
         }
@@ -227,10 +227,10 @@ namespace LYRA.Server.Services
             return new TrustedTouchpointDto
             {
                 Id = t.Id,
-                Name = t.Name,
+                SystemName = t.SystemName,
                 DisplayName = t.DisplayName,
                 CompanyId = t.CompanyId,
-                CompanyName = t.Company?.Name ?? "(unknown)",
+                CompanyName = t.Company?.SystemName ?? "(unknown)",
                 UseCompanySecret = t.UseCompanySecret,
                 IsActive = t.IsActive,
                 Mode = t.Mode,
