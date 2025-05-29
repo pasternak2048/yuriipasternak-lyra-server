@@ -44,7 +44,7 @@ namespace LYRA.Server.Data
             var bCorp = await EnsureCompanyAsync(context, "B Corp", "b-secret");
             var cCorp = await EnsureCompanyAsync(context, "C Corp", "c-secret");
 
-            // 3. Touchpoints per company
+            // 3. Touchpoints per company (new name format: slug@company.Name)
             var aBilling = await EnsureTouchpointAsync(context, aCorp, "Billing API", "a-billing-secret", TouchpointMode.TargetOnly);
             var aPublicApi = await EnsureTouchpointAsync(context, aCorp, "Public API", "a-api-secret", TouchpointMode.TargetOnly);
 
@@ -87,10 +87,11 @@ namespace LYRA.Server.Data
             string secret,
             TouchpointMode mode)
         {
-            var name = SlugHelper.Slugify(displayName);
+            var tpSlug = SlugHelper.Slugify(displayName);
+            var fullName = $"{tpSlug}@{company.Name}";
 
             var existing = await context.TrustedTouchpoints
-                .FirstOrDefaultAsync(t => t.CompanyId == company.Id && t.Name == name);
+                .FirstOrDefaultAsync(t => t.Name == fullName);
 
             if (existing != null) return existing;
 
@@ -98,7 +99,7 @@ namespace LYRA.Server.Data
             {
                 Id = Guid.NewGuid(),
                 CompanyId = company.Id,
-                Name = name,
+                Name = fullName,
                 DisplayName = displayName,
                 Secret = secret,
                 UseCompanySecret = false,
