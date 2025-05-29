@@ -62,13 +62,13 @@ namespace LYRA.Server.Data
         {
             var slugName = SlugHelper.Slugify(displayName);
 
-            var existing = await context.Companies.FirstOrDefaultAsync(c => c.Name == slugName);
+            var existing = await context.Companies.FirstOrDefaultAsync(c => c.SystemName == slugName);
             if (existing != null) return existing;
 
             var company = new CompanyEntity
             {
                 Id = Guid.NewGuid(),
-                Name = slugName,
+                SystemName = slugName,
                 DisplayName = displayName,
                 Secret = secret,
                 IsActive = true,
@@ -88,10 +88,10 @@ namespace LYRA.Server.Data
             TouchpointMode mode)
         {
             var tpSlug = SlugHelper.Slugify(displayName);
-            var fullName = $"{tpSlug}@{company.Name}";
+            var fullName = $"{tpSlug}@{company.SystemName}";
 
             var existing = await context.TrustedTouchpoints
-                .FirstOrDefaultAsync(t => t.Name == fullName);
+                .FirstOrDefaultAsync(t => t.SystemName == fullName);
 
             if (existing != null) return existing;
 
@@ -99,7 +99,7 @@ namespace LYRA.Server.Data
             {
                 Id = Guid.NewGuid(),
                 CompanyId = company.Id,
-                Name = fullName,
+                SystemName = fullName,
                 DisplayName = displayName,
                 Secret = secret,
                 UseCompanySecret = false,

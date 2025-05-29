@@ -29,7 +29,7 @@
                     <option value="">Select a company...</option>
                     @foreach (var company in Model.Companies)
                     {
-                        <option value="@company.Id">@company.Name</option>
+                        <option value="@company.Id">@company.SystemName</option>
                     }
                 </select>
                 <span asp-validation-for="Input.CompanyId" class="text-danger small"></span>

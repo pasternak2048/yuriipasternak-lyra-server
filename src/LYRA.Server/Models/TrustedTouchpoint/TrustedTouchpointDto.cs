@@ -13,7 +13,7 @@ namespace LYRA.Server.Models.TrustedTouchpoint
         /// <summary>
         /// Machine-readable name (used for lookup)
         /// </summary>
-        public string Name { get; set; } = null!;
+        public string SystemName { get; set; } = null!;
 
         /// <summary>
         /// Display name (shown in UI)

@@ -22,7 +22,7 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
         public string? DisplayName { get; set; }
 
         [TempData] 
-        public string? Name { get; set; }
+        public string? SystemName { get; set; }
 
         [TempData] 
         public string? CompanyName { get; set; }

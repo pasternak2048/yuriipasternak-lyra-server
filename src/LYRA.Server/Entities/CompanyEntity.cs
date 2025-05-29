@@ -12,7 +12,7 @@ namespace LYRA.Server.Entities
         /// </summary>
         [Required]
         [MaxLength(100)]
-        public string Name { get; set; } = null!;
+        public string SystemName { get; set; } = null!;
 
         /// <summary>
         /// Optional display name (UI-friendly)

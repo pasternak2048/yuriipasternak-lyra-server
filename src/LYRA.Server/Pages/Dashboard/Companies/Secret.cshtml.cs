@@ -14,7 +14,7 @@ namespace LYRA.Server.Pages.Dashboard.Companies
         public string? DisplayName { get; set; }
 
         [TempData] 
-        public string? Name { get; set; }
+        public string? SystemName { get; set; }
 
         [TempData] 
         public string? IsActive { get; set; }

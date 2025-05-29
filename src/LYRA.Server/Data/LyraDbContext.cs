@@ -22,11 +22,11 @@ namespace LYRA.Server.Data
             // ------------------- Company -------------------
 
             modelBuilder.Entity<CompanyEntity>()
-                .HasIndex(c => c.Name)
+                .HasIndex(c => c.SystemName)
                 .IsUnique();
 
             modelBuilder.Entity<CompanyEntity>()
-                .Property(c => c.Name)
+                .Property(c => c.SystemName)
                 .HasConversion(
                     v => v.ToLowerInvariant(),
                     v => v
@@ -48,11 +48,11 @@ namespace LYRA.Server.Data
             // ------------------- TrustedTouchpoint -------------------
 
             modelBuilder.Entity<TrustedTouchpointEntity>()
-                .HasIndex(t => t.Name) // Name is globally unique
+                .HasIndex(t => t.SystemName) // Name is globally unique
                 .IsUnique();
 
             modelBuilder.Entity<TrustedTouchpointEntity>()
-                .Property(t => t.Name)
+                .Property(t => t.SystemName)
                 .HasConversion(
                     v => v.ToLowerInvariant(),
                     v => v

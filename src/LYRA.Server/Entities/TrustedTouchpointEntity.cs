@@ -17,7 +17,7 @@ namespace LYRA.Server.Entities
 
         [Required]
         [MaxLength(100)]
-        public string Name { get; set; } = null!;
+        public string SystemName { get; set; } = null!;
 
         /// <summary>
         /// Display name (UI-friendly, required)
