@@ -10,6 +10,18 @@
             <i class="bi bi-plus-circle me-2"></i> Create Trusted Touchpoint
         </h2>
 
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
+        }
+
         <form method="post">
             <div class="mb-3">
                 <label asp-for="Input.CompanyId" class="form-label">Company</label>
