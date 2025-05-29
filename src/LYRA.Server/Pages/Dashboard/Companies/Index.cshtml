@@ -9,6 +9,10 @@
         <h2 class="fw-bold mb-4">
             <i class="bi bi-building me-2"></i> Companies
         </h2>
+        @if (TempData["Message"] is string msg)
+        {
+            <div class="alert alert-success">@msg</div>
+        }
 
         <form method="get" class="mb-4 row g-2 align-items-end">
             <div class="col-md-6">

@@ -84,6 +84,7 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
         public async Task<IActionResult> OnPostDeleteAsync(Guid id)
         {
             await _touchpointService.DeleteAsync(id);
+            Message = $"Trusted Touchpoint deleted successfully.";
             return RedirectToPage("Index");
         }
     }
