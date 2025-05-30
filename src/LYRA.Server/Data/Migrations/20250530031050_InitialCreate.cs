@@ -59,6 +59,7 @@ namespace LYRA.Server.Data.Migrations
                     DisplayName = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
                     Secret = table.Column<string>(type: "TEXT", nullable: false),
                     IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
@@ -183,6 +184,7 @@ namespace LYRA.Server.Data.Migrations
                     Secret = table.Column<string>(type: "TEXT", nullable: false),
                     UseCompanySecret = table.Column<bool>(type: "INTEGER", nullable: false),
                     IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Mode = table.Column<string>(type: "TEXT", nullable: false),
                     SignatureType = table.Column<string>(type: "TEXT", nullable: false),
@@ -281,7 +283,8 @@ namespace LYRA.Server.Data.Migrations
                 name: "IX_Companies_SystemName",
                 table: "Companies",
                 column: "SystemName",
-                unique: true);
+                unique: true,
+                filter: "[IsDeleted] = 0");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TrustedTouchpoints_CompanyId",
@@ -292,7 +295,8 @@ namespace LYRA.Server.Data.Migrations
                 name: "IX_TrustedTouchpoints_SystemName",
                 table: "TrustedTouchpoints",
                 column: "SystemName",
-                unique: true);
+                unique: true,
+                filter: "[IsDeleted] = 0");
         }
 
         /// <inheritdoc />

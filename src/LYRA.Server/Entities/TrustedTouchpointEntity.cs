@@ -15,6 +15,9 @@ namespace LYRA.Server.Entities
         [ForeignKey(nameof(CompanyId))]
         public CompanyEntity Company { get; set; } = null!;
 
+        /// <summary>
+        /// System-level unique name: slugified-touchpoint@slugified-company
+        /// </summary>
         [Required]
         [MaxLength(100)]
         public string SystemName { get; set; } = null!;
@@ -41,6 +44,11 @@ namespace LYRA.Server.Entities
         /// Indicates if this touchpoint is currently active
         /// </summary>
         public bool IsActive { get; set; } = true;
+
+        /// <summary>
+        /// Soft-delete flag (not shown in UI, excluded from queries)
+        /// </summary>
+        public bool IsDeleted { get; set; } = false;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

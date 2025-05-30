@@ -71,6 +71,11 @@ namespace LYRA.Server.Data.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("Secret")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -84,7 +89,8 @@ namespace LYRA.Server.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("SystemName")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("Companies");
                 });
@@ -181,6 +187,11 @@ namespace LYRA.Server.Data.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("Mode")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -207,7 +218,8 @@ namespace LYRA.Server.Data.Migrations
                     b.HasIndex("CompanyId");
 
                     b.HasIndex("SystemName")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("TrustedTouchpoints");
                 });
