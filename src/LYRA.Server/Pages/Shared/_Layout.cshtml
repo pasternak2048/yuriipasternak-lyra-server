@@ -20,7 +20,10 @@
         <!-- Sidebar -->
         <div class="sidebar shadow-sm">
             <div>
-                <div class="text-center mb-4 title">LYRA.Server</div>
+                <div class="text-center mb-4 title d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-shield-shaded text-light fs-4"></i>
+                    <span>LYRA.Server</span>
+                </div>
 
                 <nav class="nav flex-column">
                     <a class="nav-link @(Context.Request.Path == "/" ? "active" : "")" asp-page="/Index">
@@ -34,6 +37,9 @@
                     </a>
                     <a class="nav-link text-nowrap @(Context.Request.Path.StartsWithSegments("/Dashboard/TrustedTouchpoints") ? "active" : "") ms-4" asp-page="/Dashboard/TrustedTouchpoints/Index">
                         <i class="bi bi-diagram-3 me-2"></i> Trusted Touchpoints
+                    </a>
+                    <a class="nav-link text-nowrap @(Context.Request.Path.StartsWithSegments("/Dashboard/AccessPolicies") ? "active" : "") ms-4" asp-page="/Dashboard/AccessPolicies/Index">
+                        <i class="bi bi-sliders2-vertical me-2"></i> Access Policies
                     </a>
                     <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Privacy") ? "active" : "")" asp-page="/Privacy">
                         <i class="bi bi-lock me-2"></i> Privacy

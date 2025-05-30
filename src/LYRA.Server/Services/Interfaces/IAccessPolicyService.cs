@@ -12,5 +12,7 @@ namespace LYRA.Server.Services.Interfaces
         Task<AccessPolicyDto> AddAsync(AccessPolicyCreateRequest request);
 
         Task DeleteAsync(Guid id);
+
+        Task<int> GetTotalPolicyCountAsync();
     }
 }
