@@ -31,6 +31,15 @@
                     <p class="text-light-emphasis mb-0">@Model.TouchpointCount total</p>
                 </div>
             </a>
+
+            <a asp-page="/Dashboard/AccessPolicies/Index" class="text-decoration-none text-reset">
+                <div class="dashboard-card bg-lyra-dark shadow-sm p-4" style="width: 280px;">
+                    <h6 class="fw-semibold mb-2">
+                        <i class="bi bi-sliders2-vertical me-2 text-light"></i> Access Policies
+                    </h6>
+                    <p class="text-light-emphasis mb-0">@Model.PolicyCount total</p>
+                </div>
+            </a>
         </div>
     </div>
 </div>

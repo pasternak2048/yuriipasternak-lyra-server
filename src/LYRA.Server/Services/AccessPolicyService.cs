@@ -194,6 +194,11 @@ namespace LYRA.Server.Services
             return entity ?? throw new InvalidOperationException($"Touchpoint '{systemName}' not found.");
         }
 
+        public async Task<int> GetTotalPolicyCountAsync()
+        {
+            return await _context.AccessPolicies.CountAsync();
+        }
+
         private static AccessPolicyDto MapToDto(AccessPolicyEntity p)
         {
             return new AccessPolicyDto
