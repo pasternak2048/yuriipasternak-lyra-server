@@ -60,7 +60,10 @@ namespace LYRA.Server.Data.Migrations
                     Secret = table.Column<string>(type: "TEXT", nullable: false),
                     IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
                     IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    CreatedBy = table.Column<Guid>(type: "TEXT", nullable: true),
+                    ModifiedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    ModifiedBy = table.Column<Guid>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -185,11 +188,14 @@ namespace LYRA.Server.Data.Migrations
                     UseCompanySecret = table.Column<bool>(type: "INTEGER", nullable: false),
                     IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
                     IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Mode = table.Column<string>(type: "TEXT", nullable: false),
                     SignatureType = table.Column<string>(type: "TEXT", nullable: false),
                     Description = table.Column<string>(type: "TEXT", maxLength: 300, nullable: true),
-                    AllowedSourceIp = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true)
+                    AllowedSourceIp = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    CreatedBy = table.Column<Guid>(type: "TEXT", nullable: true),
+                    ModifiedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    ModifiedBy = table.Column<Guid>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {

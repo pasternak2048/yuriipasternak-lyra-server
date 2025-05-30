@@ -8,7 +8,6 @@ using LYRA.Server.Services.Interfaces;
 using LYRA.Server.Utilities;
 using LYRA.Server.Utilities.Security;
 using Microsoft.EntityFrameworkCore;
-//using Microsoft.EntityFrameworkCore;
 
 public class CompanyService : ICompanyService
 {

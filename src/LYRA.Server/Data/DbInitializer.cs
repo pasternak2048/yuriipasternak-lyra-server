@@ -1,6 +1,7 @@
 ﻿using LYRA.Server.Entities;
 using LYRA.Server.Entities.Identity;
 using LYRA.Server.Enums;
+using LYRA.Server.Services.Interfaces;
 using LYRA.Server.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,7 @@ namespace LYRA.Server.Data
         {
             var context = serviceProvider.GetRequiredService<LyraDbContext>();
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var currentUserService = serviceProvider.GetService<ICurrentUserService>();
 
             context.Database.EnsureCreated();
 
@@ -23,9 +25,10 @@ namespace LYRA.Server.Data
             const string adminPassword = "admin";
 
             // 1. Admin user
-            if (await userManager.FindByEmailAsync(adminEmail) is null)
+            var adminUser = await userManager.FindByEmailAsync(adminEmail);
+            if (adminUser is null)
             {
-                var adminUser = new ApplicationUser
+                adminUser = new ApplicationUser
                 {
                     UserName = adminEmail,
                     Email = adminEmail,
@@ -39,45 +42,53 @@ namespace LYRA.Server.Data
                 }
             }
 
+            var systemUserId = Guid.Parse(adminUser.Id);
+
             // 2. Companies
-            var aCorp = await EnsureCompanyAsync(context, "A Corp", "a-secret");
-            var bCorp = await EnsureCompanyAsync(context, "B Corp", "b-secret");
-            var cCorp = await EnsureCompanyAsync(context, "C Corp", "c-secret");
+            var aCorp = await EnsureCompanyAsync(context, "A Corp", "a-secret", systemUserId);
+            var bCorp = await EnsureCompanyAsync(context, "B Corp", "b-secret", systemUserId);
+            var cCorp = await EnsureCompanyAsync(context, "C Corp", "c-secret", systemUserId);
 
-            // 3. Touchpoints per company (new name format: slug@company.Name)
-            var aBilling = await EnsureTouchpointAsync(context, aCorp, "Billing API", "a-billing-secret", TouchpointMode.TargetOnly);
-            var aPublicApi = await EnsureTouchpointAsync(context, aCorp, "Public API", "a-api-secret", TouchpointMode.TargetOnly);
+            // 3. Touchpoints
+            await EnsureTouchpointAsync(context, aCorp, "Billing API", "a-billing-secret", TouchpointMode.TargetOnly, systemUserId);
+            await EnsureTouchpointAsync(context, aCorp, "Public API", "a-api-secret", TouchpointMode.TargetOnly, systemUserId);
 
-            var bGateway = await EnsureTouchpointAsync(context, bCorp, "Gateway", "b-gateway-secret", TouchpointMode.CallerOnly);
-            var bReport = await EnsureTouchpointAsync(context, bCorp, "Report Bot", "b-report-secret", TouchpointMode.Both);
+            var bGateway = await EnsureTouchpointAsync(context, bCorp, "Gateway", "b-gateway-secret", TouchpointMode.CallerOnly, systemUserId);
+            await EnsureTouchpointAsync(context, bCorp, "Report Bot", "b-report-secret", TouchpointMode.Both, systemUserId);
 
-            var cWorker = await EnsureTouchpointAsync(context, cCorp, "Worker Node", "c-worker-secret", TouchpointMode.CallerOnly);
-            var cBot = await EnsureTouchpointAsync(context, cCorp, "Bot Commander", "c-bot-secret", TouchpointMode.Both);
+            await EnsureTouchpointAsync(context, cCorp, "Worker Node", "c-worker-secret", TouchpointMode.CallerOnly, systemUserId);
+            await EnsureTouchpointAsync(context, cCorp, "Bot Commander", "c-bot-secret", TouchpointMode.Both, systemUserId);
 
-            // 4. Example Policy
-            await EnsurePolicyAsync(context, bGateway.Id, aBilling.Id, "POST /subscribe", AccessContext.Http);
+            // 4. Access policy
+            await EnsurePolicyAsync(context, bGateway.Id, aCorp.TrustedTouchpoints.First().Id, "POST /subscribe", AccessContext.Http);
         }
 
-        private static async Task<CompanyEntity> EnsureCompanyAsync(LyraDbContext context, string displayName, string secret)
+        private static async Task<CompanyEntity> EnsureCompanyAsync(
+            LyraDbContext context,
+            string displayName,
+            string secret,
+            Guid createdBy)
         {
             var slugName = SlugHelper.Slugify(displayName);
 
             var existing = await context.Companies.FirstOrDefaultAsync(c => c.SystemName == slugName);
             if (existing != null) return existing;
 
-            var company = new CompanyEntity
+            var entity = new CompanyEntity
             {
                 Id = Guid.NewGuid(),
                 SystemName = slugName,
                 DisplayName = displayName,
                 Secret = secret,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow
+                IsDeleted = false,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = createdBy
             };
 
-            context.Companies.Add(company);
+            context.Companies.Add(entity);
             await context.SaveChangesAsync();
-            return company;
+            return entity;
         }
 
         private static async Task<TrustedTouchpointEntity> EnsureTouchpointAsync(
@@ -85,7 +96,8 @@ namespace LYRA.Server.Data
             CompanyEntity company,
             string displayName,
             string secret,
-            TouchpointMode mode)
+            TouchpointMode mode,
+            Guid createdBy)
         {
             var tpSlug = SlugHelper.Slugify(displayName);
             var fullName = $"{tpSlug}@{company.SystemName}";
@@ -104,7 +116,9 @@ namespace LYRA.Server.Data
                 Secret = secret,
                 UseCompanySecret = false,
                 IsActive = true,
+                IsDeleted = false,
                 CreatedAt = DateTime.UtcNow,
+                CreatedBy = createdBy,
                 Mode = mode,
                 SignatureType = SignatureType.HMAC
             };
@@ -121,28 +135,28 @@ namespace LYRA.Server.Data
             string operation,
             AccessContext contextType)
         {
-            bool exists = await context.AccessPolicies.AnyAsync(p =>
+            var exists = await context.AccessPolicies.AnyAsync(p =>
                 p.CallerId == callerId &&
                 p.TargetId == targetId &&
                 p.Operation == operation &&
                 p.Context == contextType);
 
-            if (!exists)
-            {
-                var policy = new AccessPolicyEntity
-                {
-                    Id = Guid.NewGuid(),
-                    CallerId = callerId,
-                    TargetId = targetId,
-                    Operation = operation,
-                    Context = contextType,
-                    IsEnabled = true,
-                    CreatedAt = DateTime.UtcNow
-                };
+            if (exists) return;
 
-                context.AccessPolicies.Add(policy);
-                await context.SaveChangesAsync();
-            }
+            var policy = new AccessPolicyEntity
+            {
+                Id = Guid.NewGuid(),
+                CallerId = callerId,
+                TargetId = targetId,
+                Operation = operation,
+                Context = contextType,
+                IsEnabled = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            context.AccessPolicies.Add(policy);
+            await context.SaveChangesAsync();
         }
     }
+
 }

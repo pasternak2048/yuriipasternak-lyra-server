@@ -1,4 +1,5 @@
 using LYRA.Server.Data;
+using LYRA.Server.Data.Auditing;
 using LYRA.Server.Entities.Identity;
 using LYRA.Server.Services;
 using LYRA.Server.Services.Interfaces;
@@ -7,10 +8,15 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<LyraDbContext>(options =>
+builder.Services.AddDbContext<LyraDbContext>((provider, options) =>
 {
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    var interceptor = provider.GetRequiredService<AuditableEntitySaveChangesInterceptor>();
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
+           .AddInterceptors(interceptor);
 });
+
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<AuditableEntitySaveChangesInterceptor>();
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<LyraDbContext>()
