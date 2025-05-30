@@ -25,14 +25,19 @@ namespace LYRA.Server.Pages.Dashboard.Companies
 
         [TempData]
         public string? SecretPlaintext { get; set; }
+
         [TempData]
         public string? DisplayName { get; set; }
+
         [TempData]
         public string? SystemName { get; set; }
+
         [TempData]
         public string? IsActive { get; set; }
+
         [TempData]
         public string? CreatedAt { get; set; }
+
         [TempData]
         public Guid Id { get; set; }
         [TempData]
@@ -93,5 +98,4 @@ namespace LYRA.Server.Pages.Dashboard.Companies
             }
         }
     }
-
 }
