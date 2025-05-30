@@ -215,10 +215,15 @@ namespace LYRA.Server.Data.Migrations
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     CallerId = table.Column<Guid>(type: "TEXT", nullable: false),
                     TargetId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    CallerSystemName = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: false),
+                    TargetSystemName = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: false),
                     Operation = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
                     Context = table.Column<string>(type: "TEXT", nullable: false),
-                    IsEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    IsEnabled = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    CreatedBy = table.Column<Guid>(type: "TEXT", nullable: true),
+                    ModifiedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    ModifiedBy = table.Column<Guid>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -238,9 +243,14 @@ namespace LYRA.Server.Data.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_AccessPolicies_CallerId_TargetId_Context_Operation",
+                name: "IX_AccessPolicies_CallerId",
                 table: "AccessPolicies",
-                columns: new[] { "CallerId", "TargetId", "Context", "Operation" },
+                column: "CallerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AccessPolicies_CallerSystemName_TargetSystemName_Context_Operation",
+                table: "AccessPolicies",
+                columns: new[] { "CallerSystemName", "TargetSystemName", "Context", "Operation" },
                 unique: true);
 
             migrationBuilder.CreateIndex(

@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LYRA.Server.Data.Migrations
 {
     [DbContext(typeof(LyraDbContext))]
-    [Migration("20250530035051_InitialCreate")]
+    [Migration("20250530041453_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -29,15 +29,34 @@ namespace LYRA.Server.Data.Migrations
                     b.Property<Guid>("CallerId")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("CallerSystemName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
                     b.Property<string>("Context")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<Guid?>("CreatedBy")
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsEnabled")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("ModifiedBy")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Operation")
                         .IsRequired()
@@ -47,11 +66,19 @@ namespace LYRA.Server.Data.Migrations
                     b.Property<Guid>("TargetId")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("TargetSystemName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CallerId");
 
                     b.HasIndex("TargetId");
 
-                    b.HasIndex("CallerId", "TargetId", "Context", "Operation")
+                    b.HasIndex("CallerSystemName", "TargetSystemName", "Context", "Operation")
                         .IsUnique();
 
                     b.ToTable("AccessPolicies");
