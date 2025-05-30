@@ -6,6 +6,8 @@ namespace LYRA.Server.Services.Interfaces
 {
     public interface ITrustedTouchpointService
     {
+        Task<List<TrustedTouchpointLightDto>> GetLightweightAsync();
+
         Task<PaginatedResult<TrustedTouchpointDto>> GetPagedAsync(TrustedTouchpointFilters filters);
 
         Task<TrustedTouchpointDto?> GetByIdAsync(Guid id);

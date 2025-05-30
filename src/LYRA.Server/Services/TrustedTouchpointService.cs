@@ -20,6 +20,20 @@ public class TrustedTouchpointService : ITrustedTouchpointService
         _logger = logger;
     }
 
+    public async Task<List<TrustedTouchpointLightDto>> GetLightweightAsync()
+    {
+        return await _context.TrustedTouchpoints
+            .Where(t => t.IsActive && !t.IsDeleted)
+            .OrderBy(t => t.SystemName)
+            .Select(t => new TrustedTouchpointLightDto
+            {
+                Id = t.Id,
+                SystemName = t.SystemName,
+                DisplayName = t.DisplayName
+            })
+            .ToListAsync();
+    }
+
     public async Task<PaginatedResult<TrustedTouchpointDto>> GetPagedAsync(TrustedTouchpointFilters filters)
     {
         var query = _context.TrustedTouchpoints
