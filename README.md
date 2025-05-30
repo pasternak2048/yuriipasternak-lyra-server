@@ -35,8 +35,8 @@ It introduces the concept of **Trusted Touchpoints** and **Access Policies** to 
 1. A service from `bcorp` sends a signed request:
     ```json
     {
-      "caller": "bcorp::gateway",
-      "target": "acorp::billing",
+      "caller": "gateway@bcorp",
+      "target": "billing@acorp",
       "method": "POST",
       "path": "/subscribe",
       "payloadHash": "sha512(...)",
@@ -47,7 +47,7 @@ It introduces the concept of **Trusted Touchpoints** and **Access Policies** to 
 2. `acorp`'s **LYRA.Server** receives and validates:
     - Looks up the **Caller Touchpoint**
     - Verifies the **signature**
-    - Confirms an `AccessPolicy` exists for the call
+    - Confirms an `AccessPolicy` exists for the call (using SystemName)
     - Approves (200) or denies (403) the request
 
 ---
@@ -62,8 +62,8 @@ Company
        ├── UseCompanySecret
        ├── SignatureType
        ├── AllowedSourceIp
-       ├── OutgoingPolicies → AccessPolicy
-       └── IncomingPolicies ← AccessPolicy
+       ├── OutgoingPolicies → AccessPolicy (CallerId + CallerSystemName)
+       └── IncomingPolicies ← AccessPolicy (TargetId + TargetSystemName)
 ```
 
 ---
@@ -75,8 +75,8 @@ Company
 ```csharp
 new AccessPolicyEntity
 {
-    CallerId = gateway.Id,
-    TargetId = billing.Id,
+    CallerSystemName = "gateway@bcorp",
+    TargetSystemName = "billing@acorp",
     Context = AccessContext.Http,
     Operation = "POST /subscribe"
 }
@@ -88,6 +88,7 @@ new AccessPolicyEntity
 
 - ✅ Clean company-to-company and service-to-service trust boundaries  
 - ✅ Each touchpoint has a strict role + secret/key + audit  
+- ✅ Denormalized names (CallerSystemName + TargetSystemName) for fast lookup  
 - ✅ Fast, stateless request verification  
 - ✅ Supports `HMAC`, `RSA`, and future key types  
 - ✅ Frontend for managing companies, touchpoints, and policies  
