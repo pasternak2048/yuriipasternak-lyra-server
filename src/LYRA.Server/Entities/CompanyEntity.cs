@@ -1,50 +1,75 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using LYRA.Server.Models.Shared;
+using System.ComponentModel.DataAnnotations;
 
 namespace LYRA.Server.Entities
 {
-    public class CompanyEntity
+    /// <summary>
+    /// Represents a tenant-level entity that owns Trusted Touchpoints.
+    /// This is the core organizational unit in the system.
+    /// </summary>
+    public class CompanyEntity : IAuditableEntity
     {
+        /// <summary>
+        /// Primary key (GUID) that uniquely identifies the company.
+        /// </summary>
         [Key]
         public Guid Id { get; set; }
 
         /// <summary>
-        /// Unique company name (machine-readable, e.g. slug or code)
+        /// Unique system identifier (slug/code) used for internal routing or addressing.
+        /// Must be lowercase and unique.
         /// </summary>
         [Required]
         [MaxLength(100)]
         public string SystemName { get; set; } = null!;
 
         /// <summary>
-        /// Optional display name (UI-friendly)
+        /// Human-readable display name used in the UI.
         /// </summary>
         [Required]
         [MaxLength(200)]
         public string DisplayName { get; set; } = null!;
 
         /// <summary>
-        /// Company-wide shared secret (can be used by touchpoints if allowed)
+        /// Shared secret used for authentication if no per-touchpoint secret is provided.
+        /// Stored as a hashed string.
         /// </summary>
         [Required]
         public string Secret { get; set; } = null!;
 
         /// <summary>
-        /// Indicates whether the company is currently active
+        /// Indicates whether this company is currently active and can be used in access control.
         /// </summary>
         public bool IsActive { get; set; } = true;
 
         /// <summary>
-        /// Indicates whether the company was soft-deleted
+        /// Soft-delete flag: when true, this company is logically deleted and excluded from queries.
         /// </summary>
         public bool IsDeleted { get; set; } = false;
 
         /// <summary>
-        /// Timestamp when the company was registered
+        /// Collection of all Trusted Touchpoints registered under this company.
+        /// </summary>
+        public ICollection<TrustedTouchpointEntity> TrustedTouchpoints { get; set; } = new List<TrustedTouchpointEntity>();
+
+        /// <summary>
+        /// Audit: Date and time when the company was created (UTC).
         /// </summary>
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         /// <summary>
-        /// Trusted touchpoints that belong to this company
+        /// Audit: Identifier of the user (GUID) who created this company.
         /// </summary>
-        public ICollection<TrustedTouchpointEntity> TrustedTouchpoints { get; set; } = new List<TrustedTouchpointEntity>();
+        public Guid? CreatedBy { get; set; }
+
+        /// <summary>
+        /// Audit: Last modification timestamp (UTC), if any changes occurred after creation.
+        /// </summary>
+        public DateTime? ModifiedAt { get; set; }
+
+        /// <summary>
+        /// Audit: Identifier of the user (GUID) who last modified this company.
+        /// </summary>
+        public Guid? ModifiedBy { get; set; }
     }
 }

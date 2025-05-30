@@ -45,6 +45,22 @@ namespace LYRA.Server.Data
                 .HasDefaultValue(false);
 
             modelBuilder.Entity<CompanyEntity>()
+                .Property(c => c.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            modelBuilder.Entity<CompanyEntity>()
+                .Property(c => c.CreatedBy)
+                .IsRequired(false);
+
+            modelBuilder.Entity<CompanyEntity>()
+                .Property(c => c.ModifiedAt)
+                .IsRequired(false);
+
+            modelBuilder.Entity<CompanyEntity>()
+                .Property(c => c.ModifiedBy)
+                .IsRequired(false);
+
+            modelBuilder.Entity<CompanyEntity>()
                 .HasMany(c => c.TrustedTouchpoints)
                 .WithOne(t => t.Company)
                 .HasForeignKey(t => t.CompanyId)
@@ -82,6 +98,22 @@ namespace LYRA.Server.Data
             modelBuilder.Entity<TrustedTouchpointEntity>()
                 .Property(t => t.IsDeleted)
                 .HasDefaultValue(false);
+
+            modelBuilder.Entity<TrustedTouchpointEntity>()
+                .Property(t => t.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            modelBuilder.Entity<TrustedTouchpointEntity>()
+                .Property(t => t.CreatedBy)
+                .IsRequired(false);
+
+            modelBuilder.Entity<TrustedTouchpointEntity>()
+                .Property(t => t.ModifiedAt)
+                .IsRequired(false);
+
+            modelBuilder.Entity<TrustedTouchpointEntity>()
+                .Property(t => t.ModifiedBy)
+                .IsRequired(false);
 
             modelBuilder.Entity<TrustedTouchpointEntity>()
                 .HasMany(t => t.OutgoingPolicies)
