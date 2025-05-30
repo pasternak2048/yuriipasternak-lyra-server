@@ -61,103 +61,129 @@ public class TrustedTouchpointService : ITrustedTouchpointService
 
     public async Task<TrustedTouchpointCreatedDto> AddAsync(TrustedTouchpointCreateRequest request)
     {
-        var company = await _context.Companies
-            .FirstOrDefaultAsync(c => c.Id == request.CompanyId && !c.IsDeleted);
-
-        if (company == null)
-            throw new InvalidOperationException("Target company does not exist.");
-
-        var tpSlug = NameHelper.EnsureSlug(request.DisplayName);
-        var fullName = $"{tpSlug}@{company.SystemName}";
-
-        var exists = await _context.TrustedTouchpoints.AnyAsync(t =>
-            t.SystemName == fullName && !t.IsDeleted);
-        if (exists)
-            throw new InvalidOperationException($"Touchpoint '{fullName}' already exists.");
-
-        string? generatedSecret = null;
-        string? hashedSecret = null;
-
-        if (!request.UseCompanySecret)
+        try
         {
-            generatedSecret = SecretGenerator.Generate();
-            if (string.IsNullOrWhiteSpace(generatedSecret))
-                throw new InvalidOperationException("Failed to generate secret.");
+            var company = await _context.Companies
+                .FirstOrDefaultAsync(c => c.Id == request.CompanyId && !c.IsDeleted);
 
-            hashedSecret = HashHelper.HashSecret(generatedSecret);
+            if (company == null)
+                throw new InvalidOperationException("Target company does not exist.");
+
+            var tpSlug = NameHelper.EnsureSlug(request.DisplayName);
+            var fullName = $"{tpSlug}@{company.SystemName}";
+
+            var exists = await _context.TrustedTouchpoints.AnyAsync(t =>
+                t.SystemName == fullName && !t.IsDeleted);
+            if (exists)
+                throw new InvalidOperationException($"Touchpoint '{fullName}' already exists.");
+
+            string? generatedSecret = null;
+            string? hashedSecret = null;
+
+            if (!request.UseCompanySecret)
+            {
+                generatedSecret = SecretGenerator.Generate();
+                if (string.IsNullOrWhiteSpace(generatedSecret))
+                    throw new InvalidOperationException("Failed to generate secret.");
+
+                hashedSecret = HashHelper.HashSecret(generatedSecret);
+            }
+
+            var entity = new TrustedTouchpointEntity
+            {
+                Id = Guid.NewGuid(),
+                CompanyId = request.CompanyId,
+                SystemName = fullName,
+                DisplayName = request.DisplayName,
+                Secret = hashedSecret,
+                UseCompanySecret = request.UseCompanySecret,
+                IsActive = request.IsActive,
+                CreatedAt = DateTime.UtcNow,
+                Mode = Enum.Parse<TouchpointMode>(request.Mode),
+                SignatureType = Enum.Parse<SignatureType>(request.SignatureType),
+                Description = request.Description?.Trim(),
+                IsDeleted = false
+            };
+
+            _context.TrustedTouchpoints.Add(entity);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Created touchpoint '{Name}' for Company {CompanyId}", entity.SystemName, entity.CompanyId);
+
+            return new TrustedTouchpointCreatedDto
+            {
+                Id = entity.Id,
+                SystemName = entity.SystemName,
+                DisplayName = entity.DisplayName,
+                CompanyName = company.SystemName,
+                Mode = entity.Mode.ToString(),
+                SignatureType = entity.SignatureType.ToString(),
+                IsActive = entity.IsActive,
+                UseCompanySecret = entity.UseCompanySecret,
+                CreatedAt = entity.CreatedAt,
+                SecretPlaintext = generatedSecret ?? "(using company secret)"
+            };
         }
-
-        var entity = new TrustedTouchpointEntity
+        catch (Exception ex)
         {
-            Id = Guid.NewGuid(),
-            CompanyId = request.CompanyId,
-            SystemName = fullName,
-            DisplayName = request.DisplayName,
-            Secret = hashedSecret,
-            UseCompanySecret = request.UseCompanySecret,
-            IsActive = request.IsActive,
-            CreatedAt = DateTime.UtcNow,
-            Mode = Enum.Parse<TouchpointMode>(request.Mode),
-            SignatureType = Enum.Parse<SignatureType>(request.SignatureType),
-            Description = request.Description?.Trim(),
-            IsDeleted = false
-        };
-
-        _context.TrustedTouchpoints.Add(entity);
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Created touchpoint '{Name}' for Company {CompanyId}", entity.SystemName, entity.CompanyId);
-
-        return new TrustedTouchpointCreatedDto
-        {
-            Id = entity.Id,
-            SystemName = entity.SystemName,
-            DisplayName = entity.DisplayName,
-            CompanyName = company.SystemName,
-            Mode = entity.Mode.ToString(),
-            SignatureType = entity.SignatureType.ToString(),
-            IsActive = entity.IsActive,
-            UseCompanySecret = entity.UseCompanySecret,
-            CreatedAt = entity.CreatedAt,
-            SecretPlaintext = generatedSecret ?? "(using company secret)"
-        };
+            _logger.LogError(ex, "Failed to create trusted touchpoint.");
+            throw;
+        }
     }
 
     public async Task UpdateAsync(TrustedTouchpointUpdateRequest request)
     {
-        var entity = await _context.TrustedTouchpoints
-            .FirstOrDefaultAsync(t => t.Id == request.Id && !t.IsDeleted);
+        try
+        {
+            var entity = await _context.TrustedTouchpoints
+                .FirstOrDefaultAsync(t => t.Id == request.Id && !t.IsDeleted);
 
-        if (entity == null)
-            throw new KeyNotFoundException($"Trusted touchpoint with ID '{request.Id}' not found.");
+            if (entity == null)
+                throw new KeyNotFoundException($"Trusted touchpoint with ID '{request.Id}' not found.");
 
-        entity.DisplayName = request.DisplayName;
-        entity.UseCompanySecret = request.UseCompanySecret;
-        entity.IsActive = request.IsActive;
-        entity.Mode = Enum.Parse<TouchpointMode>(request.Mode);
-        entity.SignatureType = Enum.Parse<SignatureType>(request.SignatureType);
-        entity.Description = request.Description?.Trim();
+            entity.DisplayName = request.DisplayName;
+            entity.UseCompanySecret = request.UseCompanySecret;
+            entity.IsActive = request.IsActive;
+            entity.Mode = Enum.Parse<TouchpointMode>(request.Mode);
+            entity.SignatureType = Enum.Parse<SignatureType>(request.SignatureType);
+            entity.Description = request.Description?.Trim();
 
-        await _context.SaveChangesAsync();
-        _logger.LogInformation("Updated touchpoint '{Id}'", entity.Id);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Updated touchpoint '{Id}'", entity.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update trusted touchpoint '{Id}'", request.Id);
+            throw;
+        }
     }
 
     public async Task DeleteAsync(Guid id)
     {
-        var entity = await _context.TrustedTouchpoints
-            .Include(t => t.OutgoingPolicies)
-            .Include(t => t.IncomingPolicies)
-            .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
+        try
+        {
+            var entity = await _context.TrustedTouchpoints
+                .Include(t => t.OutgoingPolicies)
+                .Include(t => t.IncomingPolicies)
+                .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
 
-        if (entity == null) return;
+            if (entity == null)
+                return;
 
-        if (entity.OutgoingPolicies.Any() || entity.IncomingPolicies.Any())
-            throw new InvalidOperationException("Cannot delete touchpoint with linked policies.");
+            if (entity.OutgoingPolicies.Any() || entity.IncomingPolicies.Any())
+                throw new InvalidOperationException("Cannot delete touchpoint with linked policies.");
 
-        entity.IsDeleted = true;
-        await _context.SaveChangesAsync();
+            entity.IsDeleted = true;
+            await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Soft-deleted touchpoint '{Id}'", entity.Id);
+            _logger.LogInformation("Soft-deleted touchpoint '{Id}'", entity.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete touchpoint '{Id}'", id);
+            throw;
+        }
     }
 
     public async Task<int> GetTotalTouchpointCountAsync()
@@ -175,50 +201,66 @@ public class TrustedTouchpointService : ITrustedTouchpointService
 
     public async Task<List<TrustedTouchpointDto>> GetByCompanyAsync(Guid companyId)
     {
-        return await _context.TrustedTouchpoints
-            .Where(t => t.CompanyId == companyId && !t.IsDeleted)
-            .OrderBy(t => t.SystemName)
-            .Select(t => new TrustedTouchpointDto
-            {
-                Id = t.Id,
-                SystemName = t.SystemName,
-                DisplayName = t.DisplayName,
-                CompanyId = t.CompanyId,
-                CompanyName = t.Company != null ? t.Company.SystemName : "(unknown)",
-                UseCompanySecret = t.UseCompanySecret,
-                IsActive = t.IsActive,
-                Mode = t.Mode,
-                SignatureType = t.SignatureType,
-                Description = t.Description,
-                CreatedAt = t.CreatedAt
-            })
-            .ToListAsync();
+        try
+        {
+            return await _context.TrustedTouchpoints
+                .Where(t => t.CompanyId == companyId && !t.IsDeleted)
+                .OrderBy(t => t.SystemName)
+                .Select(t => new TrustedTouchpointDto
+                {
+                    Id = t.Id,
+                    SystemName = t.SystemName,
+                    DisplayName = t.DisplayName,
+                    CompanyId = t.CompanyId,
+                    CompanyName = t.Company != null ? t.Company.SystemName : "(unknown)",
+                    UseCompanySecret = t.UseCompanySecret,
+                    IsActive = t.IsActive,
+                    Mode = t.Mode,
+                    SignatureType = t.SignatureType,
+                    Description = t.Description,
+                    CreatedAt = t.CreatedAt
+                })
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load touchpoints for company '{CompanyId}'", companyId);
+            throw;
+        }
     }
 
     public async Task<SecretRotationResult?> RotateSecretAsync(Guid id)
     {
-        var entity = await _context.TrustedTouchpoints.FindAsync(id);
-        if (entity == null || entity.IsDeleted)
-            return null;
-
-        if (entity.UseCompanySecret)
-            throw new InvalidOperationException("Cannot rotate secret for touchpoint using company secret.");
-
-        var newSecret = SecretGenerator.Generate();
-        if (string.IsNullOrWhiteSpace(newSecret))
-            throw new InvalidOperationException("Failed to generate new secret.");
-
-        entity.Secret = HashHelper.HashSecret(newSecret);
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Rotated secret for touchpoint '{Id}'", entity.Id);
-
-        return new SecretRotationResult
+        try
         {
-            EntityId = entity.Id,
-            OwnerType = SecretOwnerType.TrustedTouchpoint,
-            SecretPlaintext = newSecret
-        };
+            var entity = await _context.TrustedTouchpoints.FindAsync(id);
+            if (entity == null || entity.IsDeleted)
+                return null;
+
+            if (entity.UseCompanySecret)
+                throw new InvalidOperationException("Cannot rotate secret for touchpoint using company secret.");
+
+            var newSecret = SecretGenerator.Generate();
+            if (string.IsNullOrWhiteSpace(newSecret))
+                throw new InvalidOperationException("Failed to generate new secret.");
+
+            entity.Secret = HashHelper.HashSecret(newSecret);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Rotated secret for touchpoint '{Id}'", entity.Id);
+
+            return new SecretRotationResult
+            {
+                EntityId = entity.Id,
+                OwnerType = SecretOwnerType.TrustedTouchpoint,
+                SecretPlaintext = newSecret
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to rotate secret for touchpoint '{Id}'", id);
+            throw;
+        }
     }
 
     // --- Helpers ---
