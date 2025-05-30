@@ -9,10 +9,5 @@ namespace LYRA.Server.Models.AccessPolicy
         /// </summary>
         [Required]
         public Guid Id { get; set; }
-
-        /// <summary>
-        /// Indicates whether the policy is currently enabled.
-        /// </summary>
-        public bool IsEnabled { get; set; } = true;
     }
 }

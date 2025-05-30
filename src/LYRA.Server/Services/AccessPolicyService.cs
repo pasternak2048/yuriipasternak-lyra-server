@@ -123,7 +123,7 @@ namespace LYRA.Server.Services
                     TargetSystemName = target.SystemName,
                     Operation = request.Operation.Trim(),
                     Context = request.Context,
-                    IsEnabled = true,
+                    IsEnabled = request.IsEnabled,
                     CreatedAt = DateTime.UtcNow
                 };
 

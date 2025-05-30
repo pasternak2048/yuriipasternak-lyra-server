@@ -39,5 +39,11 @@ namespace LYRA.Server.Models.AccessPolicy
         /// </summary>
         [Required]
         public AccessContext Context { get; set; }
+
+        /// <summary>
+        /// Whether this policy is enabled.
+        /// </summary>
+        public bool IsEnabled { get; set; } = true;
     }
+
 }
