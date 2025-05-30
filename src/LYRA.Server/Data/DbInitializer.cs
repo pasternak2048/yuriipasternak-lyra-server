@@ -14,7 +14,6 @@ namespace LYRA.Server.Data
         {
             var context = serviceProvider.GetRequiredService<LyraDbContext>();
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var currentUserService = serviceProvider.GetService<ICurrentUserService>();
 
             context.Database.EnsureCreated();
 
@@ -50,17 +49,17 @@ namespace LYRA.Server.Data
             var cCorp = await EnsureCompanyAsync(context, "C Corp", "c-secret", systemUserId);
 
             // 3. Touchpoints
-            await EnsureTouchpointAsync(context, aCorp, "Billing API", "a-billing-secret", TouchpointMode.TargetOnly, systemUserId);
-            await EnsureTouchpointAsync(context, aCorp, "Public API", "a-api-secret", TouchpointMode.TargetOnly, systemUserId);
+            var aBilling = await EnsureTouchpointAsync(context, aCorp, "Billing API", "a-billing-secret", TouchpointMode.TargetOnly, systemUserId);
+            var aPublicApi = await EnsureTouchpointAsync(context, aCorp, "Public API", "a-api-secret", TouchpointMode.TargetOnly, systemUserId);
 
             var bGateway = await EnsureTouchpointAsync(context, bCorp, "Gateway", "b-gateway-secret", TouchpointMode.CallerOnly, systemUserId);
-            await EnsureTouchpointAsync(context, bCorp, "Report Bot", "b-report-secret", TouchpointMode.Both, systemUserId);
+            var bReport = await EnsureTouchpointAsync(context, bCorp, "Report Bot", "b-report-secret", TouchpointMode.Both, systemUserId);
 
-            await EnsureTouchpointAsync(context, cCorp, "Worker Node", "c-worker-secret", TouchpointMode.CallerOnly, systemUserId);
-            await EnsureTouchpointAsync(context, cCorp, "Bot Commander", "c-bot-secret", TouchpointMode.Both, systemUserId);
+            var cWorker = await EnsureTouchpointAsync(context, cCorp, "Worker Node", "c-worker-secret", TouchpointMode.CallerOnly, systemUserId);
+            var cBot = await EnsureTouchpointAsync(context, cCorp, "Bot Commander", "c-bot-secret", TouchpointMode.Both, systemUserId);
 
             // 4. Access policy
-            await EnsurePolicyAsync(context, bGateway.Id, aCorp.TrustedTouchpoints.First().Id, "POST /subscribe", AccessContext.Http);
+            await EnsurePolicyAsync(context, bGateway, aBilling, "POST /subscribe", AccessContext.Http, systemUserId);
         }
 
         private static async Task<CompanyEntity> EnsureCompanyAsync(
@@ -130,14 +129,15 @@ namespace LYRA.Server.Data
 
         private static async Task EnsurePolicyAsync(
             LyraDbContext context,
-            Guid callerId,
-            Guid targetId,
+            TrustedTouchpointEntity caller,
+            TrustedTouchpointEntity target,
             string operation,
-            AccessContext contextType)
+            AccessContext contextType,
+            Guid createdBy)
         {
             var exists = await context.AccessPolicies.AnyAsync(p =>
-                p.CallerId == callerId &&
-                p.TargetId == targetId &&
+                p.CallerSystemName == caller.SystemName &&
+                p.TargetSystemName == target.SystemName &&
                 p.Operation == operation &&
                 p.Context == contextType);
 
@@ -146,17 +146,19 @@ namespace LYRA.Server.Data
             var policy = new AccessPolicyEntity
             {
                 Id = Guid.NewGuid(),
-                CallerId = callerId,
-                TargetId = targetId,
+                CallerId = caller.Id,
+                TargetId = target.Id,
+                CallerSystemName = caller.SystemName,
+                TargetSystemName = target.SystemName,
                 Operation = operation,
                 Context = contextType,
                 IsEnabled = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = createdBy
             };
 
             context.AccessPolicies.Add(policy);
             await context.SaveChangesAsync();
         }
     }
-
 }
