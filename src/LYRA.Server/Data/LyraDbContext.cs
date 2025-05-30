@@ -23,7 +23,8 @@ namespace LYRA.Server.Data
 
             modelBuilder.Entity<CompanyEntity>()
                 .HasIndex(c => c.SystemName)
-                .IsUnique();
+                .IsUnique()
+                .HasFilter("[IsDeleted] = 0");
 
             modelBuilder.Entity<CompanyEntity>()
                 .Property(c => c.SystemName)
@@ -40,6 +41,10 @@ namespace LYRA.Server.Data
                 .HasMaxLength(200);
 
             modelBuilder.Entity<CompanyEntity>()
+                .Property(c => c.IsDeleted)
+                .HasDefaultValue(false);
+
+            modelBuilder.Entity<CompanyEntity>()
                 .HasMany(c => c.TrustedTouchpoints)
                 .WithOne(t => t.Company)
                 .HasForeignKey(t => t.CompanyId)
@@ -48,8 +53,9 @@ namespace LYRA.Server.Data
             // ------------------- TrustedTouchpoint -------------------
 
             modelBuilder.Entity<TrustedTouchpointEntity>()
-                .HasIndex(t => t.SystemName) // Name is globally unique
-                .IsUnique();
+                .HasIndex(t => t.SystemName)
+                .IsUnique()
+                .HasFilter("[IsDeleted] = 0");
 
             modelBuilder.Entity<TrustedTouchpointEntity>()
                 .Property(t => t.SystemName)
@@ -72,6 +78,10 @@ namespace LYRA.Server.Data
             modelBuilder.Entity<TrustedTouchpointEntity>()
                 .Property(t => t.SignatureType)
                 .HasConversion<string>();
+
+            modelBuilder.Entity<TrustedTouchpointEntity>()
+                .Property(t => t.IsDeleted)
+                .HasDefaultValue(false);
 
             modelBuilder.Entity<TrustedTouchpointEntity>()
                 .HasMany(t => t.OutgoingPolicies)

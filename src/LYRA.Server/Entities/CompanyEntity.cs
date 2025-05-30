@@ -33,6 +33,11 @@ namespace LYRA.Server.Entities
         public bool IsActive { get; set; } = true;
 
         /// <summary>
+        /// Indicates whether the company was soft-deleted
+        /// </summary>
+        public bool IsDeleted { get; set; } = false;
+
+        /// <summary>
         /// Timestamp when the company was registered
         /// </summary>
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
