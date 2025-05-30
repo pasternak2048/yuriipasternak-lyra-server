@@ -152,6 +152,62 @@ namespace LYRA.Server.Services
                 if (entity is null)
                     throw new KeyNotFoundException($"Policy with ID '{request.Id}' not found.");
 
+                // Отримуємо нових caller і target, якщо змінили systemName або ID
+                TrustedTouchpointEntity? caller = null;
+                TrustedTouchpointEntity? target = null;
+
+                if (!string.IsNullOrWhiteSpace(request.CallerSystemName))
+                {
+                    caller = await _context.TrustedTouchpoints
+                        .FirstOrDefaultAsync(t => t.SystemName == request.CallerSystemName && !t.IsDeleted);
+                    if (caller == null)
+                        throw new InvalidOperationException($"Caller touchpoint '{request.CallerSystemName}' not found.");
+                }
+                else if (request.CallerId.HasValue)
+                {
+                    caller = await _context.TrustedTouchpoints
+                        .FirstOrDefaultAsync(t => t.Id == request.CallerId.Value && !t.IsDeleted);
+                    if (caller == null)
+                        throw new InvalidOperationException($"Caller touchpoint with ID '{request.CallerId}' not found.");
+                }
+                else
+                {
+                    throw new ArgumentException("CallerSystemName or CallerId must be provided.");
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.TargetSystemName))
+                {
+                    target = await _context.TrustedTouchpoints
+                        .FirstOrDefaultAsync(t => t.SystemName == request.TargetSystemName && !t.IsDeleted);
+                    if (target == null)
+                        throw new InvalidOperationException($"Target touchpoint '{request.TargetSystemName}' not found.");
+                }
+                else if (request.TargetId.HasValue)
+                {
+                    target = await _context.TrustedTouchpoints
+                        .FirstOrDefaultAsync(t => t.Id == request.TargetId.Value && !t.IsDeleted);
+                    if (target == null)
+                        throw new InvalidOperationException($"Target touchpoint with ID '{request.TargetId}' not found.");
+                }
+                else
+                {
+                    throw new ArgumentException("TargetSystemName or TargetId must be provided.");
+                }
+
+                var exists = await _context.AccessPolicies.AnyAsync(p =>
+                    p.Id != request.Id &&
+                    p.CallerSystemName == caller.SystemName &&
+                    p.TargetSystemName == target.SystemName &&
+                    p.Operation == request.Operation &&
+                    p.Context == request.Context);
+
+                if (exists)
+                    throw new InvalidOperationException("Such policy already exists.");
+
+                entity.CallerId = caller.Id;
+                entity.CallerSystemName = caller.SystemName;
+                entity.TargetId = target.Id;
+                entity.TargetSystemName = target.SystemName;
                 entity.Operation = request.Operation.Trim();
                 entity.Context = request.Context;
                 entity.IsEnabled = request.IsEnabled;
