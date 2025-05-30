@@ -25,6 +25,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 builder.Services.AddScoped<IIdentityService, IdentityService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<ITrustedTouchpointService, TrustedTouchpointService>();
+builder.Services.AddScoped<IAccessPolicyService, AccessPolicyService>();
 
 builder.Services.AddRazorPages();
 
