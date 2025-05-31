@@ -2,7 +2,7 @@
 using LYRA.Server.Services.Interfaces;
 using LYRA.Server.Utilities.Security;
 
-namespace LYRA.Server.Services.Verify
+namespace LYRA.Server.Services.SecurityVerification
 {
     public class VerifyService : IVerifyService
     {

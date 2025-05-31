@@ -1,7 +1,7 @@
 ﻿using LYRA.Server.Enums;
 using LYRA.Server.Services.Interfaces;
 
-namespace LYRA.Server.Services.Verify
+namespace LYRA.Server.Services.SecurityVerification
 {
     public class SignatureStringBuilderFactory
     {

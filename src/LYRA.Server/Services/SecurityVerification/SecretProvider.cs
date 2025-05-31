@@ -3,7 +3,7 @@ using LYRA.Server.Entities;
 using LYRA.Server.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace LYRA.Server.Services.Verify
+namespace LYRA.Server.Services.SecurityVerification
 {
     public class SecretProvider : ISecretProvider
     {

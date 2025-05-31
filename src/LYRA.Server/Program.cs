@@ -3,7 +3,7 @@ using LYRA.Server.Data.Auditing;
 using LYRA.Server.Entities.Identity;
 using LYRA.Server.Services;
 using LYRA.Server.Services.Interfaces;
-using LYRA.Server.Services.Verify;
+using LYRA.Server.Services.SecurityVerification;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
