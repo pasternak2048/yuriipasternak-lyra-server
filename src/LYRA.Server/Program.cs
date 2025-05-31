@@ -3,6 +3,7 @@ using LYRA.Server.Data.Auditing;
 using LYRA.Server.Entities.Identity;
 using LYRA.Server.Services;
 using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Services.Verify;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,6 +27,10 @@ builder.Services.AddScoped<IIdentityService, IdentityService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<ITrustedTouchpointService, TrustedTouchpointService>();
 builder.Services.AddScoped<IAccessPolicyService, AccessPolicyService>();
+builder.Services.AddScoped<ISecretProvider, SecretProvider>();
+builder.Services.AddTransient<ISignatureStringBuilder, HttpSignatureStringBuilder>();
+builder.Services.AddTransient<ISignatureStringBuilder, CacheSignatureStringBuilder>();
+builder.Services.AddSingleton<SignatureStringBuilderFactory>();
 
 builder.Services.AddRazorPages();
 

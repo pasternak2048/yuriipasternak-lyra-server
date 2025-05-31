@@ -100,7 +100,7 @@ public class TrustedTouchpointService : ITrustedTouchpointService
                 if (string.IsNullOrWhiteSpace(generatedSecret))
                     throw new InvalidOperationException("Failed to generate secret.");
 
-                hashedSecret = HashHelper.HashSecret(generatedSecret);
+                hashedSecret = EncryptionHelper.EncryptSecret(generatedSecret);
             }
 
             var entity = new TrustedTouchpointEntity
@@ -258,7 +258,7 @@ public class TrustedTouchpointService : ITrustedTouchpointService
             if (string.IsNullOrWhiteSpace(newSecret))
                 throw new InvalidOperationException("Failed to generate new secret.");
 
-            entity.Secret = HashHelper.HashSecret(newSecret);
+            entity.Secret = EncryptionHelper.EncryptSecret(newSecret);
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Rotated secret for touchpoint '{Id}'", entity.Id);

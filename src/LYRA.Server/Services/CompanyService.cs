@@ -105,7 +105,7 @@ public class CompanyService : ICompanyService
                 Id = Guid.NewGuid(),
                 SystemName = normalizedName,
                 DisplayName = request.DisplayName.Trim(),
-                Secret = HashHelper.HashSecret(secretPlaintext),
+                Secret = EncryptionHelper.EncryptSecret(secretPlaintext),
                 IsActive = true,
                 IsDeleted = false,
                 CreatedAt = DateTime.UtcNow
@@ -196,7 +196,7 @@ public class CompanyService : ICompanyService
             if (string.IsNullOrWhiteSpace(newSecret) || newSecret.Length < 24)
                 throw new InvalidOperationException("Generated secret is too weak or invalid.");
 
-            company.Secret = HashHelper.HashSecret(newSecret);
+            company.Secret = EncryptionHelper.EncryptSecret(newSecret);
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Rotated secret for company: {CompanyId}", company.Id);
