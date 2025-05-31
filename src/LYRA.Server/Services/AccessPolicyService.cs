@@ -7,19 +7,30 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LYRA.Server.Services
 {
+    /// <summary>
+    /// Service responsible for managing access policies that define allowed operations 
+    /// between trusted touchpoints across different access contexts.
+    /// </summary>
     public class AccessPolicyService : IAccessPolicyService
     {
         private readonly LyraDbContext _context;
         private readonly ILogger<AccessPolicyService> _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AccessPolicyService"/> class.
+        /// </summary>
+        /// <param name="context">The database context.</param>
+        /// <param name="logger">The logger for audit and diagnostics.</param>
         public AccessPolicyService(LyraDbContext context, ILogger<AccessPolicyService> logger)
         {
             _context = context;
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<PaginatedResult<AccessPolicyDto>> GetPagedAsync(AccessPolicyFilters filters)
         {
+            // Builds a query to filter and paginate access policies
             var query = _context.AccessPolicies
                 .Include(p => p.Caller)
                 .Include(p => p.Target)
@@ -77,6 +88,7 @@ namespace LYRA.Server.Services
             };
         }
 
+        /// <inheritdoc />
         public async Task<AccessPolicyDto?> GetByIdAsync(Guid id)
         {
             var policy = await _context.AccessPolicies
@@ -87,6 +99,7 @@ namespace LYRA.Server.Services
             return policy == null ? null : MapToDto(policy);
         }
 
+        /// <inheritdoc />
         public async Task<AccessPolicyDto> AddAsync(AccessPolicyCreateRequest request)
         {
             try
@@ -142,6 +155,7 @@ namespace LYRA.Server.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task UpdateAsync(AccessPolicyUpdateRequest request)
         {
             try
@@ -152,7 +166,6 @@ namespace LYRA.Server.Services
                 if (entity is null)
                     throw new KeyNotFoundException($"Policy with ID '{request.Id}' not found.");
 
-                // Отримуємо нових caller і target, якщо змінили systemName або ID
                 TrustedTouchpointEntity? caller = null;
                 TrustedTouchpointEntity? target = null;
 
@@ -222,6 +235,7 @@ namespace LYRA.Server.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task DeleteAsync(Guid id)
         {
             try
@@ -242,6 +256,12 @@ namespace LYRA.Server.Services
             }
         }
 
+        /// <summary>
+        /// Retrieves a touchpoint by its system name or throws if not found.
+        /// </summary>
+        /// <param name="systemName">The unique system name of the touchpoint.</param>
+        /// <returns>The corresponding touchpoint entity.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if the touchpoint is not found.</exception>
         private async Task<TrustedTouchpointEntity> GetTouchpointByNameAsync(string systemName)
         {
             var entity = await _context.TrustedTouchpoints
@@ -250,11 +270,17 @@ namespace LYRA.Server.Services
             return entity ?? throw new InvalidOperationException($"Touchpoint '{systemName}' not found.");
         }
 
+        /// <inheritdoc />
         public async Task<int> GetTotalPolicyCountAsync()
         {
             return await _context.AccessPolicies.CountAsync();
         }
 
+        /// <summary>
+        /// Maps an access policy entity to its corresponding DTO.
+        /// </summary>
+        /// <param name="p">The policy entity.</param>
+        /// <returns>The mapped DTO.</returns>
         private static AccessPolicyDto MapToDto(AccessPolicyEntity p)
         {
             return new AccessPolicyDto

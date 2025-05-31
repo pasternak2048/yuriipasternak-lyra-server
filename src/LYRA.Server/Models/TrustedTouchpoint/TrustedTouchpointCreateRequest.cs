@@ -2,51 +2,55 @@
 
 namespace LYRA.Server.Models.TrustedTouchpoint
 {
+    /// <summary>
+    /// Request model used to create a new trusted touchpoint for a company.
+    /// Touchpoints define integration endpoints that can initiate or receive signed requests.
+    /// </summary>
     public class TrustedTouchpointCreateRequest
     {
         /// <summary>
-        /// ID of the company that owns the touchpoint
+        /// Identifier of the company that owns this touchpoint.
         /// </summary>
         [Required]
         public Guid CompanyId { get; set; }
 
         /// <summary>
-        /// Display name (used for UI and auto-generating the name)
+        /// Human-readable name used in the UI and for generating the unique system name.
         /// </summary>
         [Required]
         [MaxLength(200)]
         public string DisplayName { get; set; } = null!;
 
         /// <summary>
-        /// Whether to use the company-wide secret instead of individual one
+        /// If true, the touchpoint will use the company's shared secret instead of a dedicated one.
         /// </summary>
         public bool UseCompanySecret { get; set; }
 
         /// <summary>
-        /// Whether this touchpoint is active
+        /// Indicates whether the touchpoint is currently active.
         /// </summary>
         public bool IsActive { get; set; } = true;
 
         /// <summary>
-        /// Touchpoint role: CallerOnly, TargetOnly, Both
+        /// Defines the role of this touchpoint: CallerOnly, TargetOnly, or Both.
         /// </summary>
         [Required]
         public string Mode { get; set; } = "Both";
 
         /// <summary>
-        /// Signature type: HMAC, RSA, None
+        /// Specifies the type of signature expected: HMAC, RSA, or None.
         /// </summary>
         [Required]
         public string SignatureType { get; set; } = "HMAC";
 
         /// <summary>
-        /// Optional description for display or admin notes
+        /// Optional description for administrative or documentation purposes.
         /// </summary>
         [MaxLength(300)]
         public string? Description { get; set; }
 
         /// <summary>
-        /// Optional expected source IP or CIDR
+        /// Optional IP address or CIDR range allowed to send requests.
         /// </summary>
         [MaxLength(100)]
         public string? AllowedSourceIp { get; set; }

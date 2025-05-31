@@ -4,17 +4,34 @@ using LYRA.Server.Utilities.Security;
 
 namespace LYRA.Server.Services.SecurityVerification
 {
+    /// <summary>
+    /// Verifies incoming signed requests by validating the digital signature using a trusted secret.
+    /// This service ensures that both caller and target touchpoints are valid, active, and belong to active companies.
+    /// </summary>
     public class VerifyService : IVerifyService
     {
         private readonly SignatureStringBuilderFactory _factory;
         private readonly ISecretProvider _secretProvider;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="VerifyService"/> class.
+        /// </summary>
+        /// <param name="factory">Factory used to construct canonical strings for signature verification.</param>
+        /// <param name="secretProvider">Provider used to retrieve metadata and secrets for trusted touchpoints.</param>
         public VerifyService(SignatureStringBuilderFactory factory, ISecretProvider secretProvider)
         {
             _factory = factory;
             _secretProvider = secretProvider;
         }
 
+        /// <summary>
+        /// Verifies a request by checking its digital signature against the expected value using HMAC SHA512.
+        /// Ensures the caller and target are valid and active, and verifies the integrity of the signed data.
+        /// </summary>
+        /// <param name="request">The request containing caller, target, payload hash, and signature data.</param>
+        /// <returns>
+        /// A <see cref="VerifyResponse"/> indicating whether the request is valid and, if not, describing the reason for failure.
+        /// </returns>
         public async Task<VerifyResponse> Verify(VerifyRequest request)
         {
             try
