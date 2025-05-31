@@ -2,6 +2,9 @@
 
 namespace LYRA.Server.Models.AccessPolicy
 {
+    /// <summary>
+    /// Data transfer object representing an access policy.
+    /// </summary>
     public class AccessPolicyDto
     {
         /// <summary>
@@ -10,42 +13,43 @@ namespace LYRA.Server.Models.AccessPolicy
         public Guid Id { get; set; }
 
         /// <summary>
-        /// ID of the calling touchpoint.
+        /// ID of the calling touchpoint (initiator).
         /// </summary>
         public Guid CallerId { get; set; }
 
         /// <summary>
-        /// Cached system name of the caller.
+        /// Cached system name of the calling touchpoint for performance.
         /// </summary>
         public string CallerSystemName { get; set; } = null!;
 
         /// <summary>
-        /// ID of the receiving touchpoint.
+        /// ID of the target touchpoint (receiver).
         /// </summary>
         public Guid TargetId { get; set; }
 
         /// <summary>
-        /// Cached system name of the target.
+        /// Cached system name of the target touchpoint for performance.
         /// </summary>
         public string TargetSystemName { get; set; } = null!;
 
         /// <summary>
-        /// Operation identifier (e.g. API path or message topic).
+        /// Identifier of the operation this policy applies to 
+        /// (e.g., HTTP path, event topic, or method name).
         /// </summary>
         public string Operation { get; set; } = null!;
 
         /// <summary>
-        /// Type of context for the operation (http / event / cache / etc).
+        /// The context/type of the access (e.g., Http, Event, Cache).
         /// </summary>
         public AccessContext Context { get; set; }
 
         /// <summary>
-        /// Indicates whether this policy is enabled.
+        /// Indicates if the policy is currently enabled.
         /// </summary>
         public bool IsEnabled { get; set; }
 
         /// <summary>
-        /// Creation timestamp (UTC).
+        /// Timestamp when this policy was created (UTC).
         /// </summary>
         public DateTime CreatedAt { get; set; }
     }

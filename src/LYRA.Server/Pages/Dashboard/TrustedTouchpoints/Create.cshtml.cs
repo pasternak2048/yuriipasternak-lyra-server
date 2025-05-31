@@ -10,6 +10,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
 {
+    /// <summary>
+    /// Razor Page model for creating a new Trusted Touchpoint.
+    /// </summary>
     [Authorize]
     public class CreateModel : PageModel
     {
@@ -22,46 +25,93 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
             _touchpointService = touchpointService;
         }
 
+        /// <summary>
+        /// The input form data for creating a new Trusted Touchpoint.
+        /// </summary>
         [BindProperty]
         public TrustedTouchpointCreateRequest Input { get; set; } = new();
 
+        /// <summary>
+        /// List of available companies to assign the touchpoint to.
+        /// </summary>
         public List<CompanyDto> Companies { get; set; } = new();
 
+        /// <summary>
+        /// List of selectable signature types (HMAC, RSA, None).
+        /// </summary>
         public List<SelectListItem> SignatureTypes { get; set; } = new();
 
-        [TempData] 
+        // ---------------- TempData for confirmation page ---------------- //
+
+        /// <summary>
+        /// One-time shown plaintext secret.
+        /// </summary>
+        [TempData]
         public string? SecretPlaintext { get; set; }
 
-        [TempData] 
+        /// <summary>
+        /// Display name of the created touchpoint.
+        /// </summary>
+        [TempData]
         public string? DisplayName { get; set; }
 
-        [TempData] 
+        /// <summary>
+        /// System name of the created touchpoint.
+        /// </summary>
+        [TempData]
         public string? SystemName { get; set; }
 
-        [TempData] 
+        /// <summary>
+        /// Name of the company associated with the touchpoint.
+        /// </summary>
+        [TempData]
         public string? CompanyName { get; set; }
 
-        [TempData] 
+        /// <summary>
+        /// Touchpoint active status.
+        /// </summary>
+        [TempData]
         public string? IsActive { get; set; }
 
-        [TempData] 
+        /// <summary>
+        /// Whether company secret is used.
+        /// </summary>
+        [TempData]
         public string? UseCompanySecret { get; set; }
 
-        [TempData] 
+        /// <summary>
+        /// Role mode of the touchpoint (CallerOnly, TargetOnly, Both).
+        /// </summary>
+        [TempData]
         public string? Mode { get; set; }
 
-        [TempData] 
+        /// <summary>
+        /// Signature type used (HMAC, RSA, None).
+        /// </summary>
+        [TempData]
         public string? SignatureType { get; set; }
 
-        [TempData] 
+        /// <summary>
+        /// Creation timestamp of the touchpoint.
+        /// </summary>
+        [TempData]
         public string? CreatedAt { get; set; }
 
+        /// <summary>
+        /// ID of the created touchpoint.
+        /// </summary>
         [TempData]
         public Guid Id { get; set; }
 
+        /// <summary>
+        /// Feedback message to display after creation.
+        /// </summary>
         [TempData]
         public string? Message { get; set; }
 
+        /// <summary>
+        /// Handles GET requests. Loads companies and signature types for the form.
+        /// </summary>
         public async Task<IActionResult> OnGetAsync()
         {
             Companies = await _companyService.GetLightweightAsync();
@@ -69,6 +119,9 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
             return Page();
         }
 
+        /// <summary>
+        /// Handles POST requests. Attempts to create a new Trusted Touchpoint and redirect to the secret page.
+        /// </summary>
         public async Task<IActionResult> OnPostAsync()
         {
             Companies = await _companyService.GetLightweightAsync();

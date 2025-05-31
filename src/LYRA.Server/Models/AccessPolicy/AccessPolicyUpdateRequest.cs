@@ -2,6 +2,10 @@
 
 namespace LYRA.Server.Models.AccessPolicy
 {
+    /// <summary>
+    /// Request model for updating an existing access policy.
+    /// Inherits from AccessPolicyCreateRequest and adds the policy's unique identifier.
+    /// </summary>
     public class AccessPolicyUpdateRequest : AccessPolicyCreateRequest
     {
         /// <summary>

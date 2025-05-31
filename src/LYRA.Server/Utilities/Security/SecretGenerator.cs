@@ -2,6 +2,10 @@
 
 namespace LYRA.Server.Utilities.Security
 {
+    /// <summary>
+    /// Provides methods to generate cryptographically secure secrets in various formats.
+    /// Used for signing keys, authentication tokens, and sensitive system secrets.
+    /// </summary>
     public static class SecretGenerator
     {
         /// <summary>
@@ -16,7 +20,8 @@ namespace LYRA.Server.Utilities.Security
         }
 
         /// <summary>
-        /// Generates a secret as a hexadecimal string (optional).
+        /// Generates a secret as a hexadecimal string.
+        /// Useful for non-sensitive display or integrations requiring hex format.
         /// </summary>
         /// <param name="length">Number of bytes for the secret (default is 32).</param>
         /// <returns>Hexadecimal string representation of the secret.</returns>

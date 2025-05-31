@@ -3,6 +3,10 @@ using System.Text;
 
 namespace LYRA.Server.Utilities.Security
 {
+    /// <summary>
+    /// Provides utilities for encryption, decryption, signature generation, and secure comparison.
+    /// Used to protect secrets and verify request authenticity.
+    /// </summary>
     public static class EncryptionHelper
     {
         // Replace this key with a securely stored and configured key

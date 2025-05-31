@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
 {
+    /// <summary>
+    /// Razor Page model for viewing and managing details of a Trusted Touchpoint.
+    /// </summary>
     [Authorize]
     public class DetailsModel : PageModel
     {
@@ -16,41 +19,49 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
             _touchpointService = touchpointService;
         }
 
+        /// <summary>
+        /// Trusted Touchpoint details loaded for the page.
+        /// </summary>
         public TrustedTouchpointDto? Touchpoint { get; set; }
 
-        [TempData]
-        public string? SecretPlaintext { get; set; }
+        // ------------- TempData for Secret/Confirmation Page -------------
 
-        [TempData]
-        public string? DisplayName { get; set; }
+        /// <summary> One-time shown plaintext secret. </summary>
+        [TempData] public string? SecretPlaintext { get; set; }
 
-        [TempData]
-        public string? SystemName { get; set; }
+        /// <summary> Display name of the touchpoint. </summary>
+        [TempData] public string? DisplayName { get; set; }
 
-        [TempData]
-        public string? CompanyName { get; set; }
+        /// <summary> System name of the touchpoint. </summary>
+        [TempData] public string? SystemName { get; set; }
 
-        [TempData]
-        public string? IsActive { get; set; }
+        /// <summary> Company name owning the touchpoint. </summary>
+        [TempData] public string? CompanyName { get; set; }
 
-        [TempData]
-        public string? UseCompanySecret { get; set; }
+        /// <summary> Touchpoint active status. </summary>
+        [TempData] public string? IsActive { get; set; }
 
-        [TempData]
-        public string? Mode { get; set; }
+        /// <summary> Whether the company-wide secret is used. </summary>
+        [TempData] public string? UseCompanySecret { get; set; }
 
-        [TempData]
-        public string? SignatureType { get; set; }
+        /// <summary> Touchpoint role mode. </summary>
+        [TempData] public string? Mode { get; set; }
 
-        [TempData]
-        public string? CreatedAt { get; set; }
+        /// <summary> Signature type used. </summary>
+        [TempData] public string? SignatureType { get; set; }
 
-        [TempData]
-        public Guid Id { get; set; }
+        /// <summary> Creation timestamp. </summary>
+        [TempData] public string? CreatedAt { get; set; }
 
-        [TempData]
-        public string? Message { get; set; }
+        /// <summary> ID of the touchpoint. </summary>
+        [TempData] public Guid Id { get; set; }
 
+        /// <summary> Temporary message for confirmation. </summary>
+        [TempData] public string? Message { get; set; }
+
+        /// <summary>
+        /// Handles GET requests to load touchpoint details.
+        /// </summary>
         public async Task<IActionResult> OnGetAsync(Guid id)
         {
             Touchpoint = await _touchpointService.GetByIdAsync(id);
@@ -60,6 +71,10 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
             return Page();
         }
 
+        /// <summary>
+        /// Handles POST request to rotate the secret for the touchpoint.
+        /// Stores new secret in TempData and redirects to secret page.
+        /// </summary>
         public async Task<IActionResult> OnPostRotateAsync(Guid id)
         {
             try
@@ -93,6 +108,9 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
             }
         }
 
+        /// <summary>
+        /// Handles POST request to delete the touchpoint.
+        /// </summary>
         public async Task<IActionResult> OnPostDeleteAsync(Guid id)
         {
             try

@@ -10,6 +10,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
 {
+    /// <summary>
+    /// Razor Page model for editing a Trusted Touchpoint.
+    /// </summary>
     [Authorize]
     public class EditModel : PageModel
     {
@@ -22,16 +25,31 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
             _touchpointService = touchpointService;
         }
 
+        /// <summary>
+        /// Form input for editing a Trusted Touchpoint.
+        /// </summary>
         [BindProperty]
         public TrustedTouchpointUpdateRequest Input { get; set; } = new();
 
+        /// <summary>
+        /// List of companies available for selection (if needed).
+        /// </summary>
         public List<CompanyDto> Companies { get; set; } = new();
 
+        /// <summary>
+        /// List of available signature types for dropdown.
+        /// </summary>
         public List<SelectListItem> SignatureTypes { get; set; } = new();
 
+        /// <summary>
+        /// Optional message to show after update.
+        /// </summary>
         [TempData]
         public string? Message { get; set; }
 
+        /// <summary>
+        /// Loads data to populate the edit form.
+        /// </summary>
         public async Task<IActionResult> OnGetAsync(Guid id)
         {
             var touchpoint = await _touchpointService.GetByIdAsync(id);
@@ -53,6 +71,9 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
             return Page();
         }
 
+        /// <summary>
+        /// Handles the update of a Trusted Touchpoint after form submission.
+        /// </summary>
         public async Task<IActionResult> OnPostAsync()
         {
             SignatureTypes = EnumHelper.GetSelectList<SignatureType>();

@@ -4,17 +4,26 @@ using Microsoft.AspNetCore.Identity;
 
 namespace LYRA.Server.Services
 {
+    /// <summary>
+    /// Service for managing user authentication and registration using ASP.NET Core Identity.
+    /// </summary>
     public class IdentityService : IIdentityService
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IdentityService"/> class.
+        /// </summary>
+        /// <param name="signInManager">Sign-in manager for handling login/logout operations.</param>
+        /// <param name="userManager">User manager for user registration and lookup.</param>
         public IdentityService(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
         {
             _signInManager = signInManager;
             _userManager = userManager;
         }
 
+        /// <inheritdoc />
         public async Task<(bool Success, string? Error)> LoginAsync(string email, string password)
         {
             var user = await _userManager.FindByEmailAsync(email);
@@ -25,9 +34,9 @@ namespace LYRA.Server.Services
             return result.Succeeded
                 ? (true, null)
                 : (false, "Invalid credentials");
-
         }
 
+        /// <inheritdoc />
         public async Task<(bool Success, string? Error)> RegisterAsync(string email, string password, string confirmPassword)
         {
             if (password != confirmPassword)
@@ -42,6 +51,7 @@ namespace LYRA.Server.Services
             return (true, null);
         }
 
+        /// <inheritdoc />
         public async Task LogoutAsync()
         {
             await _signInManager.SignOutAsync();

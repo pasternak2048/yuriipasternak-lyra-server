@@ -3,47 +3,49 @@ using System.ComponentModel.DataAnnotations;
 
 namespace LYRA.Server.Models.AccessPolicy
 {
+    /// <summary>
+    /// Request model for creating a new access policy.
+    /// </summary>
     public class AccessPolicyCreateRequest
     {
         /// <summary>
-        /// Unique system name of the calling touchpoint (alternative to CallerId)
+        /// Unique system name of the calling touchpoint (alternative to CallerId).
         /// </summary>
         [MaxLength(100)]
         public string? CallerSystemName { get; set; }
 
         /// <summary>
-        /// ID of the calling touchpoint (alternative to CallerSystemName)
+        /// ID of the calling touchpoint (alternative to CallerSystemName).
         /// </summary>
         public Guid? CallerId { get; set; }
 
         /// <summary>
-        /// Unique system name of the target touchpoint (alternative to TargetId)
+        /// Unique system name of the target touchpoint (alternative to TargetId).
         /// </summary>
         [MaxLength(100)]
         public string? TargetSystemName { get; set; }
 
         /// <summary>
-        /// ID of the target touchpoint (alternative to TargetSystemName)
+        /// ID of the target touchpoint (alternative to TargetSystemName).
         /// </summary>
         public Guid? TargetId { get; set; }
 
         /// <summary>
-        /// Operation identifier (path, topic, or method)
+        /// Operation identifier, such as an HTTP path, event topic, or method name.
         /// </summary>
         [Required]
         [MaxLength(200)]
         public string Operation { get; set; } = null!;
 
         /// <summary>
-        /// Context of the access policy (http, event, grpc, etc.)
+        /// Context of the access policy (e.g., Http, Event, Grpc).
         /// </summary>
         [Required]
         public AccessContext Context { get; set; }
 
         /// <summary>
-        /// Whether this policy is enabled.
+        /// Indicates whether this access policy is enabled.
         /// </summary>
         public bool IsEnabled { get; set; } = true;
     }
-
 }
