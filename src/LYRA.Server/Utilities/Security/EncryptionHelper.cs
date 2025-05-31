@@ -6,7 +6,7 @@ namespace LYRA.Server.Utilities.Security
     public static class EncryptionHelper
     {
         // Replace this key with a securely stored and configured key
-        private static readonly byte[] EncryptionKey = Encoding.UTF8.GetBytes("YOUR_32_BYTE_SECRET_KEY_HERE_________");
+        private static readonly byte[] EncryptionKey = Encoding.UTF8.GetBytes("0123456789ABCDEF0123456789ABCDEF");
 
         /// <summary>
         /// Encrypts the given secret string using AES encryption with a random IV.

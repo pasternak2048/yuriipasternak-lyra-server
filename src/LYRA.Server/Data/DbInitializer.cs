@@ -3,6 +3,7 @@ using LYRA.Server.Entities.Identity;
 using LYRA.Server.Enums;
 using LYRA.Server.Services.Interfaces;
 using LYRA.Server.Utilities;
+using LYRA.Server.Utilities.Security;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -44,19 +45,19 @@ namespace LYRA.Server.Data
             var systemUserId = Guid.Parse(adminUser.Id);
 
             // 2. Companies
-            var aCorp = await EnsureCompanyAsync(context, "A Corp", "a-secret", systemUserId);
-            var bCorp = await EnsureCompanyAsync(context, "B Corp", "b-secret", systemUserId);
-            var cCorp = await EnsureCompanyAsync(context, "C Corp", "c-secret", systemUserId);
+            var aCorp = await EnsureCompanyAsync(context, "A Corp", EncryptionHelper.EncryptSecret("a-secret"), systemUserId);
+            var bCorp = await EnsureCompanyAsync(context, "B Corp", EncryptionHelper.EncryptSecret("b-secret"), systemUserId);
+            var cCorp = await EnsureCompanyAsync(context, "C Corp", EncryptionHelper.EncryptSecret("c-secret"), systemUserId);
 
             // 3. Touchpoints
-            var aBilling = await EnsureTouchpointAsync(context, aCorp, "Billing API", "a-billing-secret", TouchpointMode.TargetOnly, systemUserId);
-            var aPublicApi = await EnsureTouchpointAsync(context, aCorp, "Public API", "a-api-secret", TouchpointMode.TargetOnly, systemUserId);
+            var aBilling = await EnsureTouchpointAsync(context, aCorp, "Billing API", EncryptionHelper.EncryptSecret("a-billing-secret"), TouchpointMode.TargetOnly, systemUserId);
+            var aPublicApi = await EnsureTouchpointAsync(context, aCorp, "Public API", EncryptionHelper.EncryptSecret("a-api-secret"), TouchpointMode.TargetOnly, systemUserId);
 
-            var bGateway = await EnsureTouchpointAsync(context, bCorp, "Gateway", "b-gateway-secret", TouchpointMode.CallerOnly, systemUserId);
-            var bReport = await EnsureTouchpointAsync(context, bCorp, "Report Bot", "b-report-secret", TouchpointMode.Both, systemUserId);
+            var bGateway = await EnsureTouchpointAsync(context, bCorp, "Gateway", EncryptionHelper.EncryptSecret("b-gateway-secret"), TouchpointMode.CallerOnly, systemUserId);
+            var bReport = await EnsureTouchpointAsync(context, bCorp, "Report Bot", EncryptionHelper.EncryptSecret("b-report-secret"), TouchpointMode.Both, systemUserId);
 
-            var cWorker = await EnsureTouchpointAsync(context, cCorp, "Worker Node", "c-worker-secret", TouchpointMode.CallerOnly, systemUserId);
-            var cBot = await EnsureTouchpointAsync(context, cCorp, "Bot Commander", "c-bot-secret", TouchpointMode.Both, systemUserId);
+            var cWorker = await EnsureTouchpointAsync(context, cCorp, "Worker Node", EncryptionHelper.EncryptSecret("c-worker-secret"), TouchpointMode.CallerOnly, systemUserId);
+            var cBot = await EnsureTouchpointAsync(context, cCorp, "Bot Commander", EncryptionHelper.EncryptSecret("c-bot-secret"), TouchpointMode.Both, systemUserId);
 
             // 4. Access policy
             await EnsurePolicyAsync(context, bGateway, aBilling, "POST /subscribe", AccessContext.Http, systemUserId);
