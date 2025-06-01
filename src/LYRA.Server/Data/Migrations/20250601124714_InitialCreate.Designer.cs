@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LYRA.Server.Data.Migrations
 {
     [DbContext(typeof(LyraDbContext))]
-    [Migration("20250530041453_InitialCreate")]
+    [Migration("20250601124714_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

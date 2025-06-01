@@ -1,4 +1,5 @@
-﻿using LYRA.Server.Models.AccessPolicy;
+﻿using LYRA.Server.Enums;
+using LYRA.Server.Models.AccessPolicy;
 using LYRA.Server.Models.Pagination;
 
 namespace LYRA.Server.Services.Interfaces
@@ -46,5 +47,10 @@ namespace LYRA.Server.Services.Interfaces
         /// </summary>
         /// <returns>The total count of policies.</returns>
         Task<int> GetTotalPolicyCountAsync();
+
+        /// <summary>
+        /// Determines if the caller is allowed to access the target for a given operation and context.
+        /// </summary>
+        Task<bool> IsAuthorizedAsync(string caller, string target, AccessContext context, string operation);
     }
 }

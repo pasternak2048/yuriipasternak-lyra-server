@@ -1,5 +1,6 @@
 ﻿using LYRA.Server.Data;
 using LYRA.Server.Entities;
+using LYRA.Server.Enums;
 using LYRA.Server.Models.AccessPolicy;
 using LYRA.Server.Models.Pagination;
 using LYRA.Server.Services.Interfaces;
@@ -254,6 +255,17 @@ namespace LYRA.Server.Services
                 _logger.LogError(ex, "Failed to delete access policy '{Id}'", id);
                 throw;
             }
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> IsAuthorizedAsync(string caller, string target, AccessContext context, string operation)
+        {
+            return await _context.AccessPolicies.AnyAsync(p =>
+                p.CallerSystemName == caller &&
+                p.TargetSystemName == target &&
+                p.Context == context &&
+                p.Operation == operation &&
+                p.IsEnabled);
         }
 
         /// <summary>
