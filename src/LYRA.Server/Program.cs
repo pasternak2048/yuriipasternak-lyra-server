@@ -6,6 +6,7 @@ using LYRA.Server.Services.Interfaces;
 using LYRA.Server.Services.SecurityVerification;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 /// <summary>
 /// Entry point for the LYRA.Server application.
@@ -44,6 +45,7 @@ builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<ITrustedTouchpointService, TrustedTouchpointService>();
 builder.Services.AddScoped<IAccessPolicyService, AccessPolicyService>();
 builder.Services.AddScoped<ISecretProvider, SecretProvider>();
+builder.Services.AddScoped<IVerifyService, VerifyService>();
 
 /// <summary>
 /// Register signature string builders per access context and the factory to resolve them.
@@ -51,6 +53,15 @@ builder.Services.AddScoped<ISecretProvider, SecretProvider>();
 builder.Services.AddTransient<ISignatureStringBuilder, HttpSignatureStringBuilder>();
 builder.Services.AddTransient<ISignatureStringBuilder, CacheSignatureStringBuilder>();
 builder.Services.AddSingleton<SignatureStringBuilderFactory>();
+
+/// <summary>
+/// Add Web API support for attribute-based controllers (e.g., VerificationController).
+/// </summary>
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    }); ;
 
 /// <summary>
 /// Add Razor Pages framework.
@@ -119,5 +130,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorPages();
+
+/// <summary>
+/// Maps API controllers to their routes (e.g., /api/verification).
+/// </summary>
+app.MapControllers();
 
 app.Run();

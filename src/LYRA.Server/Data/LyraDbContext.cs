@@ -155,7 +155,11 @@ namespace LYRA.Server.Data
                 // Operation string max length 200
                 entity.Property(p => p.Operation)
                       .IsRequired()
-                      .HasMaxLength(200);
+                      .HasMaxLength(200)
+                      .HasConversion(
+                          v => v.ToLowerInvariant(),
+                          v => v
+                      );
 
                 // Store Context enum as string
                 entity.Property(p => p.Context)
