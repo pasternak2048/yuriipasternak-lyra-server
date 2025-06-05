@@ -15,12 +15,12 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 /// <summary>
-/// Configure the database context with an auditing interceptor and SQLite as the underlying provider.
+/// Configure the database context with an auditing interceptor and PostgreSQL as the underlying provider.
 /// </summary>
 builder.Services.AddDbContext<LyraDbContext>((provider, options) =>
 {
     var interceptor = provider.GetRequiredService<AuditableEntitySaveChangesInterceptor>();
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
            .AddInterceptors(interceptor);
 });
 
