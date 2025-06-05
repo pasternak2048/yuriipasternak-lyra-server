@@ -32,32 +32,19 @@ namespace LYRA.Server.Services
         public async Task<PaginatedResult<AccessPolicyDto>> GetPagedAsync(AccessPolicyFilters filters)
         {
             // Builds a query to filter and paginate access policies
-            var query = _context.AccessPolicies
-                .Include(p => p.Caller)
-                .Include(p => p.Target)
-                .AsQueryable();
+            var query = _context.AccessPolicies.AsNoTracking().AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(filters.CallerSystemName))
-            {
-                query = query.Where(p =>
-                    p.CallerSystemName.Contains(filters.CallerSystemName));
-            }
+                query = query.Where(p => EF.Functions.ILike(p.CallerSystemName, $"%{filters.CallerSystemName}%"));
 
             if (!string.IsNullOrWhiteSpace(filters.TargetSystemName))
-            {
-                query = query.Where(p =>
-                    p.TargetSystemName.Contains(filters.TargetSystemName));
-            }
+                query = query.Where(p => EF.Functions.ILike(p.TargetSystemName, $"%{filters.TargetSystemName}%"));
 
             if (!string.IsNullOrWhiteSpace(filters.Operation))
-            {
-                query = query.Where(p => p.Operation.Contains(filters.Operation));
-            }
+                query = query.Where(p => EF.Functions.ILike(p.Operation, $"%{filters.Operation}%"));
 
             if (filters.Context.HasValue)
-            {
                 query = query.Where(p => p.Context == filters.Context.Value);
-            }
 
             var totalItems = await query.CountAsync();
 
@@ -93,8 +80,7 @@ namespace LYRA.Server.Services
         public async Task<AccessPolicyDto?> GetByIdAsync(Guid id)
         {
             var policy = await _context.AccessPolicies
-                .Include(p => p.Caller)
-                .Include(p => p.Target)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             return policy == null ? null : MapToDto(policy);
@@ -106,14 +92,14 @@ namespace LYRA.Server.Services
             try
             {
                 var caller = request.CallerId.HasValue
-                    ? await _context.TrustedTouchpoints.FirstOrDefaultAsync(t => t.Id == request.CallerId && !t.IsDeleted)
+                    ? await _context.TrustedTouchpoints.AsNoTracking().FirstOrDefaultAsync(t => t.Id == request.CallerId && !t.IsDeleted)
                     : await GetTouchpointByNameAsync(request.CallerSystemName!);
 
                 if (caller == null)
                     throw new InvalidOperationException("Caller touchpoint not found.");
 
                 var target = request.TargetId.HasValue
-                    ? await _context.TrustedTouchpoints.FirstOrDefaultAsync(t => t.Id == request.TargetId && !t.IsDeleted)
+                    ? await _context.TrustedTouchpoints.AsNoTracking().FirstOrDefaultAsync(t => t.Id == request.TargetId && !t.IsDeleted)
                     : await GetTouchpointByNameAsync(request.TargetSystemName!);
 
                 if (target == null)
@@ -161,52 +147,12 @@ namespace LYRA.Server.Services
         {
             try
             {
-                var entity = await _context.AccessPolicies
-                    .FirstOrDefaultAsync(p => p.Id == request.Id);
-
-                if (entity is null)
+                var entity = await _context.AccessPolicies.FirstOrDefaultAsync(p => p.Id == request.Id);
+                if (entity == null)
                     throw new KeyNotFoundException($"Policy with ID '{request.Id}' not found.");
 
-                TrustedTouchpointEntity? caller = null;
-                TrustedTouchpointEntity? target = null;
-
-                if (!string.IsNullOrWhiteSpace(request.CallerSystemName))
-                {
-                    caller = await _context.TrustedTouchpoints
-                        .FirstOrDefaultAsync(t => t.SystemName == request.CallerSystemName && !t.IsDeleted);
-                    if (caller == null)
-                        throw new InvalidOperationException($"Caller touchpoint '{request.CallerSystemName}' not found.");
-                }
-                else if (request.CallerId.HasValue)
-                {
-                    caller = await _context.TrustedTouchpoints
-                        .FirstOrDefaultAsync(t => t.Id == request.CallerId.Value && !t.IsDeleted);
-                    if (caller == null)
-                        throw new InvalidOperationException($"Caller touchpoint with ID '{request.CallerId}' not found.");
-                }
-                else
-                {
-                    throw new ArgumentException("CallerSystemName or CallerId must be provided.");
-                }
-
-                if (!string.IsNullOrWhiteSpace(request.TargetSystemName))
-                {
-                    target = await _context.TrustedTouchpoints
-                        .FirstOrDefaultAsync(t => t.SystemName == request.TargetSystemName && !t.IsDeleted);
-                    if (target == null)
-                        throw new InvalidOperationException($"Target touchpoint '{request.TargetSystemName}' not found.");
-                }
-                else if (request.TargetId.HasValue)
-                {
-                    target = await _context.TrustedTouchpoints
-                        .FirstOrDefaultAsync(t => t.Id == request.TargetId.Value && !t.IsDeleted);
-                    if (target == null)
-                        throw new InvalidOperationException($"Target touchpoint with ID '{request.TargetId}' not found.");
-                }
-                else
-                {
-                    throw new ArgumentException("TargetSystemName or TargetId must be provided.");
-                }
+                var caller = await ResolveTouchpointAsync(request.CallerId, request.CallerSystemName, "Caller");
+                var target = await ResolveTouchpointAsync(request.TargetId, request.TargetSystemName, "Target");
 
                 var exists = await _context.AccessPolicies.AnyAsync(p =>
                     p.Id != request.Id &&
@@ -242,8 +188,7 @@ namespace LYRA.Server.Services
             try
             {
                 var policy = await _context.AccessPolicies.FindAsync(id);
-                if (policy == null)
-                    return;
+                if (policy == null) return;
 
                 _context.AccessPolicies.Remove(policy);
                 await _context.SaveChangesAsync();
@@ -260,13 +205,35 @@ namespace LYRA.Server.Services
         /// <inheritdoc />
         public async Task<bool> IsAuthorizedAsync(string caller, string target, AccessContext context, string operation)
         {
-            return await _context.AccessPolicies.AnyAsync(p =>
+            return await _context.AccessPolicies.AsNoTracking().AnyAsync(p =>
                 p.CallerSystemName == caller &&
                 p.TargetSystemName == target &&
                 p.Context == context &&
                 p.Operation == operation &&
                 p.IsEnabled);
         }
+
+        /// <inheritdoc />
+        public async Task<int> GetTotalPolicyCountAsync()
+        {
+            return await _context.AccessPolicies.AsNoTracking().CountAsync();
+        }
+
+        /// <summary>
+        /// Maps an access policy entity to its corresponding DTO.
+        /// </summary>
+        /// <param name="p">The policy entity.</param>
+        /// <returns>The mapped DTO.</returns>
+        private static AccessPolicyDto MapToDto(AccessPolicyEntity p) => new()
+        {
+            Id = p.Id,
+            CallerSystemName = p.CallerSystemName,
+            TargetSystemName = p.TargetSystemName,
+            Operation = p.Operation,
+            Context = p.Context,
+            IsEnabled = p.IsEnabled,
+            CreatedAt = p.CreatedAt
+        };
 
         /// <summary>
         /// Retrieves a touchpoint by its system name or throws if not found.
@@ -277,34 +244,36 @@ namespace LYRA.Server.Services
         private async Task<TrustedTouchpointEntity> GetTouchpointByNameAsync(string systemName)
         {
             var entity = await _context.TrustedTouchpoints
+                .AsNoTracking()
                 .FirstOrDefaultAsync(t => t.SystemName == systemName && !t.IsDeleted);
 
             return entity ?? throw new InvalidOperationException($"Touchpoint '{systemName}' not found.");
         }
 
-        /// <inheritdoc />
-        public async Task<int> GetTotalPolicyCountAsync()
-        {
-            return await _context.AccessPolicies.CountAsync();
-        }
-
         /// <summary>
-        /// Maps an access policy entity to its corresponding DTO.
+        /// Resolves a touchpoint by ID or system name.
         /// </summary>
-        /// <param name="p">The policy entity.</param>
-        /// <returns>The mapped DTO.</returns>
-        private static AccessPolicyDto MapToDto(AccessPolicyEntity p)
+        /// <param name="id">Touchpoint ID.</param>
+        /// <param name="systemName">System name of the touchpoint.</param>
+        /// <param name="label">Used in exception message context.</param>
+        /// <returns>The resolved touchpoint entity.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if touchpoint not found.</exception>
+        private async Task<TrustedTouchpointEntity> ResolveTouchpointAsync(Guid? id, string? systemName, string label)
         {
-            return new AccessPolicyDto
+            TrustedTouchpointEntity? entity = null;
+
+            if (!string.IsNullOrWhiteSpace(systemName))
             {
-                Id = p.Id,
-                CallerSystemName = p.CallerSystemName,
-                TargetSystemName = p.TargetSystemName,
-                Operation = p.Operation,
-                Context = p.Context,
-                IsEnabled = p.IsEnabled,
-                CreatedAt = p.CreatedAt
-            };
+                entity = await _context.TrustedTouchpoints
+                    .FirstOrDefaultAsync(t => t.SystemName == systemName && !t.IsDeleted);
+            }
+            else if (id.HasValue)
+            {
+                entity = await _context.TrustedTouchpoints
+                    .FirstOrDefaultAsync(t => t.Id == id.Value && !t.IsDeleted);
+            }
+
+            return entity ?? throw new InvalidOperationException($"{label} touchpoint not found.");
         }
     }
 }
