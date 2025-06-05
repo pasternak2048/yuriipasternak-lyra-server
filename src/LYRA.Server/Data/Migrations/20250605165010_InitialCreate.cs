@@ -249,12 +249,6 @@ namespace LYRA.Server.Data.Migrations
                 column: "CallerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AccessPolicies_CallerSystemName_TargetSystemName_Context_Op~",
-                table: "AccessPolicies",
-                columns: new[] { "CallerSystemName", "TargetSystemName", "Context", "Operation" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_AccessPolicies_TargetId",
                 table: "AccessPolicies",
                 column: "TargetId");
@@ -297,21 +291,9 @@ namespace LYRA.Server.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Companies_SystemName",
-                table: "Companies",
-                column: "SystemName",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_TrustedTouchpoints_CompanyId",
                 table: "TrustedTouchpoints",
                 column: "CompanyId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TrustedTouchpoints_SystemName",
-                table: "TrustedTouchpoints",
-                column: "SystemName",
-                unique: true);
         }
 
         /// <inheritdoc />

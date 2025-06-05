@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LYRA.Server.Data.Migrations
 {
     [DbContext(typeof(LyraDbContext))]
-    [Migration("20250605151117_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250605165016_SoftDeleteFilteredIndexes")]
+    partial class SoftDeleteFilteredIndexes
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -83,9 +83,6 @@ namespace LYRA.Server.Data.Migrations
 
                     b.HasIndex("TargetId");
 
-                    b.HasIndex("CallerSystemName", "TargetSystemName", "Context", "Operation")
-                        .IsUnique();
-
                     b.ToTable("AccessPolicies");
                 });
 
@@ -133,9 +130,6 @@ namespace LYRA.Server.Data.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("SystemName")
-                        .IsUnique();
 
                     b.ToTable("Companies");
                 });
@@ -272,9 +266,6 @@ namespace LYRA.Server.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
-
-                    b.HasIndex("SystemName")
-                        .IsUnique();
 
                     b.ToTable("TrustedTouchpoints");
                 });

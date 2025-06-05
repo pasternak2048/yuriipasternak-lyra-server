@@ -1,4 +1,5 @@
 ﻿using LYRA.Server.Entities;
+using LYRA.Server.Models.TrustedTouchpoint;
 
 namespace LYRA.Server.Services.Interfaces
 {
@@ -12,8 +13,8 @@ namespace LYRA.Server.Services.Interfaces
         /// </summary>
         /// <param name="systemName">The unique system name of the trusted touchpoint.</param>
         /// <returns>
-        /// The corresponding <see cref="TrustedTouchpointEntity"/> if found; otherwise, null.
+        /// The corresponding <see cref="TrustedTouchpointInfo"/> if found; otherwise, null.
         /// </returns>
-        Task<TrustedTouchpointEntity?> GetTouchpointAsync(string systemName);
+        Task<TrustedTouchpointInfo?> GetTouchpointAsync(string normalized);
     }
 }

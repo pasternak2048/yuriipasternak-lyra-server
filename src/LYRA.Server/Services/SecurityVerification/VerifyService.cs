@@ -1,12 +1,13 @@
-﻿using LYRA.Server.Models.Verify;
+﻿using LYRA.Server.Models.TrustedTouchpoint;
+using LYRA.Server.Models.Verify;
 using LYRA.Server.Services.Interfaces;
 using LYRA.Server.Utilities.Security;
 
 namespace LYRA.Server.Services.SecurityVerification
 {
     /// <summary>
-    /// Verifies incoming signed requests by validating the digital signature using a trusted secret.
-    /// This service ensures that both caller and target touchpoints are valid, active, and belong to active companies.
+    /// Service responsible for verifying signed requests by validating the digital signature
+    /// and confirming authorization between trusted touchpoints.
     /// </summary>
     public class VerifyService : IVerifyService
     {
@@ -30,6 +31,10 @@ namespace LYRA.Server.Services.SecurityVerification
             _accessPolicyService = accessPolicyService;
         }
 
+        /// <summary>
+        /// Performs the full verification flow for a signed request:
+        /// string-to-sign generation, touchpoint validation, policy check, and signature match.
+        /// </summary>
         public async Task<VerifyResponse> Verify(VerifyRequest request)
         {
             try
@@ -37,109 +42,92 @@ namespace LYRA.Server.Services.SecurityVerification
                 var builder = _factory.GetBuilder(request.Context);
                 var stringToSign = builder.BuildStringToSign(request);
 
+                // Retrieve lightweight info from provider
                 var caller = await _secretProvider.GetTouchpointAsync(request.Caller);
                 var target = await _secretProvider.GetTouchpointAsync(request.Target);
 
+                // Validate caller and target
                 var callerValidation = ValidateTouchpoint(caller, request.Caller, "caller");
                 if (callerValidation != null) return callerValidation;
 
                 var targetValidation = ValidateTouchpoint(target, request.Target, "target");
                 if (targetValidation != null) return targetValidation;
 
-                // Check if caller is authorized to access target with this context and operation
-                var isAllowed = await _accessPolicyService.IsAuthorizedAsync(
-                    request.Caller,
-                    request.Target,
-                    request.Context,
-                    $"{request.Method} {request.Path}".ToLower()
-                );
+                // Verify access policy
+                var operationKey = $"{request.Method} {request.Path}".ToLowerInvariant();
+                var authorized = await _accessPolicyService.IsAuthorizedAsync(
+                    request.Caller, request.Target, request.Context, operationKey);
 
-                if (!isAllowed)
+                if (!authorized)
                 {
-                    return new VerifyResponse
-                    {
-                        IsSuccess = false,
-                        ErrorMessage = $"Access denied for '{request.Caller}' to '{request.Target}' ({request.Context})."
-                    };
+                    return Failure($"Access denied for '{request.Caller}' to '{request.Target}' ({request.Context}).");
                 }
 
+                // Determine source of secret
                 var encryptedSecret = caller!.UseCompanySecret
-                    ? caller.Company?.Secret
+                    ? caller.CompanySecret
                     : caller.Secret;
 
                 if (string.IsNullOrWhiteSpace(encryptedSecret))
                 {
                     var source = caller.UseCompanySecret ? "company" : "touchpoint";
-                    return new VerifyResponse
-                    {
-                        IsSuccess = false,
-                        ErrorMessage = $"Secret not found for caller '{request.Caller}' (source: {source})."
-                    };
+                    return Failure($"Secret not found for caller '{request.Caller}' (source: {source}).");
                 }
 
                 var secret = EncryptionHelper.DecryptSecret(encryptedSecret);
                 var expectedSignature = EncryptionHelper.ComputeHmacSha512(stringToSign, secret);
                 var isValid = EncryptionHelper.SecureEquals(expectedSignature, request.Signature);
 
-                _logger.LogInformation("Verification for caller '{Caller}' and target '{Target}' completed: {Result}",
+                _logger.LogInformation("Verification result for {Caller} → {Target}: {Result}",
                     request.Caller, request.Target, isValid ? "SUCCESS" : "FAILURE");
 
-                return new VerifyResponse
-                {
-                    IsSuccess = isValid,
-                    ErrorMessage = isValid ? null : "Invalid signature."
-                };
+                return isValid ? VerifyResponse.Success : Failure("Invalid signature.");
             }
             catch (NotSupportedException ex)
             {
                 _logger.LogWarning(ex, "Unsupported AccessContext '{Context}'", request.Context);
-                return new VerifyResponse
-                {
-                    IsSuccess = false,
-                    ErrorMessage = $"Unsupported access context: {request.Context}"
-                };
+                return Failure($"Unsupported access context: {request.Context}");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected verification failure");
-                return new VerifyResponse
-                {
-                    IsSuccess = false,
-                    ErrorMessage = $"Verification failed: {ex.Message}"
-                };
+                return Failure($"Verification failed: {ex.Message}");
             }
         }
 
-        private static VerifyResponse? ValidateTouchpoint(Entities.TrustedTouchpointEntity? tp, string systemName, string role)
+        /// <summary>
+        /// Validates a simplified touchpoint info object and its company status.
+        /// </summary>
+        private static VerifyResponse? ValidateTouchpoint(TrustedTouchpointInfo? tp, string systemName, string role)
         {
-            if (tp == null)
-                return new VerifyResponse
-                {
-                    IsSuccess = false,
-                    ErrorMessage = $"{role.Capitalize()} '{systemName}' not found."
-                };
+            if (tp is null)
+                return Failure($"{role.Capitalize()} '{systemName}' not found.");
 
             if (!tp.IsActive)
-                return new VerifyResponse
-                {
-                    IsSuccess = false,
-                    ErrorMessage = $"{role.Capitalize()} '{systemName}' is inactive."
-                };
+                return Failure($"{role.Capitalize()} '{systemName}' is inactive.");
 
-            if (tp.Company == null || !tp.Company.IsActive)
-                return new VerifyResponse
-                {
-                    IsSuccess = false,
-                    ErrorMessage = $"Company of {role} '{systemName}' is inactive or missing."
-                };
+            if (!tp.IsCompanyActive)
+                return Failure($"Company of {role} '{systemName}' is inactive.");
 
             return null;
         }
+
+        /// <summary>
+        /// Creates a failed response with the provided error message.
+        /// </summary>
+        private static VerifyResponse Failure(string message) => new()
+        {
+            IsSuccess = false,
+            ErrorMessage = message
+        };
     }
 
+    /// <summary>
+    /// String extension for capitalizing the first character.
+    /// </summary>
     internal static class StringExtensions
     {
         public static string Capitalize(this string value) =>
-            string.IsNullOrWhiteSpace(value) ? value : char.ToUpper(value[0]) + value[1..];
+            string.IsNullOrWhiteSpace(value) ? value : char.ToUpperInvariant(value[0]) + value[1..];
     }
 }
