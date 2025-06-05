@@ -9,7 +9,7 @@ services:
     ports:
         - "5432:5432"
     volumes:
-      - lyra.db.data:/data/db
+      - lyra.db.data:/var/lib/postgresql/data
 
   lyra.server:
     environment:
