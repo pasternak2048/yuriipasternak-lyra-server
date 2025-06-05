@@ -1,5 +1,6 @@
 ﻿using LYRA.Server.Data;
 using LYRA.Server.Entities;
+using LYRA.Server.Models.TrustedTouchpoint;
 using LYRA.Server.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,21 +28,30 @@ namespace LYRA.Server.Services.SecurityVerification
         /// </summary>
         /// <param name="systemName">The unique system name of the touchpoint.</param>
         /// <returns>
-        /// The corresponding <see cref="TrustedTouchpointEntity"/> if found and valid; otherwise, null.
+        /// The corresponding <see cref="TrustedTouchpointInfo"/> if found and valid; otherwise, null.
         /// </returns>
-        public async Task<TrustedTouchpointEntity?> GetTouchpointAsync(string systemName)
+        public async Task<TrustedTouchpointInfo?> GetTouchpointAsync(string normalized)
         {
-            if (string.IsNullOrWhiteSpace(systemName))
-                return null;
-
             return await _context.TrustedTouchpoints
-                .Include(t => t.Company)
-                .FirstOrDefaultAsync(t =>
-                    t.SystemName == systemName &&
+                .AsNoTracking()
+                .Where(t =>
+                    t.SystemName == normalized &&
                     !t.IsDeleted &&
                     t.IsActive &&
                     t.Company != null &&
-                    t.Company.IsActive);
+                    t.Company.IsActive)
+                .Select(t => new TrustedTouchpointInfo
+                {
+                    Id = t.Id,
+                    SystemName = t.SystemName,
+                    Secret = t.Secret,
+                    UseCompanySecret = t.UseCompanySecret,
+                    IsActive = t.IsActive,
+                    CompanyName = t.Company!.SystemName,
+                    CompanySecret = t.Company.Secret,
+                    IsCompanyActive = t.Company.IsActive
+                })
+                .FirstOrDefaultAsync();
         }
     }
 }

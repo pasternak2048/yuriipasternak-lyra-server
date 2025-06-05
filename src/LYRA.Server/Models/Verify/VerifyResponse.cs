@@ -19,5 +19,14 @@
         /// HTTP-like status code: 200 if successful, 403 if verification failed.
         /// </summary>
         public int StatusCode => IsSuccess ? 200 : 403;
+
+        /// <summary>
+        /// Predefined success response to avoid allocation.
+        /// </summary>
+        public static readonly VerifyResponse Success = new()
+        {
+            IsSuccess = true,
+            ErrorMessage = null
+        };
     }
 }

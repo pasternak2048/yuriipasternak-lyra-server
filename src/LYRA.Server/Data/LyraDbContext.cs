@@ -41,8 +41,7 @@ namespace LYRA.Server.Data
             modelBuilder.Entity<CompanyEntity>(entity =>
             {
                 // Unique index on system name for active companies only (soft delete filter, PostgreSQL syntax)
-                entity.HasIndex(c => c.SystemName)
-                      .IsUnique();
+                // Index created via raw SQL in migration (filtered by IsDeleted & IsActive)
 
                 // Normalize system name to lowercase, store as varchar(100)
                 entity.Property(c => c.SystemName)
@@ -79,8 +78,7 @@ namespace LYRA.Server.Data
             modelBuilder.Entity<TrustedTouchpointEntity>(entity =>
             {
                 // Unique index on system name for active touchpoints only (soft delete filter, PostgreSQL syntax)
-                entity.HasIndex(t => t.SystemName)
-                      .IsUnique();
+                // Index created via raw SQL in migration (filtered by IsDeleted & IsActive)
 
                 // Normalize system name to lowercase, store as varchar(100)
                 entity.Property(t => t.SystemName)
@@ -129,13 +127,7 @@ namespace LYRA.Server.Data
             modelBuilder.Entity<AccessPolicyEntity>(entity =>
             {
                 // Composite unique index on caller/target system names, context, and operation
-                entity.HasIndex(p => new
-                {
-                    p.CallerSystemName,
-                    p.TargetSystemName,
-                    p.Context,
-                    p.Operation
-                }).IsUnique();
+                // Index created via raw SQL in migration (filtered by IsDeleted & IsActive)
 
                 // Configure properties for caller and target system names
                 entity.Property(p => p.CallerSystemName)

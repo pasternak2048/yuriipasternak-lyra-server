@@ -80,9 +80,6 @@ namespace LYRA.Server.Data.Migrations
 
                     b.HasIndex("TargetId");
 
-                    b.HasIndex("CallerSystemName", "TargetSystemName", "Context", "Operation")
-                        .IsUnique();
-
                     b.ToTable("AccessPolicies");
                 });
 
@@ -130,9 +127,6 @@ namespace LYRA.Server.Data.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("SystemName")
-                        .IsUnique();
 
                     b.ToTable("Companies");
                 });
@@ -269,9 +263,6 @@ namespace LYRA.Server.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
-
-                    b.HasIndex("SystemName")
-                        .IsUnique();
 
                     b.ToTable("TrustedTouchpoints");
                 });
