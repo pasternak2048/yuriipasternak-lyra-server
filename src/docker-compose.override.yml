@@ -1,0 +1,29 @@
+services:
+  lyra.db:
+    container_name: lyra.db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=LYRA_Db
+    restart: always
+    ports:
+        - "5432:5432"
+    volumes:
+      - lyra.db.data:/data/db
+
+  lyra.server:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ConnectionStrings__DefaultConnection=Host=lyra.db;Port=5432;Database=LYRA_Db;Username=postgres;Password=postgres
+    depends_on:
+      - lyra.db
+    ports:
+      - "6020:8080"
+      - "6021:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro

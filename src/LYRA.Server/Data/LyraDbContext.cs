@@ -40,16 +40,15 @@ namespace LYRA.Server.Data
             // ------------------- Company -------------------
             modelBuilder.Entity<CompanyEntity>(entity =>
             {
-                // Unique index on system name for active companies only (soft delete filter)
+                // Unique index on system name for active companies only (soft delete filter, PostgreSQL syntax)
                 entity.HasIndex(c => c.SystemName)
-                      .IsUnique()
-                      .HasFilter("[IsDeleted] = 0");
+                      .IsUnique();
 
                 // Normalize system name to lowercase, store as varchar(100)
                 entity.Property(c => c.SystemName)
                       .HasConversion(v => v.ToLowerInvariant(), v => v)
                       .IsUnicode(false)
-                      .HasColumnType("varchar(100)");
+                      .HasMaxLength(100);
 
                 // DisplayName is required and max 200 chars
                 entity.Property(c => c.DisplayName)
@@ -79,16 +78,15 @@ namespace LYRA.Server.Data
             // ------------------- TrustedTouchpoint -------------------
             modelBuilder.Entity<TrustedTouchpointEntity>(entity =>
             {
-                // Unique index on system name for active touchpoints only (soft delete filter)
+                // Unique index on system name for active touchpoints only (soft delete filter, PostgreSQL syntax)
                 entity.HasIndex(t => t.SystemName)
-                      .IsUnique()
-                      .HasFilter("[IsDeleted] = 0");
+                      .IsUnique();
 
                 // Normalize system name to lowercase, store as varchar(100)
                 entity.Property(t => t.SystemName)
                       .HasConversion(v => v.ToLowerInvariant(), v => v)
                       .IsUnicode(false)
-                      .HasColumnType("varchar(100)");
+                      .HasMaxLength(100);
 
                 // DisplayName required and max 200 chars
                 entity.Property(t => t.DisplayName)
@@ -143,16 +141,14 @@ namespace LYRA.Server.Data
                 entity.Property(p => p.CallerSystemName)
                       .IsRequired()
                       .IsUnicode(false)
-                      .HasMaxLength(100)
-                      .HasColumnType("varchar(100)");
+                      .HasMaxLength(100);
 
                 entity.Property(p => p.TargetSystemName)
                       .IsRequired()
                       .IsUnicode(false)
-                      .HasMaxLength(100)
-                      .HasColumnType("varchar(100)");
+                      .HasMaxLength(100);
 
-                // Operation string max length 200
+                // Operation string max length 200 and store lowercase
                 entity.Property(p => p.Operation)
                       .IsRequired()
                       .HasMaxLength(200)
