@@ -1,7 +1,8 @@
-﻿using LYRA.Server.Models.TrustedTouchpoint;
-using LYRA.Server.Models.Verify;
+﻿using LYRA.Security.Models.Verify;
+using LYRA.Security.Signature;
+using LYRA.Security.Utilities.Security;
+using LYRA.Server.Models.TrustedTouchpoint;
 using LYRA.Server.Services.Interfaces;
-using LYRA.Server.Utilities.Security;
 
 namespace LYRA.Server.Services.SecurityVerification
 {

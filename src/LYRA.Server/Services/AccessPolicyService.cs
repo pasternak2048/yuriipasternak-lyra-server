@@ -1,6 +1,6 @@
-﻿using LYRA.Server.Data;
+﻿using LYRA.Security.Enums;
+using LYRA.Server.Data;
 using LYRA.Server.Entities;
-using LYRA.Server.Enums;
 using LYRA.Server.Models.AccessPolicy;
 using LYRA.Server.Models.Pagination;
 using LYRA.Server.Services.Interfaces;

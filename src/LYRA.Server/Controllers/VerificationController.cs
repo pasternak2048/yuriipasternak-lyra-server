@@ -1,4 +1,4 @@
-﻿using LYRA.Server.Models.Verify;
+﻿using LYRA.Security.Models.Verify;
 using LYRA.Server.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
