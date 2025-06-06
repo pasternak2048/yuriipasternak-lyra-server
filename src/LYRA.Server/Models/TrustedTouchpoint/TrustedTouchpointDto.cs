@@ -1,4 +1,4 @@
-﻿using LYRA.Server.Enums;
+﻿using LYRA.Security.Enums;
 
 namespace LYRA.Server.Models.TrustedTouchpoint
 {

@@ -1,9 +1,8 @@
-﻿using LYRA.Server.Entities;
+﻿using LYRA.Security.Enums;
+using LYRA.Security.Utilities;
+using LYRA.Security.Utilities.Security;
+using LYRA.Server.Entities;
 using LYRA.Server.Entities.Identity;
-using LYRA.Server.Enums;
-using LYRA.Server.Services.Interfaces;
-using LYRA.Server.Utilities;
-using LYRA.Server.Utilities.Security;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 

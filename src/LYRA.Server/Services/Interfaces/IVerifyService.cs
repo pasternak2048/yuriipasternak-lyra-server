@@ -1,4 +1,4 @@
-﻿using LYRA.Server.Models.Verify;
+﻿using LYRA.Security.Models.Verify;
 
 namespace LYRA.Server.Services.Interfaces
 {

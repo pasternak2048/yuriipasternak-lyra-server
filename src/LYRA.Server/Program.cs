@@ -1,3 +1,4 @@
+using LYRA.Security.Signature;
 using LYRA.Server.Data;
 using LYRA.Server.Data.Auditing;
 using LYRA.Server.Entities.Identity;

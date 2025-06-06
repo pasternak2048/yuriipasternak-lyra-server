@@ -1,12 +1,12 @@
-﻿using LYRA.Server.Data;
+﻿using LYRA.Security.Enums;
+using LYRA.Security.Utilities;
+using LYRA.Security.Utilities.Security;
+using LYRA.Server.Data;
 using LYRA.Server.Entities;
-using LYRA.Server.Enums;
 using LYRA.Server.Models.Pagination;
 using LYRA.Server.Models.Shared;
 using LYRA.Server.Models.TrustedTouchpoint;
 using LYRA.Server.Services.Interfaces;
-using LYRA.Server.Utilities;
-using LYRA.Server.Utilities.Security;
 using Microsoft.EntityFrameworkCore;
 
 namespace LYRA.Server.Services
