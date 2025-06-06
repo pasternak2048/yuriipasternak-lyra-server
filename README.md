@@ -12,6 +12,7 @@ It introduces the concept of **Trusted Touchpoints** and **Access Policies** to 
 
 - 🧱 **LYRA.Server** — a self-hosted authorization and verification center for backend systems  
 - ⚙️ **LYRA.Client** — a lightweight client for signing outgoing requests (HMAC, RSA, etc.)  
+- 🔐 **LYRA.Security** — shared crypto, signature, and contract foundation used by both client and server  
 - 🛡️ **AccessPolicy** — rules defining which system can talk to which, and under what conditions  
 - 🧼 **Lean Dependencies** — no bloated packages or heavy frameworks. Built on .NET 8, Entity Framework Core, and the official PostgreSQL provider.
 
@@ -39,7 +40,10 @@ It introduces the concept of **Trusted Touchpoints** and **Access Policies** to 
       "target": "billing@acorp",
       "method": "POST",
       "path": "/subscribe",
+      "payload": " ... ",
       "payloadHash": "sha512(...)",
+      "timestamp": "2025-05-31T12:00:00Z",
+      "context": "Http",
       "signature": "base64(...)"
     }
     ```
@@ -94,7 +98,8 @@ new AccessPolicyEntity
 - ✅ Frontend for managing companies, touchpoints, and policies  
 - ✅ All names auto-slugified from Display Names  
 - ✅ Fully **zero-dependency**: no external packages, no third-party crypto libs, no validation frameworks  
-- ✅ Powered by .NET 8 and officially supported libraries (EF Core, PostgreSQL)
+- ✅ Powered by .NET 8 and officially supported libraries (EF Core, PostgreSQL)  
+- ✅ Modular architecture: LYRA.Server uses LYRA.Security for core crypto/signature logic
 
 ---
 
@@ -103,6 +108,7 @@ new AccessPolicyEntity
 - ASP.NET Core 8 + Razor Pages + EF Core  
 - PostgreSQL (via `Npgsql.EntityFrameworkCore.PostgreSQL`)  
 - HMAC / RSA verification (System.Security.Cryptography)  
+- LYRA.Security library (shared signature + crypto logic)  
 - Docker / local deploy-ready  
 - Designed to integrate with **API Gateways** or microservice boundaries  
 - Built with **no third-party dependencies**
