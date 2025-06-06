@@ -63,6 +63,22 @@ namespace LYRA.Server.Services.SecurityVerification
                     return Failure($"Access denied for '{request.Caller}' to '{request.Target}' ({request.Context}).");
                 }
 
+                // Verify payload hash
+                var metadata = SignatureContextRegistry.GetMetadata(request.Context);
+
+                if (metadata.RequiresPayloadHash(request))
+                {
+                    if (string.IsNullOrWhiteSpace(request.Payload))
+                        return Failure("Payload is required for this context and method.");
+
+                    if (string.IsNullOrWhiteSpace(request.PayloadHash))
+                        return Failure("PayloadHash is required for this context and method.");
+
+                    var computed = EncryptionHelper.ComputeSha512(request.Payload);
+                    if (!EncryptionHelper.SecureEquals(computed, request.PayloadHash))
+                        return Failure("PayloadHash does not match payload.");
+                }
+
                 // Determine source of secret
                 var encryptedSecret = caller!.UseCompanySecret
                     ? caller.CompanySecret

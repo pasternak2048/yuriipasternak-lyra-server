@@ -75,6 +75,20 @@ namespace LYRA.Server.Utilities.Security
         }
 
         /// <summary>
+        /// Computes a SHA-512 hash of the provided input string.
+        /// This method is typically used to hash request payloads for signature validation.
+        /// </summary>
+        /// <param name="input">The raw input string to hash (e.g., JSON payload).</param>
+        /// <returns>Base64 encoded SHA-512 hash of the input.</returns>
+        public static string ComputeSha512(string input)
+        {
+            using var sha = SHA512.Create();
+            var bytes = Encoding.UTF8.GetBytes(input);
+            var hash = sha.ComputeHash(bytes);
+            return Convert.ToBase64String(hash);
+        }
+
+        /// <summary>
         /// Performs a time-constant comparison between two strings to prevent timing attacks.
         /// </summary>
         /// <param name="a">First string to compare.</param>

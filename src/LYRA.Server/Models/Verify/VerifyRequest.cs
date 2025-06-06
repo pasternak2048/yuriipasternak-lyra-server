@@ -37,7 +37,14 @@ namespace LYRA.Server.Models.Verify
         public string Path { get; set; } = null!;
 
         /// <summary>
+        /// Raw payload data (e.g., JSON body or serialized content).
+        /// Required to recompute and verify the PayloadHash.
+        /// </summary>
+        public string? Payload { get; set; }
+
+        /// <summary>
         /// Base64-encoded hash of the request payload.
+        /// Used for integrity verification.
         /// </summary>
         [Required]
         [MaxLength(512)]
