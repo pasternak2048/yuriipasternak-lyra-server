@@ -10,3 +10,7 @@ services:
 
 volumes:
   lyra.db.data:
+  
+networks:
+  gloria-net:
+    external: true

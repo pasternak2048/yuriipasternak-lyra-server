@@ -6,6 +6,8 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=LYRA_Db
     restart: always
+    networks:
+      - gloria-net
     ports:
         - "5432:5432"
     volumes:
@@ -17,6 +19,8 @@ services:
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
       - ConnectionStrings__DefaultConnection=Host=lyra.db;Port=5432;Database=LYRA_Db;Username=postgres;Password=postgres
+    networks:
+      - gloria-net
     depends_on:
       - lyra.db
     ports:
