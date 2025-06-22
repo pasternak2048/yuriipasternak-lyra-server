@@ -41,7 +41,14 @@ namespace LYRA.Server.Services.SecurityVerification
             try
             {
                 var builder = _factory.GetBuilder(request.Context);
-                var stringToSign = builder.BuildStringToSign(request);
+                var stringToSign = builder.BuildStringToSign(
+                    caller: request.Caller,
+                    target: request.Target,
+                    method: request.Method,
+                    path: request.Path,
+                    payloadHash: request.PayloadHash,
+                    timestamp: request.Timestamp
+                );
 
                 // Retrieve lightweight info from provider
                 var caller = await _secretProvider.GetTouchpointAsync(request.Caller);
