@@ -2,23 +2,25 @@ services:
   lyra.db:
     container_name: lyra.db
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=LYRA_Db
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=SwN12345678
+      - MSSQL_PID=Express
     restart: always
     networks:
       - gloria-net
     ports:
-        - "5432:5432"
+      - "1434:1433"
     volumes:
-      - lyra.db.data:/var/lib/postgresql/data
+      - "./data/:/var/opt/mssql/data/"
+      - "./log/:/var/opt/mssql/log/"
+      - "./secrets/:/var/opt/mssql/secrets/"
 
   lyra.server:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
-      - ConnectionStrings__DefaultConnection=Host=lyra.db;Port=5432;Database=LYRA_Db;Username=postgres;Password=postgres
+      - ConnectionStrings__Database=Server=lyra.db;Database=LYRA_Db;User Id=sa;Password=SwN12345678;Encrypt=False;TrustServerCertificate=True
     networks:
       - gloria-net
     depends_on:

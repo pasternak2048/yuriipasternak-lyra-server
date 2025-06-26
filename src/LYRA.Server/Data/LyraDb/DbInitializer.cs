@@ -6,7 +6,7 @@ using LYRA.Server.Entities.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace LYRA.Server.Data
+namespace LYRA.Server.Data.LyraDb
 {
     public static class DbInitializer
     {

@@ -1,5 +1,5 @@
 ﻿using LYRA.Security.Enums;
-using LYRA.Server.Data;
+using LYRA.Server.Data.LyraDb;
 using LYRA.Server.Entities;
 using LYRA.Server.Models.AccessPolicy;
 using LYRA.Server.Models.Pagination;
@@ -34,13 +34,13 @@ namespace LYRA.Server.Services
             var query = _context.AccessPolicies.AsNoTracking().AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(filters.CallerSystemName))
-                query = query.Where(p => EF.Functions.ILike(p.CallerSystemName, $"%{filters.CallerSystemName}%"));
+                query = query.Where(p => EF.Functions.Like(p.CallerSystemName, $"%{filters.CallerSystemName}%"));
 
             if (!string.IsNullOrWhiteSpace(filters.TargetSystemName))
-                query = query.Where(p => EF.Functions.ILike(p.TargetSystemName, $"%{filters.TargetSystemName}%"));
+                query = query.Where(p => EF.Functions.Like(p.TargetSystemName, $"%{filters.TargetSystemName}%"));
 
             if (!string.IsNullOrWhiteSpace(filters.Operation))
-                query = query.Where(p => EF.Functions.ILike(p.Operation, $"%{filters.Operation}%"));
+                query = query.Where(p => EF.Functions.Like(p.Operation, $"%{filters.Operation}%"));
 
             if (filters.Context.HasValue)
                 query = query.Where(p => p.Context == filters.Context.Value);

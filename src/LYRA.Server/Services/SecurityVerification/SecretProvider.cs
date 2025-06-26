@@ -1,4 +1,4 @@
-﻿using LYRA.Server.Data;
+﻿using LYRA.Server.Data.LyraDb;
 using LYRA.Server.Entities;
 using LYRA.Server.Models.TrustedTouchpoint;
 using LYRA.Server.Services.Interfaces;

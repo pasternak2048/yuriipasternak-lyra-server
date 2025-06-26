@@ -1,15 +1,12 @@
 services:
   lyra.db:
-    image: postgres
+    image: mcr.microsoft.com/mssql/server:2022-latest
 
   lyra.server:
     image: ${DOCKER_REGISTRY-}lyraserver
     build:
       context: .
       dockerfile: LYRA.Server/Dockerfile
-
-volumes:
-  lyra.db.data:
   
 networks:
   gloria-net:

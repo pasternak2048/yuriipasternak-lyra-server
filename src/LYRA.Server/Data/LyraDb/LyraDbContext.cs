@@ -3,7 +3,7 @@ using LYRA.Server.Entities.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace LYRA.Server.Data
+namespace LYRA.Server.Data.LyraDb
 {
     /// <summary>
     /// Represents the Entity Framework Core database context for LYRA server.
@@ -40,10 +40,7 @@ namespace LYRA.Server.Data
             // ------------------- Company -------------------
             modelBuilder.Entity<CompanyEntity>(entity =>
             {
-                // Unique index on system name for active companies only (soft delete filter, PostgreSQL syntax)
-                // Index created via raw SQL in migration (filtered by IsDeleted & IsActive)
-
-                // Normalize system name to lowercase, store as varchar(100)
+                // Normalize SystemName to lowercase, store as varchar(100)
                 entity.Property(c => c.SystemName)
                       .HasConversion(v => v.ToLowerInvariant(), v => v)
                       .IsUnicode(false)
@@ -71,22 +68,25 @@ namespace LYRA.Server.Data
                 entity.HasMany(c => c.TrustedTouchpoints)
                       .WithOne(t => t.Company)
                       .HasForeignKey(t => t.CompanyId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // Unique filtered index on SystemName (only active, not deleted)
+                entity.HasIndex(c => c.SystemName)
+                      .IsUnique()
+                      .HasFilter("[IsDeleted] = 0 AND [IsActive] = 1")
+                      .HasDatabaseName("IX_Companies_SystemName_Active");
             });
 
             // ------------------- TrustedTouchpoint -------------------
             modelBuilder.Entity<TrustedTouchpointEntity>(entity =>
             {
-                // Unique index on system name for active touchpoints only (soft delete filter, PostgreSQL syntax)
-                // Index created via raw SQL in migration (filtered by IsDeleted & IsActive)
-
-                // Normalize system name to lowercase, store as varchar(100)
+                // Normalize SystemName to lowercase, store as varchar(100)
                 entity.Property(t => t.SystemName)
                       .HasConversion(v => v.ToLowerInvariant(), v => v)
                       .IsUnicode(false)
                       .HasMaxLength(100);
 
-                // DisplayName required and max 200 chars
+                // DisplayName is required and max 200 chars
                 entity.Property(t => t.DisplayName)
                       .IsRequired()
                       .HasMaxLength(200);
@@ -115,21 +115,24 @@ namespace LYRA.Server.Data
                 entity.HasMany(t => t.OutgoingPolicies)
                       .WithOne(p => p.Caller)
                       .HasForeignKey(p => p.CallerId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                      .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasMany(t => t.IncomingPolicies)
                       .WithOne(p => p.Target)
                       .HasForeignKey(p => p.TargetId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // Unique filtered index on SystemName (only active, not deleted)
+                entity.HasIndex(t => t.SystemName)
+                      .IsUnique()
+                      .HasFilter("[IsDeleted] = 0 AND [IsActive] = 1")
+                      .HasDatabaseName("IX_TrustedTouchpoints_SystemName_Active");
             });
 
             // ------------------- AccessPolicy -------------------
             modelBuilder.Entity<AccessPolicyEntity>(entity =>
             {
-                // Composite unique index on caller/target system names, context, and operation
-                // Index created via raw SQL in migration (filtered by IsDeleted & IsActive)
-
-                // Configure properties for caller and target system names
+                // Caller and Target system names
                 entity.Property(p => p.CallerSystemName)
                       .IsRequired()
                       .IsUnicode(false)
@@ -140,7 +143,7 @@ namespace LYRA.Server.Data
                       .IsUnicode(false)
                       .HasMaxLength(100);
 
-                // Operation string max length 200 and store lowercase
+                // Normalize Operation to lowercase, max 200 chars
                 entity.Property(p => p.Operation)
                       .IsRequired()
                       .HasMaxLength(200)
@@ -161,10 +164,21 @@ namespace LYRA.Server.Data
                 entity.Property(p => p.CreatedAt)
                       .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                // Audit properties optional
+                // Audit properties are optional
                 entity.Property(p => p.CreatedBy).IsRequired(false);
                 entity.Property(p => p.ModifiedAt).IsRequired(false);
                 entity.Property(p => p.ModifiedBy).IsRequired(false);
+
+                // Composite unique index for fast verification
+                entity.HasIndex(p => new
+                {
+                    p.CallerSystemName,
+                    p.TargetSystemName,
+                    p.Context,
+                    p.Operation
+                })
+                .IsUnique()
+                .HasDatabaseName("IX_AccessPolicy_Key");
             });
         }
     }

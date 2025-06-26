@@ -3,7 +3,7 @@ using LYRA.Server.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
-namespace LYRA.Server.Data.Auditing
+namespace LYRA.Server.Data.Core.Auditing
 {
     /// <summary>
     /// Interceptor that automatically updates audit properties

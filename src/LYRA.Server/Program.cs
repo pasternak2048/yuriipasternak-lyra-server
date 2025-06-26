@@ -1,6 +1,6 @@
 using LYRA.Security.Signature;
-using LYRA.Server.Data;
-using LYRA.Server.Data.Auditing;
+using LYRA.Server.Data.Core.Auditing;
+using LYRA.Server.Data.LyraDb;
 using LYRA.Server.Entities.Identity;
 using LYRA.Server.Services;
 using LYRA.Server.Services.Interfaces;
@@ -16,12 +16,12 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 /// <summary>
-/// Configure the database context with an auditing interceptor and PostgreSQL as the underlying provider.
+/// Configure the database context with an auditing interceptor and SQL Server as the underlying provider.
 /// </summary>
 builder.Services.AddDbContext<LyraDbContext>((provider, options) =>
 {
     var interceptor = provider.GetRequiredService<AuditableEntitySaveChangesInterceptor>();
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Database"))
            .AddInterceptors(interceptor);
 });
 
