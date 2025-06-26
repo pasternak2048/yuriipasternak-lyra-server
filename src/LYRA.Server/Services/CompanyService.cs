@@ -1,7 +1,7 @@
 ﻿using LYRA.Security.Enums;
 using LYRA.Security.Utilities;
 using LYRA.Security.Utilities.Security;
-using LYRA.Server.Data;
+using LYRA.Server.Data.LyraDb;
 using LYRA.Server.Entities;
 using LYRA.Server.Models.Company;
 using LYRA.Server.Models.Pagination;
