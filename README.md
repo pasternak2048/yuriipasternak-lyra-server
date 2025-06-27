@@ -11,8 +11,8 @@ It introduces the concept of **Trusted Touchpoints** and **Access Policies** to 
 ## 🌐 What is LYRA?
 
 - 🧱 **LYRA.Server** — a self-hosted authorization and verification center for backend systems  
-- ⚙️ **LYRA.Client** — a lightweight client for signing outgoing requests (HMAC, RSA, etc.)  
-- 🔐 **LYRA.Security** — shared crypto, signature, and contract foundation used by **LYRA.Server** and **LYRA.Client**  
+- ⚙️ **[LYRA.Client](https://github.com/pasternak2048/yuriipasternak-lyra-client)** — a lightweight client for signing outgoing requests (HMAC, RSA, etc.)  
+- 🔐 **[LYRA.Security](https://github.com/pasternak2048/yuriipasternak-lyra-security)** — shared crypto, signature, and contract foundation used by **LYRA.Server** and **LYRA.Client**
 - 🛡️ **AccessPolicy** — rules defining which system can talk to which, and under what conditions  
 - 🧼 **Zero Dependencies** — built on .NET 8 with **only official Microsoft libraries** (EF Core, SQL Server, System.Security)
 - 🚀 **High-Performance Caching** — uses denormalized cache DB + EF Core interceptor to synchronize changes in real-time without recomputing all policies
