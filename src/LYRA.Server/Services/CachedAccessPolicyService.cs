@@ -1,6 +1,7 @@
 ﻿using LYRA.Server.Data.LyraCachedDb;
 using LYRA.Server.Entities;
 using LYRA.Server.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace LYRA.Server.Services
 {
@@ -59,6 +60,18 @@ namespace LYRA.Server.Services
         {
             _db.CachedAccessPolicies.RemoveRange(_db.CachedAccessPolicies);
             await _db.SaveChangesAsync();
+        }
+
+        /// <inheritdoc/>
+        public async Task<CachedAccessPolicyEntity?> FindAsync(string caller, string target, string context, string operation)
+        {
+            return await _db.CachedAccessPolicies
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p =>
+                    p.CallerSystemName == caller &&
+                    p.TargetSystemName == target &&
+                    p.Context.ToLower() == context.ToLower() &&
+                    p.Operation.ToLower() == operation.ToLower());
         }
     }
 }
