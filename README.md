@@ -14,7 +14,7 @@ It introduces the concept of **Trusted Touchpoints** and **Access Policies** to 
 - ⚙️ **LYRA.Client** — a lightweight client for signing outgoing requests (HMAC, RSA, etc.)  
 - 🔐 **LYRA.Security** — shared crypto, signature, and contract foundation used by both client and server  
 - 🛡️ **AccessPolicy** — rules defining which system can talk to which, and under what conditions  
-- 🧼 **Lean Dependencies** — no bloated packages or heavy frameworks. Built on .NET 8, Entity Framework Core, and the official PostgreSQL provider.
+- 🧼 **Zero Dependencies** — built on .NET 8 with **only official Microsoft libraries** (EF Core, SQL Server, System.Security)
 
 ---
 
@@ -97,8 +97,8 @@ new AccessPolicyEntity
 - ✅ Supports `HMAC`, `RSA`, and future key types  
 - ✅ Frontend for managing companies, touchpoints, and policies  
 - ✅ All names auto-slugified from Display Names  
-- ✅ Fully **zero-dependency**: no external packages, no third-party crypto libs, no validation frameworks  
-- ✅ Powered by .NET 8 and officially supported libraries (EF Core, PostgreSQL)  
+- ✅ **Zero third-party dependencies** — no external crypto libs, no validation frameworks  
+- ✅ Built on **.NET 8 + EF Core + SQL Server** — using **official Microsoft libraries only**  
 - ✅ Modular architecture: LYRA.Server uses LYRA.Security for core crypto/signature logic
 
 ---
@@ -106,8 +106,8 @@ new AccessPolicyEntity
 ## 🔧 Tech Stack
 
 - ASP.NET Core 8 + Razor Pages + EF Core  
-- PostgreSQL (via `Npgsql.EntityFrameworkCore.PostgreSQL`)  
-- HMAC / RSA verification (System.Security.Cryptography)  
+- Microsoft SQL Server  
+- System.Security.Cryptography (HMAC / RSA)  
 - LYRA.Security library (shared signature + crypto logic)  
 - Docker / local deploy-ready  
 - Designed to integrate with **API Gateways** or microservice boundaries  
