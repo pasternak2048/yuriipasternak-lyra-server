@@ -57,7 +57,6 @@ builder.Services.AddScoped<IIdentityService, IdentityService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<ITrustedTouchpointService, TrustedTouchpointService>();
 builder.Services.AddScoped<IAccessPolicyService, AccessPolicyService>();
-builder.Services.AddScoped<ISecretProvider, SecretProvider>();
 builder.Services.AddScoped<IVerifyService, VerifyService>();
 builder.Services.AddScoped<ICachedAccessPolicyBuilder, CachedAccessPolicyBuilder>();
 builder.Services.AddScoped<ICachedAccessPolicyService, CachedAccessPolicyService>();
