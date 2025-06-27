@@ -6,21 +6,24 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 namespace LYRA.Server.Data.Core.Caching
 {
     /// <summary>
-    /// Intercepts SaveChanges to synchronize the access policy cache in real time.
+    /// Intercepts SaveChanges to synchronize both physical (SQL) and memory (RAM) cache in real time.
     /// Ensures that any change to AccessPolicyEntity, TrustedTouchpointEntity, or CompanyEntity
-    /// is reflected in the denormalized cache.
+    /// is reflected in the denormalized SQL cache and corresponding memory cache entry is invalidated.
     /// </summary>
     public class AccessPolicyCacheSyncInterceptor : SaveChangesInterceptor
     {
         private readonly ICachedAccessPolicyBuilder _builder;
         private readonly ICachedAccessPolicyService _cache;
+        private readonly ICachedAccessPolicyMemoryService _memory;
 
         public AccessPolicyCacheSyncInterceptor(
             ICachedAccessPolicyBuilder builder,
-            ICachedAccessPolicyService cache)
+            ICachedAccessPolicyService cache,
+            ICachedAccessPolicyMemoryService memory)
         {
             _builder = builder;
             _cache = cache;
+            _memory = memory;
         }
 
         public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
@@ -71,6 +74,7 @@ namespace LYRA.Server.Data.Core.Caching
                 .ToListAsync(cancellationToken);
 
             // Combine all affected policies (additions, updates, touchpoint/company-related)
+
             var affectedPolicies = changedPolicies
                 .Concat(affectedFromTouchpoints)
                 .Concat(affectedFromCompanies)
@@ -85,7 +89,14 @@ namespace LYRA.Server.Data.Core.Caching
                 context.Entry(policy).Reference(p => p.Caller).Query().Include(t => t.Company).Load();
                 context.Entry(policy).Reference(p => p.Target).Query().Include(t => t.Company).Load();
 
+                // Update physical cache (SQL) and invalidate memory cache (RAM)
                 await BuildOrDeleteAsync(policy);
+
+                _memory.Invalidate(
+                    policy.CallerSystemName,
+                    policy.TargetSystemName,
+                    policy.Context.ToString(),
+                    policy.Operation);
             }
 
             // ------------------- Remove deleted policies from cache -------------------
@@ -93,6 +104,12 @@ namespace LYRA.Server.Data.Core.Caching
             foreach (var policy in deletedPolicies)
             {
                 await _cache.DeleteByIdAsync(policy.Id);
+
+                _memory.Invalidate(
+                    policy.CallerSystemName,
+                    policy.TargetSystemName,
+                    policy.Context.ToString(),
+                    policy.Operation);
             }
 
             return result;

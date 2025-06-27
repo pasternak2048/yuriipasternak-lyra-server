@@ -7,34 +7,33 @@ namespace LYRA.Server.Services.SecurityVerification
 {
     /// <summary>
     /// Service responsible for verifying signed requests by validating the digital signature
-    /// using cached access policy data for maximum performance.
+    /// using cached access policy data from in-memory cache for maximum performance.
     /// </summary>
     public class VerifyService : IVerifyService
     {
         private readonly SignatureStringBuilderFactory _factory;
-        private readonly ICachedAccessPolicyService _cache;
+        private readonly ICachedAccessPolicyMemoryService _memory;
         private readonly ILogger<VerifyService> _logger;
 
         public VerifyService(
             SignatureStringBuilderFactory factory,
-            ICachedAccessPolicyService cache,
+            ICachedAccessPolicyMemoryService memory,
             ILogger<VerifyService> logger)
         {
             _factory = factory;
-            _cache = cache;
+            _memory = memory;
             _logger = logger;
         }
 
         /// <summary>
-        /// Performs verification using cached access policy with denormalized data.
+        /// Performs verification using memory-cached access policy with denormalized data.
         /// </summary>
         public async Task<VerifyResponse> Verify(VerifyRequest request)
         {
             try
             {
                 var operationKey = $"{request.Method} {request.Path}".ToLowerInvariant();
-                var policy = await _cache.FindAsync(
-                    request.Caller, request.Target, request.Context.ToString(), operationKey);
+                var policy = await _memory.GetAsync(request.Caller, request.Target, request.Context.ToString(), operationKey);
 
                 if (policy == null || !policy.IsEnabled)
                     return Failure($"Access denied for '{request.Caller}' to '{request.Target}' ({request.Context}).");
@@ -60,7 +59,7 @@ namespace LYRA.Server.Services.SecurityVerification
                     request.Caller, request.Target, request.Method, request.Path,
                     request.PayloadHash, request.Timestamp);
 
-                // Decrypt and use secret
+                // Decrypt and verify signature
                 var decryptedSecret = EncryptionHelper.DecryptSecret(policy.CallerSecret);
                 var expectedSignature = EncryptionHelper.ComputeHmacSha512(stringToSign, decryptedSecret);
                 var isValid = EncryptionHelper.SecureEquals(expectedSignature, request.Signature);
