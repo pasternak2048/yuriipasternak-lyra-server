@@ -12,9 +12,10 @@ It introduces the concept of **Trusted Touchpoints** and **Access Policies** to 
 
 - 🧱 **LYRA.Server** — a self-hosted authorization and verification center for backend systems  
 - ⚙️ **LYRA.Client** — a lightweight client for signing outgoing requests (HMAC, RSA, etc.)  
-- 🔐 **LYRA.Security** — shared crypto, signature, and contract foundation used by both client and server  
+- 🔐 **LYRA.Security** — shared crypto, signature, and contract foundation used by **LYRA.Server** and **LYRA.Client**  
 - 🛡️ **AccessPolicy** — rules defining which system can talk to which, and under what conditions  
 - 🧼 **Zero Dependencies** — built on .NET 8 with **only official Microsoft libraries** (EF Core, SQL Server, System.Security)
+- 🚀 **High-Performance Caching** — uses denormalized cache DB + EF Core interceptor to synchronize changes in real-time without recomputing all policies
 
 ---
 
@@ -88,12 +89,27 @@ new AccessPolicyEntity
 
 ---
 
+## ⚡ Smart Caching System
+
+LYRA automatically mirrors validated policies into a **denormalized cache table** (CachedAccessPolicyEntity).  
+This cache:
+- Is **auto-updated** on every change via a custom `SaveChangesInterceptor`
+- Reacts not only to policies, but also to changes in:
+  - `Company` (e.g., secret rotation or disabled state)
+  - `Touchpoint` (e.g., IP restrictions, mode updates)
+- Is fast to query, with **compound keys** for fast lookups
+- Fully rebuildable via `ReplaceAllAsync()` if needed
+
+This architecture allows **constant-time access policy validation**, even under load.
+
+---
+
 ## 💡 Highlights
 
 - ✅ Clean company-to-company and service-to-service trust boundaries  
 - ✅ Each touchpoint has a strict role + secret/key + audit  
 - ✅ Denormalized names (CallerSystemName + TargetSystemName) for fast lookup  
-- ✅ Fast, stateless request verification  
+- ✅ High-performance policy cache with EF interceptor  
 - ✅ Supports `HMAC`, `RSA`, and future key types  
 - ✅ Frontend for managing companies, touchpoints, and policies  
 - ✅ All names auto-slugified from Display Names  
