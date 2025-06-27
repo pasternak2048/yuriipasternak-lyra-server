@@ -399,3 +399,10 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# SQL Server data
+data/
+log/
+secrets/
+*.xml
+machine-key.*
