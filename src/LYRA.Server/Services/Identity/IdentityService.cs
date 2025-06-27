@@ -1,8 +1,8 @@
 ﻿using LYRA.Server.Entities.Identity;
-using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Services.Identity.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
-namespace LYRA.Server.Services
+namespace LYRA.Server.Services.Identity
 {
     /// <summary>
     /// Service for managing user authentication and registration using ASP.NET Core Identity.

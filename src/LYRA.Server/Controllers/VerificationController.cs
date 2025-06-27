@@ -1,5 +1,5 @@
 ﻿using LYRA.Security.Models.Verify;
-using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Services.Verify.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LYRA.Server.Controllers

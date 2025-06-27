@@ -1,4 +1,4 @@
-using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Services.Identity.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;

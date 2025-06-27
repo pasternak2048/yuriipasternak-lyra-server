@@ -1,4 +1,4 @@
-﻿namespace LYRA.Server.Services.Interfaces
+﻿namespace LYRA.Server.Services.Cache.Interfaces
 {
     /// <summary>
     /// Universal cache abstraction for storing and retrieving objects by key.

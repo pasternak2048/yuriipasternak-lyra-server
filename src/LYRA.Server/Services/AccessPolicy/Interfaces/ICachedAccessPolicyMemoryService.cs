@@ -1,6 +1,6 @@
 ﻿using LYRA.Server.Entities;
 
-namespace LYRA.Server.Services.Interfaces
+namespace LYRA.Server.Services.AccessPolicy.Interfaces
 {
     /// <summary>
     /// Hybrid cache for fast access to CachedAccessPolicyEntity using RAM (IMemoryCache)

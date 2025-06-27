@@ -1,5 +1,5 @@
 ﻿using LYRA.Server.Entities;
-using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Services.AccessPolicy.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 

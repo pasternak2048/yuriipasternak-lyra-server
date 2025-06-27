@@ -1,4 +1,6 @@
-using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Services.AccessPolicy.Interfaces;
+using LYRA.Server.Services.Company.Interfaces;
+using LYRA.Server.Services.TrustedTouchpoint.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 

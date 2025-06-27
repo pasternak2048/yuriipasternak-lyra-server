@@ -1,5 +1,5 @@
 ﻿using LYRA.Server.Models.Shared;
-using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Services.Identity.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 

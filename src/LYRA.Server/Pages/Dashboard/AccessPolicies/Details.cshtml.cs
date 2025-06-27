@@ -1,5 +1,5 @@
 using LYRA.Server.Models.AccessPolicy;
-using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Services.AccessPolicy.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;

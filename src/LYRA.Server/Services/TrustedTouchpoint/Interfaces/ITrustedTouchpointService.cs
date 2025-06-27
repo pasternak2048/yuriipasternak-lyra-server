@@ -2,7 +2,7 @@
 using LYRA.Server.Models.Shared;
 using LYRA.Server.Models.TrustedTouchpoint;
 
-namespace LYRA.Server.Services.Interfaces
+namespace LYRA.Server.Services.TrustedTouchpoint.Interfaces
 {
     /// <summary>
     /// Service interface for managing trusted touchpoints (callers/targets) used in inter-service communication.

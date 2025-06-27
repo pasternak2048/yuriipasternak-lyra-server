@@ -1,4 +1,4 @@
-﻿namespace LYRA.Server.Services.Interfaces
+﻿namespace LYRA.Server.Services.AccessPolicy.Interfaces
 {
     public interface IAccessPolicyCacheSyncService
     {

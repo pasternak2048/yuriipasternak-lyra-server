@@ -6,10 +6,10 @@ using LYRA.Server.Entities;
 using LYRA.Server.Models.Company;
 using LYRA.Server.Models.Pagination;
 using LYRA.Server.Models.Shared;
-using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Services.Company.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace LYRA.Server.Services
+namespace LYRA.Server.Services.Company
 {
     /// <summary>
     /// Service responsible for managing companies that participate in inter-service communication.
@@ -58,7 +58,7 @@ namespace LYRA.Server.Services
                 var nameFilter = filters.SystemName.Trim().ToLowerInvariant();
                 query = query.Where(c =>
                     c.SystemName.ToLower().Contains(nameFilter) ||
-                    (c.DisplayName != null && c.DisplayName.ToLower().Contains(nameFilter)));
+                    c.DisplayName != null && c.DisplayName.ToLower().Contains(nameFilter));
             }
 
             var totalItems = await query.CountAsync();

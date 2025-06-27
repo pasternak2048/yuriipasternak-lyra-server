@@ -1,7 +1,7 @@
-﻿using LYRA.Server.Services.Interfaces;
+﻿using LYRA.Server.Services.Identity.Interfaces;
 using System.Security.Claims;
 
-namespace LYRA.Server.Services
+namespace LYRA.Server.Services.Identity
 {
     /// <summary>
     /// Provides access to the ID of the currently authenticated user based on the HTTP context.

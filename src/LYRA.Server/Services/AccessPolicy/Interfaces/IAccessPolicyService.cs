@@ -2,7 +2,7 @@
 using LYRA.Server.Models.AccessPolicy;
 using LYRA.Server.Models.Pagination;
 
-namespace LYRA.Server.Services.Interfaces
+namespace LYRA.Server.Services.AccessPolicy.Interfaces
 {
     /// <summary>
     /// Service interface for managing access policies between trusted touchpoints.

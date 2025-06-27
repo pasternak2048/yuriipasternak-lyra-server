@@ -1,7 +1,8 @@
 using LYRA.Server.Models.Company;
 using LYRA.Server.Models.Pagination;
 using LYRA.Server.Models.TrustedTouchpoint;
-using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Services.Company.Interfaces;
+using LYRA.Server.Services.TrustedTouchpoint.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;

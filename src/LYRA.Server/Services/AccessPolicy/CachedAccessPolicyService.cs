@@ -1,9 +1,9 @@
 ﻿using LYRA.Server.Data.LyraCachedDb;
 using LYRA.Server.Entities;
-using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Services.AccessPolicy.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace LYRA.Server.Services
+namespace LYRA.Server.Services.AccessPolicy
 {
     /// <summary>
     /// Service for managing cached access policies in the LyraCachedDbContext.

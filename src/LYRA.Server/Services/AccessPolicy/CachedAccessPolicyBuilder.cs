@@ -1,7 +1,7 @@
 ﻿using LYRA.Server.Entities;
-using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Services.AccessPolicy.Interfaces;
 
-namespace LYRA.Server.Services
+namespace LYRA.Server.Services.AccessPolicy
 {
     public class CachedAccessPolicyBuilder : ICachedAccessPolicyBuilder
     {

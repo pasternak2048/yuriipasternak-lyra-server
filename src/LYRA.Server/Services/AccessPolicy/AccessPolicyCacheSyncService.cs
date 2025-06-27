@@ -1,9 +1,9 @@
 ﻿using LYRA.Server.Data.LyraDb;
 using LYRA.Server.Entities;
-using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Services.AccessPolicy.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace LYRA.Server.Services
+namespace LYRA.Server.Services.AccessPolicy
 {
     /// <summary>
     /// Synchronizes access policies from the main database into the cache database.
