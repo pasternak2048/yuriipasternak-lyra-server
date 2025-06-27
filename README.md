@@ -16,6 +16,7 @@ It introduces the concept of **Trusted Touchpoints** and **Access Policies** to 
 - 🛡️ **AccessPolicy** — rules defining which system can talk to which, and under what conditions  
 - 🧼 **Zero Dependencies** — built on .NET 8 with **only official Microsoft libraries** (EF Core, SQL Server, System.Security)
 - 🚀 **High-Performance Caching** — uses denormalized cache DB + EF Core interceptor to synchronize changes in real-time without recomputing all policies
+- 🧠 **Memory Cache Layer** — recent policies are stored in memory for ultra-fast access, reducing DB queries to near-zero
 
 ---
 
@@ -100,6 +101,9 @@ This cache:
 - Is fast to query, with **compound keys** for fast lookups
 - Fully rebuildable via `ReplaceAllAsync()` if needed
 
+In addition, an **in-memory caching layer** (`MemoryCache`) stores recently used policies for instant retrieval.  
+This ensures that frequent validations complete in **microseconds**, with **zero DB calls** in the hot path.
+
 This architecture allows **constant-time access policy validation**, even under load.
 
 ---
@@ -110,6 +114,7 @@ This architecture allows **constant-time access policy validation**, even under 
 - ✅ Each touchpoint has a strict role + secret/key + audit  
 - ✅ Denormalized names (CallerSystemName + TargetSystemName) for fast lookup  
 - ✅ High-performance policy cache with EF interceptor  
+- ✅ Fast memory-layer cache for runtime reads  
 - ✅ Supports `HMAC`, `RSA`, and future key types  
 - ✅ Frontend for managing companies, touchpoints, and policies  
 - ✅ All names auto-slugified from Display Names  
@@ -123,6 +128,7 @@ This architecture allows **constant-time access policy validation**, even under 
 
 - ASP.NET Core 8 + Razor Pages + EF Core  
 - Microsoft SQL Server  
+- Microsoft.Extensions.Caching.Memory  
 - System.Security.Cryptography (HMAC / RSA)  
 - LYRA.Security library (shared signature + crypto logic)  
 - Docker / local deploy-ready  
