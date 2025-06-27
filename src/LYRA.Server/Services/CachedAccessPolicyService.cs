@@ -73,5 +73,14 @@ namespace LYRA.Server.Services
                     p.Context.ToLower() == context.ToLower() &&
                     p.Operation.ToLower() == operation.ToLower());
         }
+
+        /// <inheritdoc/>
+        public async Task<List<CachedAccessPolicyEntity>> GetAllAsync()
+        {
+            return await _db.CachedAccessPolicies
+                .AsNoTracking()
+                .Where(p => p.IsEnabled)
+                .ToListAsync();
+        }
     }
 }

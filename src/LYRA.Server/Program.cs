@@ -60,6 +60,9 @@ builder.Services.AddScoped<IAccessPolicyService, AccessPolicyService>();
 builder.Services.AddScoped<IVerifyService, VerifyService>();
 builder.Services.AddScoped<ICachedAccessPolicyBuilder, CachedAccessPolicyBuilder>();
 builder.Services.AddScoped<ICachedAccessPolicyService, CachedAccessPolicyService>();
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<ICacheService, MemoryCacheService>();
+builder.Services.AddScoped<ICachedAccessPolicyMemoryService, CachedAccessPolicyMemoryService>();
 builder.Services.AddScoped<IAccessPolicyCacheSyncService, AccessPolicyCacheSyncService>();
 
 /// <summary>
