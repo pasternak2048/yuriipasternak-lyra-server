@@ -3,10 +3,10 @@ using LYRA.Server.Data.LyraDb;
 using LYRA.Server.Entities;
 using LYRA.Server.Models.AccessPolicy;
 using LYRA.Server.Models.Pagination;
-using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Services.AccessPolicy.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace LYRA.Server.Services
+namespace LYRA.Server.Services.AccessPolicy
 {
     /// <summary>
     /// Service responsible for managing access policies that define allowed operations 

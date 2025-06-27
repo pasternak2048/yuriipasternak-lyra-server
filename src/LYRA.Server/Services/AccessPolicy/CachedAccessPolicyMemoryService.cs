@@ -1,7 +1,8 @@
 ﻿using LYRA.Server.Entities;
-using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Services.AccessPolicy.Interfaces;
+using LYRA.Server.Services.Cache.Interfaces;
 
-namespace LYRA.Server.Services
+namespace LYRA.Server.Services.AccessPolicy
 {
     /// <inheritdoc/>
     public class CachedAccessPolicyMemoryService : ICachedAccessPolicyMemoryService

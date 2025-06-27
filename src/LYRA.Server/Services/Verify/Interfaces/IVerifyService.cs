@@ -1,6 +1,6 @@
 ﻿using LYRA.Security.Models.Verify;
 
-namespace LYRA.Server.Services.Interfaces
+namespace LYRA.Server.Services.Verify.Interfaces
 {
     /// <summary>
     /// Service responsible for verifying the authenticity and integrity of incoming requests using digital signatures.

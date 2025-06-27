@@ -1,4 +1,4 @@
-﻿namespace LYRA.Server.Services.Interfaces
+﻿namespace LYRA.Server.Services.Identity.Interfaces
 {
     /// <summary>
     /// Service interface for handling user identity operations such as login, registration, and logout.

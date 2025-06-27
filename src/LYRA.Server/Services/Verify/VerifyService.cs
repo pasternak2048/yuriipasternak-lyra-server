@@ -1,9 +1,10 @@
 ﻿using LYRA.Security.Models.Verify;
 using LYRA.Security.Signature;
 using LYRA.Security.Utilities.Security;
-using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Services.AccessPolicy.Interfaces;
+using LYRA.Server.Services.Verify.Interfaces;
 
-namespace LYRA.Server.Services.SecurityVerification
+namespace LYRA.Server.Services.Verify
 {
     /// <summary>
     /// Service responsible for verifying signed requests by validating the digital signature

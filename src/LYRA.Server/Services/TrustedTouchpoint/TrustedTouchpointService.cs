@@ -6,10 +6,10 @@ using LYRA.Server.Entities;
 using LYRA.Server.Models.Pagination;
 using LYRA.Server.Models.Shared;
 using LYRA.Server.Models.TrustedTouchpoint;
-using LYRA.Server.Services.Interfaces;
+using LYRA.Server.Services.TrustedTouchpoint.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace LYRA.Server.Services
+namespace LYRA.Server.Services.TrustedTouchpoint
 {
     /// <summary>
     /// Service responsible for managing trusted touchpoints (agents) that initiate or receive requests

@@ -1,4 +1,4 @@
-﻿namespace LYRA.Server.Services.Interfaces
+﻿namespace LYRA.Server.Services.Identity.Interfaces
 {
     /// <summary>
     /// Provides information about the currently authenticated user within the application context.

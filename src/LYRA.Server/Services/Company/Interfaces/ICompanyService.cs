@@ -2,7 +2,7 @@
 using LYRA.Server.Models.Pagination;
 using LYRA.Server.Models.Shared;
 
-namespace LYRA.Server.Services.Interfaces
+namespace LYRA.Server.Services.Company.Interfaces
 {
     /// <summary>
     /// Service interface for managing registered companies in the security system.

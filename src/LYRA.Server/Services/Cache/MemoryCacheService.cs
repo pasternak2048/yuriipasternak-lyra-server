@@ -1,7 +1,7 @@
-﻿using LYRA.Server.Services.Interfaces;
+﻿using LYRA.Server.Services.Cache.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace LYRA.Server.Services
+namespace LYRA.Server.Services.Cache
 {
     /// <summary>
     /// Default in-memory implementation of <see cref="ICacheService"/> using <see cref="IMemoryCache"/>.
