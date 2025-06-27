@@ -3,6 +3,7 @@ using LYRA.Security.Utilities;
 using LYRA.Security.Utilities.Security;
 using LYRA.Server.Entities;
 using LYRA.Server.Entities.Identity;
+using LYRA.Server.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,7 @@ namespace LYRA.Server.Data.LyraDb
         {
             var context = serviceProvider.GetRequiredService<LyraDbContext>();
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var cacheSync = serviceProvider.GetRequiredService<IAccessPolicyCacheSyncService>();
 
             context.Database.EnsureCreated();
 
@@ -60,6 +62,9 @@ namespace LYRA.Server.Data.LyraDb
 
             // 4. Access policy
             await EnsurePolicyAsync(context, bGateway, aBilling, "POST /subscribe", AccessContext.Http, systemUserId);
+
+            // 5. Generate cache
+            await cacheSync.SyncFromDbAsync();
         }
 
         private static async Task<CompanyEntity> EnsureCompanyAsync(

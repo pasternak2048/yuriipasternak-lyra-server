@@ -1,5 +1,7 @@
 using LYRA.Security.Signature;
 using LYRA.Server.Data.Core.Auditing;
+using LYRA.Server.Data.Core.Caching;
+using LYRA.Server.Data.LyraCachedDb;
 using LYRA.Server.Data.LyraDb;
 using LYRA.Server.Entities.Identity;
 using LYRA.Server.Services;
@@ -18,11 +20,21 @@ var builder = WebApplication.CreateBuilder(args);
 /// <summary>
 /// Configure the database context with an auditing interceptor and SQL Server as the underlying provider.
 /// </summary>
+builder.Services.AddScoped<AuditableEntitySaveChangesInterceptor>();
+builder.Services.AddScoped<AccessPolicyCacheSyncInterceptor>();
+
 builder.Services.AddDbContext<LyraDbContext>((provider, options) =>
 {
-    var interceptor = provider.GetRequiredService<AuditableEntitySaveChangesInterceptor>();
+    var audit = provider.GetRequiredService<AuditableEntitySaveChangesInterceptor>();
+    var cacheSync = provider.GetRequiredService<AccessPolicyCacheSyncInterceptor>();
+
     options.UseSqlServer(builder.Configuration.GetConnectionString("Database"))
-           .AddInterceptors(interceptor);
+           .AddInterceptors(audit, cacheSync);
+});
+
+builder.Services.AddDbContext<LyraCachedDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("CachedDatabase"));
 });
 
 /// <summary>
@@ -47,6 +59,9 @@ builder.Services.AddScoped<ITrustedTouchpointService, TrustedTouchpointService>(
 builder.Services.AddScoped<IAccessPolicyService, AccessPolicyService>();
 builder.Services.AddScoped<ISecretProvider, SecretProvider>();
 builder.Services.AddScoped<IVerifyService, VerifyService>();
+builder.Services.AddScoped<ICachedAccessPolicyBuilder, CachedAccessPolicyBuilder>();
+builder.Services.AddScoped<ICachedAccessPolicyService, CachedAccessPolicyService>();
+builder.Services.AddScoped<IAccessPolicyCacheSyncService, AccessPolicyCacheSyncService>();
 
 /// <summary>
 /// Register signature string builders per access context and the factory to resolve them.
@@ -108,8 +123,10 @@ var app = builder.Build();
 /// </summary>
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<LyraDbContext>();
-    await context.Database.MigrateAsync();
+    var lyraDbContext = scope.ServiceProvider.GetRequiredService<LyraDbContext>();
+    var lyraCachedDbContext = scope.ServiceProvider.GetRequiredService<LyraCachedDbContext>();
+    await lyraDbContext.Database.MigrateAsync();
+    await lyraCachedDbContext.Database.MigrateAsync();
     await DbInitializer.SeedAsync(scope.ServiceProvider);
 }
 
