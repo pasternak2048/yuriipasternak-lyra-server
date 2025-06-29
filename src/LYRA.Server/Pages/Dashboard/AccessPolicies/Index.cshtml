@@ -40,7 +40,6 @@
                 <tr>
                     <th>Caller</th>
                     <th>Target</th>
-                    <th>Operation</th>
                     <th>Context</th>
                     <th>Status</th>
                     <th>Created</th>
@@ -52,7 +51,6 @@
                     <tr style="cursor: pointer;" onclick="location.href='@Url.Page("Details", new { id = p.Id })'">
                         <td><code>@p.CallerSystemName</code></td>
                         <td><code>@p.TargetSystemName</code></td>
-                        <td class="text-light-emphasis">@p.Operation</td>
                         <td><span class="badge bg-dark">@p.Context</span></td>
                         <td>
                             @if (p.IsEnabled)

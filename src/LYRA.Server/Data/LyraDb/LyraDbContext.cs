@@ -146,7 +146,7 @@ namespace LYRA.Server.Data.LyraDb
                 // Normalize Operation to lowercase, max 200 chars
                 entity.Property(p => p.Operation)
                       .IsRequired()
-                      .HasMaxLength(200)
+                      .HasMaxLength(2000)
                       .HasConversion(
                           v => v.ToLowerInvariant(),
                           v => v
@@ -174,8 +174,7 @@ namespace LYRA.Server.Data.LyraDb
                 {
                     p.CallerSystemName,
                     p.TargetSystemName,
-                    p.Context,
-                    p.Operation
+                    p.Context
                 })
                 .IsUnique()
                 .HasDatabaseName("IX_AccessPolicy_Key");

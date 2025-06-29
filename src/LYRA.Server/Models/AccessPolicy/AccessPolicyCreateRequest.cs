@@ -34,8 +34,8 @@ namespace LYRA.Server.Models.AccessPolicy
         /// Operation identifier, such as an HTTP path, event topic, or method name.
         /// </summary>
         [Required]
-        [MaxLength(200)]
-        public string Operation { get; set; } = null!;
+        [MaxLength(2000)]
+        public List<string> Operations { get; set; } = new();
 
         /// <summary>
         /// Context of the access policy (e.g., Http, Event, Grpc).

@@ -1,5 +1,6 @@
 ﻿@page "{id:guid}"
 @using LYRA.Server.Models.Shared
+@using LYRA.Server.Utilities
 @model LYRA.Server.Pages.Dashboard.AccessPolicies.DetailsModel
 @{
     ViewData["Title"] = "Access Policy Details";
@@ -56,9 +57,6 @@
             <dt class="col-sm-3">Target System Name</dt>
             <dd class="col-sm-9 text-light-emphasis"><code>@Model.Policy?.TargetSystemName</code></dd>
 
-            <dt class="col-sm-3">Operation</dt>
-            <dd class="col-sm-9">@Model.Policy?.Operation</dd>
-
             <dt class="col-sm-3">Context</dt>
             <dd class="col-sm-9">@Model.Policy?.Context.ToString()</dd>
 
@@ -77,6 +75,24 @@
             <dt class="col-sm-3">Created At</dt>
             <dd class="col-sm-9">@Model.Policy?.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</dd>
         </dl>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Policy?.Operation))
+        {
+            <div class="mt-4 pt-3 border-top border-secondary">
+                <h5 class="text-light fw-semibold mb-3">
+                    <i class="bi bi-terminal-split me-1"></i> Allowed Operations
+                </h5>
+
+                <ul class="list-group list-group-flush">
+                    @foreach (var op in DelimitedStringParser.Parse(Model.Policy.Operation))
+                    {
+                        <li class="list-group-item bg-transparent text-light-emphasis ps-3">
+                            <code>@op</code>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
     </div>
 </div>
 

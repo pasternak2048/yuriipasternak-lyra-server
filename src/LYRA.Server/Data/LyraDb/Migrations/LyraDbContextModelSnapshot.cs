@@ -62,8 +62,8 @@ namespace LYRA.Server.Data.LyraDb.Migrations
 
                     b.Property<string>("Operation")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<Guid>("TargetId")
                         .HasColumnType("uniqueidentifier");
@@ -80,7 +80,7 @@ namespace LYRA.Server.Data.LyraDb.Migrations
 
                     b.HasIndex("TargetId");
 
-                    b.HasIndex("CallerSystemName", "TargetSystemName", "Context", "Operation")
+                    b.HasIndex("CallerSystemName", "TargetSystemName", "Context")
                         .IsUnique()
                         .HasDatabaseName("IX_AccessPolicy_Key");
 

@@ -2,6 +2,7 @@ using LYRA.Server.Models.AccessPolicy;
 using LYRA.Server.Models.TrustedTouchpoint;
 using LYRA.Server.Services.AccessPolicy.Interfaces;
 using LYRA.Server.Services.TrustedTouchpoint.Interfaces;
+using LYRA.Server.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -63,7 +64,7 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
                 Id = policy.Id,
                 CallerSystemName = policy.CallerSystemName,
                 TargetSystemName = policy.TargetSystemName,
-                Operation = policy.Operation,
+                Operations = DelimitedStringParser.Parse(policy.Operation, ",").ToList(), 
                 Context = policy.Context,
                 IsEnabled = policy.IsEnabled
             };
