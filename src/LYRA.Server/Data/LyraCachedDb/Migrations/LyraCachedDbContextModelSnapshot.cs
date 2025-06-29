@@ -59,8 +59,8 @@ namespace LYRA.Server.Data.LyraCachedDb.Migrations
 
                     b.Property<string>("Operation")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("SignatureType")
                         .IsRequired()
@@ -79,7 +79,7 @@ namespace LYRA.Server.Data.LyraCachedDb.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CallerSystemName", "TargetSystemName", "Context", "Operation")
+                    b.HasIndex("CallerSystemName", "TargetSystemName", "Context")
                         .IsUnique()
                         .HasDatabaseName("IX_CachedAccessPolicy_Key");
 

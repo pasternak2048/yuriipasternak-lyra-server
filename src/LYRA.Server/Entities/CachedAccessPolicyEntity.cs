@@ -28,7 +28,7 @@ namespace LYRA.Server.Entities
         /// Operation identifier (e.g., GET /api/orders/*, order.created).
         /// </summary>
         [Required]
-        [MaxLength(200)]
+        [MaxLength(2000)]
         public string Operation { get; set; } = null!;
 
         /// <summary>

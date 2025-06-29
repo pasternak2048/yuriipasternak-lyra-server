@@ -42,9 +42,36 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="Input.Operation" class="form-label">Operation</label>
-                <input asp-for="Input.Operation" class="form-control" placeholder="e.g. POST /subscribe" />
-                <span asp-validation-for="Input.Operation" class="text-danger small"></span>
+                <label class="form-label">Allowed Operations</label>
+                <div id="operationList">
+                    @if (Model.Input.Operations.Count > 0)
+                    {
+                        foreach (var op in Model.Input.Operations)
+                        {
+                            var key = Guid.NewGuid().ToString("N");
+                            <input type="hidden" name="Input.Operations.index" value="@key" />
+                            <div class="input-group mb-2" id="op-@key">
+                                <input type="text" class="form-control" name="Input.Operations[@key]" value="@op" />
+                                <button type="button" class="btn btn-outline-danger" onclick="lyra.removeOperation('@key')">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        var key = Guid.NewGuid().ToString("N");
+                        <input type="hidden" name="Input.Operations.index" value="@key" />
+                        <div class="input-group mb-2" id="op-@key">
+                            <input type="text" class="form-control" name="Input.Operations[@key]" />
+                            <button type="button" class="btn btn-outline-danger" onclick="lyra.removeOperation('@key')">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                    }
+                </div>
+
+                <button type="button" class="btn btn-outline-light btn-sm" onclick="lyra.addOperation()">Add Operation</button>
             </div>
 
             <div class="mb-3">
@@ -75,4 +102,5 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/lyra-utils.js" asp-append-version="true"></script>
 }

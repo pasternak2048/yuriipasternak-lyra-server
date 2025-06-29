@@ -4,6 +4,7 @@ using LYRA.Server.Entities;
 using LYRA.Server.Models.AccessPolicy;
 using LYRA.Server.Models.Pagination;
 using LYRA.Server.Services.AccessPolicy.Interfaces;
+using LYRA.Server.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace LYRA.Server.Services.AccessPolicy
@@ -104,9 +105,9 @@ namespace LYRA.Server.Services.AccessPolicy
                 if (target == null)
                     throw new InvalidOperationException("Target touchpoint not found.");
 
-                var normalizedOperation = request.Operation.ToLowerInvariant().Trim();
+                var joinedOperations = DelimitedStringParser.Join(request.Operations);
 
-                if (await PolicyExists(null, caller.SystemName, target.SystemName, normalizedOperation, request.Context))
+                if (await PolicyExists(null, caller.SystemName, target.SystemName, request.Context))
                     throw new InvalidOperationException("Such policy already exists.");
 
                 var entity = new AccessPolicyEntity
@@ -116,7 +117,7 @@ namespace LYRA.Server.Services.AccessPolicy
                     CallerSystemName = caller.SystemName,
                     TargetId = target.Id,
                     TargetSystemName = target.SystemName,
-                    Operation = normalizedOperation,
+                    Operation = joinedOperations,
                     Context = request.Context,
                     IsEnabled = request.IsEnabled,
                     CreatedAt = DateTime.UtcNow
@@ -126,7 +127,7 @@ namespace LYRA.Server.Services.AccessPolicy
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("Created access policy {Caller} → {Target}: {Operation}",
-                    caller.SystemName, target.SystemName, request.Operation);
+                    caller.SystemName, target.SystemName, request.Operations);
 
                 return MapToDto(entity);
             }
@@ -149,16 +150,16 @@ namespace LYRA.Server.Services.AccessPolicy
                 var caller = await ResolveTouchpointAsync(request.CallerId, request.CallerSystemName, "Caller");
                 var target = await ResolveTouchpointAsync(request.TargetId, request.TargetSystemName, "Target");
 
-                var normalizedOperation = request.Operation.ToLowerInvariant().Trim();
+                var joinedOperations = DelimitedStringParser.Join(request.Operations);
 
-                if (await PolicyExists(request.Id, caller.SystemName, target.SystemName, normalizedOperation, request.Context))
+                if (await PolicyExists(request.Id, caller.SystemName, target.SystemName, request.Context))
                     throw new InvalidOperationException("Such policy already exists.");
 
                 entity.CallerId = caller.Id;
                 entity.CallerSystemName = caller.SystemName;
                 entity.TargetId = target.Id;
                 entity.TargetSystemName = target.SystemName;
-                entity.Operation = normalizedOperation;
+                entity.Operation = joinedOperations;
                 entity.Context = request.Context;
                 entity.IsEnabled = request.IsEnabled;
 
@@ -233,13 +234,12 @@ namespace LYRA.Server.Services.AccessPolicy
         /// <summary>
         /// Returns whether a policy already exists for given parameters (excluding a specific ID).
         /// </summary>
-        private async Task<bool> PolicyExists(Guid? policyId, string caller, string target, string operation, AccessContext context)
+        private async Task<bool> PolicyExists(Guid? policyId, string caller, string target, AccessContext context)
         {
             return await _context.AccessPolicies.AsNoTracking().AnyAsync(p =>
                 (!policyId.HasValue || p.Id != policyId.Value) &&
                 p.CallerSystemName == caller &&
                 p.TargetSystemName == target &&
-                p.Operation == operation &&
                 p.Context == context);
         }
 

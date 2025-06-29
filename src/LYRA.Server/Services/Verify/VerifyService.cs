@@ -3,6 +3,7 @@ using LYRA.Security.Signature;
 using LYRA.Security.Utilities.Security;
 using LYRA.Server.Services.AccessPolicy.Interfaces;
 using LYRA.Server.Services.Verify.Interfaces;
+using LYRA.Server.Utilities;
 
 namespace LYRA.Server.Services.Verify
 {
@@ -33,14 +34,24 @@ namespace LYRA.Server.Services.Verify
         {
             try
             {
-                var operationKey = $"{request.Method} {request.Path}".ToLowerInvariant();
-                var policy = await _memory.GetAsync(request.Caller, request.Target, request.Context.ToString(), operationKey);
+                var policy = await _memory.GetAsync(request.Caller, request.Target, request.Context.ToString());
 
                 if (policy == null || !policy.IsEnabled)
                     return Failure($"Access denied for '{request.Caller}' to '{request.Target}' ({request.Context}).");
 
+                // Validate operation
+
+                var operationKey = $"{request.Method} {request.Path}".ToLowerInvariant();
+                var allowedOps = DelimitedStringParser.Parse(policy.Operation);
+
+                if (!allowedOps.Any(op => operationKey.StartsWith(op)))
+                {
+                    return Failure($"Operation '{operationKey}' is not allowed for '{request.Caller}' -> '{request.Target}'.");
+                }
+
                 // Validate payload hash if needed
                 var metadata = SignatureContextRegistry.GetMetadata(request.Context);
+
                 if (metadata.RequiresPayloadHash(request))
                 {
                     if (string.IsNullOrWhiteSpace(request.Payload))

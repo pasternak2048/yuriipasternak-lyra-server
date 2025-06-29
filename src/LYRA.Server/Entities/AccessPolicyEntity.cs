@@ -60,7 +60,7 @@ namespace LYRA.Server.Entities
         ///   - "OrderService.CreateOrder" (grpc/internal)
         /// </summary>
         [Required]
-        [MaxLength(200)]
+        [MaxLength(2000)]
         public string Operation { get; set; } = null!;
 
         /// <summary>

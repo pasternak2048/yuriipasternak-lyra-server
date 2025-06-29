@@ -42,8 +42,7 @@ namespace LYRA.Server.Data.LyraCachedDb
                 {
                     p.CallerSystemName,
                     p.TargetSystemName,
-                    p.Context,
-                    p.Operation
+                    p.Context
                 })
                 .IsUnique()
                 .HasDatabaseName("IX_CachedAccessPolicy_Key");
@@ -63,7 +62,7 @@ namespace LYRA.Server.Data.LyraCachedDb
                 // Operation name (e.g., POST /api/...) — always lowercase
                 entity.Property(p => p.Operation)
                       .IsRequired()
-                      .HasMaxLength(200);
+                      .HasMaxLength(2000);
 
                 // Context of the operation: Http, Event, Cache, etc.
                 entity.Property(p => p.Context)
