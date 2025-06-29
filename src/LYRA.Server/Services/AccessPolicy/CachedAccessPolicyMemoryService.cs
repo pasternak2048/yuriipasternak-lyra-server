@@ -23,15 +23,15 @@ namespace LYRA.Server.Services.AccessPolicy
         }
 
         /// <inheritdoc/>
-        public async Task<CachedAccessPolicyEntity?> GetAsync(string caller, string target, string context, string operation)
+        public async Task<CachedAccessPolicyEntity?> GetAsync(string caller, string target, string context)
         {
-            var key = BuildKey(caller, target, context, operation);
+            var key = BuildKey(caller, target, context);
 
             var cached = await _cache.GetAsync<CachedAccessPolicyEntity>(key);
             if (cached != null)
                 return cached;
 
-            cached = await _persistent.FindAsync(caller, target, context, operation);
+            cached = await _persistent.FindAsync(caller, target, context);
             if (cached != null)
                 await _cache.SetAsync(key, cached, DefaultTtl);
 
@@ -39,10 +39,10 @@ namespace LYRA.Server.Services.AccessPolicy
         }
 
         /// <inheritdoc/>
-        public async Task RefreshAsync(string caller, string target, string context, string operation)
+        public async Task RefreshAsync(string caller, string target, string context)
         {
-            var key = BuildKey(caller, target, context, operation);
-            var cached = await _persistent.FindAsync(caller, target, context, operation);
+            var key = BuildKey(caller, target, context);
+            var cached = await _persistent.FindAsync(caller, target, context);
 
             if (cached != null)
                 await _cache.SetAsync(key, cached, DefaultTtl);
@@ -51,9 +51,9 @@ namespace LYRA.Server.Services.AccessPolicy
         }
 
         /// <inheritdoc/>
-        public async void Invalidate(string caller, string target, string context, string operation)
+        public async void Invalidate(string caller, string target, string context)
         {
-            var key = BuildKey(caller, target, context, operation);
+            var key = BuildKey(caller, target, context);
             await _cache.RemoveAsync(key);
         }
 
@@ -65,12 +65,12 @@ namespace LYRA.Server.Services.AccessPolicy
 
             foreach (var policy in all)
             {
-                var key = BuildKey(policy.CallerSystemName, policy.TargetSystemName, policy.Context, policy.Operation);
+                var key = BuildKey(policy.CallerSystemName, policy.TargetSystemName, policy.Context);
                 await _cache.SetAsync(key, policy, DefaultTtl);
             }
         }
 
-        private static string BuildKey(string caller, string target, string context, string operation)
-            => $"{caller}::{target}::{context}::{operation}".ToLowerInvariant();
+        private static string BuildKey(string caller, string target, string context)
+            => $"{caller}::{target}::{context}".ToLowerInvariant();
     }
 }

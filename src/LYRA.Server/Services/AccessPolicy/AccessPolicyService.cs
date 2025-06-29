@@ -107,7 +107,7 @@ namespace LYRA.Server.Services.AccessPolicy
 
                 var joinedOperations = DelimitedStringParser.Join(request.Operations);
 
-                if (await PolicyExists(null, caller.SystemName, target.SystemName, joinedOperations, request.Context))
+                if (await PolicyExists(null, caller.SystemName, target.SystemName, request.Context))
                     throw new InvalidOperationException("Such policy already exists.");
 
                 var entity = new AccessPolicyEntity
@@ -152,7 +152,7 @@ namespace LYRA.Server.Services.AccessPolicy
 
                 var joinedOperations = DelimitedStringParser.Join(request.Operations);
 
-                if (await PolicyExists(request.Id, caller.SystemName, target.SystemName, joinedOperations, request.Context))
+                if (await PolicyExists(request.Id, caller.SystemName, target.SystemName, request.Context))
                     throw new InvalidOperationException("Such policy already exists.");
 
                 entity.CallerId = caller.Id;
@@ -234,13 +234,12 @@ namespace LYRA.Server.Services.AccessPolicy
         /// <summary>
         /// Returns whether a policy already exists for given parameters (excluding a specific ID).
         /// </summary>
-        private async Task<bool> PolicyExists(Guid? policyId, string caller, string target, string operation, AccessContext context)
+        private async Task<bool> PolicyExists(Guid? policyId, string caller, string target, AccessContext context)
         {
             return await _context.AccessPolicies.AsNoTracking().AnyAsync(p =>
                 (!policyId.HasValue || p.Id != policyId.Value) &&
                 p.CallerSystemName == caller &&
                 p.TargetSystemName == target &&
-                p.Operation == operation &&
                 p.Context == context);
         }
 
