@@ -4,6 +4,7 @@ using LYRA.Security.Utilities.Security;
 using LYRA.Server.Services.AccessPolicy.Interfaces;
 using LYRA.Server.Services.Verify.Interfaces;
 using LYRA.Server.Utilities;
+using System.Globalization;
 
 namespace LYRA.Server.Services.Verify
 {
@@ -34,13 +35,23 @@ namespace LYRA.Server.Services.Verify
         {
             try
             {
+                //Validate allowed DateTime
+                if (!DateTime.TryParse(request.Timestamp, null, DateTimeStyles.AdjustToUniversal, out var requestTimeUtc))
+                    return Failure("Invalid timestamp format.");
+
+                var now = DateTime.UtcNow;
+
+                var hourDiff = Math.Abs((int)(now - requestTimeUtc).TotalHours);
+
+                if (hourDiff > 2)
+                    return Failure("Request timestamp is outside the allowed +- 2 hours window.");
+
                 var policy = await _memory.GetAsync(request.Caller, request.Target, request.Context.ToString());
 
                 if (policy == null || !policy.IsEnabled)
                     return Failure($"Access denied for '{request.Caller}' to '{request.Target}' ({request.Context}).");
 
                 // Validate operation
-
                 var operationKey = $"{request.Method} {request.Path}".ToLowerInvariant();
                 var allowedOps = DelimitedStringParser.Parse(policy.Operation);
 
