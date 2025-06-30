@@ -87,9 +87,6 @@ namespace LYRA.Server.Services.Verify
                 var expectedSignature = EncryptionHelper.ComputeHmacSha512(stringToSign, decryptedSecret);
                 var isValid = EncryptionHelper.SecureEquals(expectedSignature, request.Signature);
 
-                _logger.LogInformation("Verification result for {Caller} → {Target}: {Result}",
-                    request.Caller, request.Target, isValid ? "SUCCESS" : "FAILURE");
-
                 return isValid ? VerifyResponse.Success : Failure("Invalid signature.");
             }
             catch (Exception ex)
