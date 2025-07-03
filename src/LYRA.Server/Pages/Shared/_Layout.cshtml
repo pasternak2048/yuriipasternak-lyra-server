@@ -41,6 +41,9 @@
                     <a class="nav-link text-nowrap @(Context.Request.Path.StartsWithSegments("/Dashboard/AccessPolicies") ? "active" : "") ms-4" asp-page="/Dashboard/AccessPolicies/Index">
                         <i class="bi bi-sliders2-vertical me-2"></i> Access Policies
                     </a>
+                    <a class="nav-link text-nowrap @(Context.Request.Path.StartsWithSegments("/Dashboard/Logging") ? "active" : "") ms-4" asp-page="/Dashboard/Logging/Index">
+                        <i class="bi bi-activity me-2"></i> Live Log Monitor
+                    </a>
                     <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Privacy") ? "active" : "")" asp-page="/Privacy">
                         <i class="bi bi-eye-slash-fill me-2"></i> Privacy
                     </a>

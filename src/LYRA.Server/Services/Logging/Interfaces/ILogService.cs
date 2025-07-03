@@ -1,4 +1,6 @@
-﻿namespace LYRA.Server.Services.Logging.Interfaces
+﻿using LYRA.Server.Models.Logging;
+
+namespace LYRA.Server.Services.Logging.Interfaces
 {
     /// <summary>
     /// Defines contract for writing structured log entries to the logging store.
@@ -27,5 +29,18 @@
             string? targetSystem = null,
             string? signatureHash = null,
             string? metadataJson = null);
+
+        /// <summary>
+        /// Retrieves the most recent log entries, ordered by timestamp descending.
+        /// </summary>
+        /// <param name="limit">Maximum number of logs to return.</param>
+        /// <returns>List of recent log entries formatted for display.</returns>
+        Task<List<LogEntryDto>> GetRecentAsync(int limit = 100);
+
+        /// <summary>
+        /// Retrieves the total number of logs in the system.
+        /// </summary>
+        /// <returns>The total count of logs.</returns>
+        Task<int> GetTotalLogsCountAsync();
     }
 }
