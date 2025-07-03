@@ -11,7 +11,7 @@
         </h1>
 
         <p class="text-light-emphasis fs-5 mb-4">
-            In LYRA, privacy isn't just a checkbox. It's a boundary. A handshake. A pact between systems.
+            In LYRA, privacy isn't a feature — it's a principle. A boundary of intent. A handshake between systems based on clarity, not assumption.
         </p>
 
         <hr class="border-secondary" />
@@ -20,53 +20,60 @@
             <i class="bi bi-shield-shaded me-2 text-light"></i> What LYRA Sees
         </h5>
         <ul class="text-light-emphasis">
-            <li>Hashed passwords only — no readable secrets, ever</li>
-            <li>Service-level metadata: when, who, and how — not what</li>
-            <li>Access relationships between trusted systems</li>
-            <li>Validations of integrity, not inspections of content</li>
-            <li>All audit logs are stored securely and access-controlled</li>
+            <li>Only metadata needed for verification — not business payloads</li>
+            <li>Caller and Target system names, method, path, timestamp</li>
+            <li>Integrity signatures and hashed payload digests</li>
+            <li>Access relationships between trusted systems via strict policies</li>
+            <li>Structured verification logs stored securely and access-controlled</li>
         </ul>
 
         <h5 class="fw-semibold mt-4">
             <i class="bi bi-eye me-2 text-light"></i> What LYRA Refuses to See
         </h5>
         <ul class="text-light-emphasis">
-            <li>No personal user data or session payloads</li>
-            <li>No cookies beyond security essentials</li>
-            <li>No tracking, profiling, or fingerprinting</li>
-            <li>No metrics unless explicitly enabled</li>
-            <li>No plaintext secrets or keys stored</li>
+            <li>No access to personal user data, session content, or request bodies</li>
+            <li>No cookies, tracking, profiling, or fingerprinting</li>
+            <li>No storage of plaintext secrets or dynamic tokens</li>
+            <li>No inspection of API payloads beyond hash validation</li>
+            <li>No telemetry or external calls — by default and by design</li>
         </ul>
 
         <h5 class="fw-semibold mt-4">
             <i class="bi bi-link-45deg me-2 text-light"></i> Trust is Contextual
         </h5>
         <p class="text-light-emphasis">
-            LYRA defines trust between systems using precise, transparent policies. Nothing is assumed. Every permission is granted deliberately.
+            LYRA defines trust through explicit policies between endpoints. Each AccessPolicy is scoped, reviewed, and enforced at runtime — no implicit permissions.
         </p>
 
         <h5 class="fw-semibold mt-4">
-            <i class="bi bi-box-arrow-in-right me-2 text-light"></i> Self-Hosted. Yours Alone.
+            <i class="bi bi-box-arrow-in-right me-2 text-light"></i> Self-Hosted. Zero Dependency.
         </h5>
         <p class="text-light-emphasis">
-            LYRA.Server runs in <span class="fw-bold text-light">your environment</span>, with <span class="fw-bold text-light">your rules</span>. No external APIs. No backdoors. You own the keys.
+            LYRA.Server runs entirely within <span class="fw-bold text-light">your infrastructure</span>. No third-party calls. No vendor lock-in. No external verification authorities.
         </p>
 
         <h5 class="fw-semibold mt-4">
-            <i class="bi bi-person-lines-fill me-2"></i> Maintained By
+            <i class="bi bi-terminal-lock me-2 text-light"></i> Verified by Design
         </h5>
         <p class="text-light-emphasis">
-            Built and maintained by <strong>Yurii Pasternak</strong> (<a href="mailto:pasternak2048@gmail.com" class="text-info">pasternak2048@gmail.com</a>).<br />
-            View the project on <a href="https://github.com/pasternak2048" class="text-info" target="_blank">GitHub</a>.
+            Every incoming request must be signed and verified against cryptographic rules. Validation is deterministic, transparent, and reproducible.
+        </p>
+
+        <h5 class="fw-semibold mt-4">
+            <i class="bi bi-person-lines-fill me-2 text-light"></i> Maintained By
+        </h5>
+        <p class="text-light-emphasis">
+            Designed and maintained by <strong>Yurii Pasternak</strong> (<a href="mailto:pasternak2048@gmail.com" class="text-info">pasternak2048@gmail.com</a>).<br />
+            Explore the source on <a href="https://github.com/pasternak2048" class="text-info" target="_blank">GitHub</a>.
         </p>
 
         <hr class="border-secondary" />
 
         <h5 class="fw-semibold mt-4">
-            <i class="bi bi-shield-check me-2 text-light"></i> Your Privacy, Our Priority
+            <i class="bi bi-shield-check me-2 text-light"></i> Built for Trust. Engineered for Clarity.
         </h5>
         <p class="text-light-emphasis">
-            LYRA is built with privacy by design and default. We encourage responsible data handling and are committed to ensuring your systems communicate securely without compromising user trust.
+            LYRA is engineered with privacy by default. It empowers teams to build secure, transparent, and trustworthy service integrations — without compromising on control or simplicity.
         </p>
     </div>
 </div>
