@@ -4,6 +4,7 @@ using LYRA.Security.Utilities.Security;
 using LYRA.Server.Entities;
 using LYRA.Server.Entities.Identity;
 using LYRA.Server.Services.AccessPolicy.Interfaces;
+using LYRA.Server.Services.Logging.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,11 +17,16 @@ namespace LYRA.Server.Data.LyraDb
             var context = serviceProvider.GetRequiredService<LyraDbContext>();
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var cacheSync = serviceProvider.GetRequiredService<IAccessPolicyCacheSyncService>();
+            var logger = serviceProvider.GetRequiredService<ILogService>();
 
             context.Database.EnsureCreated();
+            await logger.WriteAsync("System", "Info", "Database ensured created", source: "DbInitializer");
 
             if (await context.Companies.AnyAsync())
+            {
+                await logger.WriteAsync("System", "Info", "Seed skipped: companies already exist", source: "DbInitializer");
                 return;
+            }
 
             const string adminEmail = "admin@lyra";
             const string adminPassword = "admin";
@@ -39,18 +45,28 @@ namespace LYRA.Server.Data.LyraDb
                 var result = await userManager.CreateAsync(adminUser, adminPassword);
                 if (!result.Succeeded)
                 {
-                    throw new Exception("Failed to create admin user: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+                    var error = string.Join(", ", result.Errors.Select(e => e.Description));
+                    await logger.WriteAsync("System", "Fail", "Failed to create admin user", source: "DbInitializer", exception: error);
+                    throw new Exception("Failed to create admin user: " + error);
                 }
+
+                await logger.WriteAsync("System", "Success", "Admin user created", source: "DbInitializer");
+            }
+            else
+            {
+                await logger.WriteAsync("System", "Info", "Admin user already exists", source: "DbInitializer");
             }
 
             var systemUserId = Guid.Parse(adminUser.Id);
 
             // 2. Companies
+            await logger.WriteAsync("System", "Info", "Creating companies...", source: "DbInitializer");
             var aCorp = await EnsureCompanyAsync(context, "A Corp", EncryptionHelper.EncryptSecret("a-secret"), systemUserId);
             var bCorp = await EnsureCompanyAsync(context, "B Corp", EncryptionHelper.EncryptSecret("b-secret"), systemUserId);
             var cCorp = await EnsureCompanyAsync(context, "C Corp", EncryptionHelper.EncryptSecret("c-secret"), systemUserId);
 
             // 3. Touchpoints
+            await logger.WriteAsync("System", "Info", "Creating touchpoints...", source: "DbInitializer");
             var aBilling = await EnsureTouchpointAsync(context, aCorp, "Billing API", EncryptionHelper.EncryptSecret("a-billing-secret"), TouchpointMode.TargetOnly, systemUserId);
             var aPublicApi = await EnsureTouchpointAsync(context, aCorp, "Public API", EncryptionHelper.EncryptSecret("a-api-secret"), TouchpointMode.TargetOnly, systemUserId);
 
@@ -60,11 +76,15 @@ namespace LYRA.Server.Data.LyraDb
             var cWorker = await EnsureTouchpointAsync(context, cCorp, "Worker Node", EncryptionHelper.EncryptSecret("c-worker-secret"), TouchpointMode.CallerOnly, systemUserId);
             var cBot = await EnsureTouchpointAsync(context, cCorp, "Bot Commander", EncryptionHelper.EncryptSecret("c-bot-secret"), TouchpointMode.Both, systemUserId);
 
+            await logger.WriteAsync("System", "Success", "Touchpoints created", source: "DbInitializer");
+
             // 4. Access policy
             await EnsurePolicyAsync(context, bGateway, aBilling, "POST /subscribe", AccessContext.Http, systemUserId);
+            await logger.WriteAsync("System", "Success", "Access policy created", source: "DbInitializer");
 
             // 5. Generate cache
             await cacheSync.SyncFromDbAsync();
+            await logger.WriteAsync("System", "Success", "Access policy cache generated", source: "DbInitializer");
         }
 
         private static async Task<CompanyEntity> EnsureCompanyAsync(
