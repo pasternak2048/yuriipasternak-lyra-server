@@ -3,7 +3,9 @@ using LYRA.Server.Data.Core.Auditing;
 using LYRA.Server.Data.Core.Caching;
 using LYRA.Server.Data.LyraCachedDb;
 using LYRA.Server.Data.LyraDb;
+using LYRA.Server.Data.LyraLogsDb;
 using LYRA.Server.Entities.Identity;
+using LYRA.Server.Hubs;
 using LYRA.Server.Services.AccessPolicy;
 using LYRA.Server.Services.AccessPolicy.Interfaces;
 using LYRA.Server.Services.Cache;
@@ -12,6 +14,8 @@ using LYRA.Server.Services.Company;
 using LYRA.Server.Services.Company.Interfaces;
 using LYRA.Server.Services.Identity;
 using LYRA.Server.Services.Identity.Interfaces;
+using LYRA.Server.Services.Logging;
+using LYRA.Server.Services.Logging.Interfaces;
 using LYRA.Server.Services.TrustedTouchpoint;
 using LYRA.Server.Services.TrustedTouchpoint.Interfaces;
 using LYRA.Server.Services.Verify;
@@ -25,6 +29,12 @@ using System.Text.Json.Serialization;
 /// Configures services, middleware, authentication, and database migration for Razor Pages with security verification.
 /// </summary>
 var builder = WebApplication.CreateBuilder(args);
+
+/// <summary>
+/// Register SignalR for real-time communication over WebSockets.
+/// Enables broadcasting live events (e.g. activity logs) to connected clients via hubs.
+/// </summary>
+builder.Services.AddSignalR();
 
 /// <summary>
 /// Configure the database context with an auditing interceptor and SQL Server as the underlying provider.
@@ -44,6 +54,11 @@ builder.Services.AddDbContext<LyraDbContext>((provider, options) =>
 builder.Services.AddDbContext<LyraCachedDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("CachedDatabase"));
+});
+
+builder.Services.AddDbContext<LyraLogsDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("LogsDatabase"));
 });
 
 /// <summary>
@@ -73,6 +88,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<ICacheService, MemoryCacheService>();
 builder.Services.AddScoped<ICachedAccessPolicyMemoryService, CachedAccessPolicyMemoryService>();
 builder.Services.AddScoped<IAccessPolicyCacheSyncService, AccessPolicyCacheSyncService>();
+builder.Services.AddScoped<ILogService, LogService>();
 
 /// <summary>
 /// Register signature string builders per access context and the factory to resolve them.
@@ -136,8 +152,10 @@ using (var scope = app.Services.CreateScope())
 {
     var lyraDbContext = scope.ServiceProvider.GetRequiredService<LyraDbContext>();
     var lyraCachedDbContext = scope.ServiceProvider.GetRequiredService<LyraCachedDbContext>();
+    var lyraLogsDbContext = scope.ServiceProvider.GetRequiredService<LyraLogsDbContext>();
     await lyraDbContext.Database.MigrateAsync();
     await lyraCachedDbContext.Database.MigrateAsync();
+    await lyraLogsDbContext.Database.MigrateAsync();
     await DbInitializer.SeedAsync(scope.ServiceProvider);
 }
 
@@ -164,5 +182,7 @@ app.MapRazorPages();
 /// Maps API controllers to their routes (e.g., /api/verification).
 /// </summary>
 app.MapControllers();
+
+app.MapHub<LyraActivityHub>("/activityHub");
 
 app.Run();

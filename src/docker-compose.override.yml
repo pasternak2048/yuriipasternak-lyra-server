@@ -22,6 +22,7 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ConnectionStrings__Database=Server=lyra.db;Database=LYRA_Db;User Id=sa;Password=SwN12345678;Encrypt=False;TrustServerCertificate=True
       - ConnectionStrings__CachedDatabase=Server=lyra.db;Database=LYRA_CachedDb;User Id=sa;Password=SwN12345678;Encrypt=False;TrustServerCertificate=True
+      - ConnectionStrings__LogsDatabase=Server=lyra.db;Database=LYRA_LogsDb;User Id=sa;Password=SwN12345678;Encrypt=False;TrustServerCertificate=True
     networks:
       - gloria-net
     depends_on:

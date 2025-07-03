@@ -401,8 +401,8 @@ FodyWeavers.xsd
 *.sln.iml
 
 # SQL Server data
-data/
-log/
-secrets/
+src/data/
+src/log/
+src/secrets/
 *.xml
 machine-key.*
