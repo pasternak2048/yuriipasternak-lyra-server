@@ -2,6 +2,7 @@
 using LYRA.Security.Signature;
 using LYRA.Security.Utilities.Security;
 using LYRA.Server.Services.AccessPolicy.Interfaces;
+using LYRA.Server.Services.Logging.Interfaces;
 using LYRA.Server.Services.Verify.Interfaces;
 using LYRA.Server.Utilities;
 using System.Globalization;
@@ -16,90 +17,171 @@ namespace LYRA.Server.Services.Verify
     {
         private readonly SignatureStringBuilderFactory _factory;
         private readonly ICachedAccessPolicyMemoryService _memory;
-        private readonly ILogger<VerifyService> _logger;
+        private readonly ILogService _logger;
+        private readonly ILogger<VerifyService> _loggerDotNet;
 
         public VerifyService(
             SignatureStringBuilderFactory factory,
             ICachedAccessPolicyMemoryService memory,
-            ILogger<VerifyService> logger)
+            ILogService logger,
+            ILogger<VerifyService> loggerDotNet)
         {
             _factory = factory;
             _memory = memory;
             _logger = logger;
+            _loggerDotNet = loggerDotNet;
         }
 
         /// <summary>
         /// Performs verification using memory-cached access policy with denormalized data.
+        /// Logs detailed structured entries for each failure/success scenario.
         /// </summary>
+        /// <param name="request">Request to verify.</param>
+        /// <returns>Verification result.</returns>
         public async Task<VerifyResponse> Verify(VerifyRequest request)
         {
             try
             {
-                //Validate allowed DateTime
+                // Parse and validate the timestamp.
                 if (!DateTime.TryParse(request.Timestamp, null, DateTimeStyles.AdjustToUniversal, out var requestTimeUtc))
-                    return Failure("Invalid timestamp format.");
-
-                var now = DateTime.UtcNow;
-
-                var hourDiff = Math.Abs((int)(now - requestTimeUtc).TotalHours);
-
-                if (hourDiff > 2)
-                    return Failure("Request timestamp is outside the allowed +- 2 hours window.");
-
-                var policy = await _memory.GetAsync(request.Caller, request.Target, request.Context.ToString());
-
-                if (policy == null || !policy.IsEnabled)
-                    return Failure($"Access denied for '{request.Caller}' to '{request.Target}' ({request.Context}).");
-
-                // Validate operation
-                var operationKey = $"{request.Method} {request.Path}".ToLowerInvariant();
-                var allowedOps = DelimitedStringParser.Parse(policy.Operation);
-
-                if (!allowedOps.Any(op => operationKey.StartsWith(op)))
                 {
-                    return Failure($"Operation '{operationKey}' is not allowed for '{request.Caller}' -> '{request.Target}'.");
+                    return await FailAsync(
+                        description: "Invalid timestamp format",
+                        request: request);
                 }
 
-                // Validate payload hash if needed
-                var metadata = SignatureContextRegistry.GetMetadata(request.Context);
+                // Check that the timestamp is within the acceptable range (±2 hours).
+                var now = DateTime.UtcNow;
+                var hourDiff = Math.Abs((int)(now - requestTimeUtc).TotalHours);
+                if (hourDiff > 2)
+                {
+                    return await FailAsync(
+                        description: "Request timestamp is outside the allowed +- 2 hours window.",
+                        request: request);
+                }
 
+                // Retrieve cached policy for caller-target-context combination.
+                var policy = await _memory.GetAsync(request.Caller, request.Target, request.Context.ToString());
+                if (policy == null || !policy.IsEnabled)
+                {
+                    return await FailAsync(
+                        description: "Access denied: no policy or disabled",
+                        request: request);
+                }
+
+                // Validate the requested operation against allowed operations in policy.
+                var operationKey = $"{request.Method} {request.Path}".ToLowerInvariant();
+                var allowedOps = DelimitedStringParser.Parse(policy.Operation);
+                if (!allowedOps.Any(op => operationKey.StartsWith(op)))
+                {
+                    return await FailAsync(
+                        description: $"Operation not allowed: {operationKey}",
+                        request: request);
+                }
+
+                // Check if payload validation is required for the given context and method.
+                var metadata = SignatureContextRegistry.GetMetadata(request.Context);
                 if (metadata.RequiresPayloadHash(request))
                 {
                     if (string.IsNullOrWhiteSpace(request.Payload))
-                        return Failure("Payload is required for this context and method.");
+                    {
+                        return await FailAsync(
+                            description: "Payload is required for this context and method.",
+                            request: request);
+                    }
 
                     if (string.IsNullOrWhiteSpace(request.PayloadHash))
-                        return Failure("PayloadHash is required for this context and method.");
+                    {
+                        return await FailAsync(
+                            description: "PayloadHash is required for this context and method.",
+                            request: request);
+                    }
 
                     var computed = EncryptionHelper.ComputeSha512(request.Payload);
                     if (!EncryptionHelper.SecureEquals(computed, request.PayloadHash))
-                        return Failure("PayloadHash does not match payload.");
+                    {
+                        return await FailAsync(
+                            description: "PayloadHash does not match payload.",
+                            request: request);
+                    }
                 }
 
-                // Generate string to sign
+                // Construct the string to sign using the selected builder.
                 var builder = _factory.GetBuilder(request.Context);
                 var stringToSign = builder.BuildStringToSign(
-                    request.Caller, request.Target, request.Method, request.Path,
+                    request.Caller, request.Target, request.Method.ToLowerInvariant(), request.Path.ToLowerInvariant(),
                     request.PayloadHash, request.Timestamp);
 
-                // Decrypt and verify signature
+                // Compute HMAC and compare to signature provided in request.
                 var decryptedSecret = EncryptionHelper.DecryptSecret(policy.CallerSecret);
                 var expectedSignature = EncryptionHelper.ComputeHmacSha512(stringToSign, decryptedSecret);
                 var isValid = EncryptionHelper.SecureEquals(expectedSignature, request.Signature);
 
-                return isValid ? VerifyResponse.Success : Failure("Invalid signature.");
+                if (!isValid)
+                {
+                    return await FailAsync(
+                        description: "Invalid signature.",
+                        request: request,
+                        signatureHash: request.Signature);
+                }
+
+                // Success log
+                await _logger.WriteAsync(
+                    type: "Verification",
+                    status: "Success",
+                    description: "Request verified successfully",
+                    callerSystem: request.Caller,
+                    targetSystem: request.Target,
+                    signatureHash: request.Signature,
+                    source: nameof(VerifyService));
+
+                return VerifyResponse.Success;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected verification failure");
-                return Failure($"Verification failed: {ex.Message}");
+                // Unexpected error log
+                _loggerDotNet.LogError(ex, "Unexpected verification failure");
+
+                return await FailAsync(
+                    description: "Exception during verification",
+                    request: request,
+                    exception: ex.ToString(),
+                    signatureHash: request.Signature,
+                    status: "Error");
             }
         }
 
-        private static VerifyResponse Failure(string message) => new()
+        /// <summary>
+        /// Logs a failure message and returns a failed <see cref="VerifyResponse"/>.
+        /// </summary>
+        /// <param name="description">Short description of the failure reason (e.g., "Invalid signature").</param>
+        /// <param name="request">Original verification request for logging context.</param>
+        /// <param name="exception">Optional exception message (stack trace or message).</param>
+        /// <param name="signatureHash">Optional signature involved in the failure.</param>
+        /// <param name="status">Log severity (Fail, Error, Warning, etc.).</param>
+        /// <returns>A failed <see cref="VerifyResponse"/> with the specified message.</returns>
+        private async Task<VerifyResponse> FailAsync(
+            string description,
+            VerifyRequest request,
+            string? exception = null,
+            string? signatureHash = null,
+            string status = "Fail")
         {
-            IsSuccess = false,
-            ErrorMessage = message
-        };
+            await _logger.WriteAsync(
+                type: "Verification",
+                status: status,
+                description: description,
+                callerSystem: request.Caller,
+                targetSystem: request.Target,
+                exception: exception,
+                signatureHash: signatureHash,
+                source: nameof(VerifyService));
+
+            return new VerifyResponse
+            {
+                IsSuccess = false,
+                ErrorMessage = description
+            };
+        }
     }
 }

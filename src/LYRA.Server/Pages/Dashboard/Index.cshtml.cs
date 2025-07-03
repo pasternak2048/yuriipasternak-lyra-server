@@ -1,5 +1,6 @@
 using LYRA.Server.Services.AccessPolicy.Interfaces;
 using LYRA.Server.Services.Company.Interfaces;
+using LYRA.Server.Services.Logging.Interfaces;
 using LYRA.Server.Services.TrustedTouchpoint.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -16,6 +17,7 @@ namespace LYRA.Server.Pages.Dashboard
         private readonly ICompanyService _companyService;
         private readonly ITrustedTouchpointService _trustedTouchpointService;
         private readonly IAccessPolicyService _accessPolicyService;
+        private readonly ILogService _logService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="IndexModel"/> class.
@@ -26,11 +28,13 @@ namespace LYRA.Server.Pages.Dashboard
         public IndexModel(
             ICompanyService companyService,
             ITrustedTouchpointService trustedTouchpointService,
-            IAccessPolicyService accessPolicyService)
+            IAccessPolicyService accessPolicyService,
+            ILogService logService)
         {
             _companyService = companyService;
             _trustedTouchpointService = trustedTouchpointService;
             _accessPolicyService = accessPolicyService;
+            _logService = logService;
         }
 
         /// <summary>
@@ -49,6 +53,11 @@ namespace LYRA.Server.Pages.Dashboard
         public int PolicyCount { get; set; }
 
         /// <summary>
+        /// Total number of logs.
+        /// </summary>
+        public int LogCount { get; set; }
+
+        /// <summary>
         /// Handles GET request for the dashboard page.
         /// Loads and displays summary statistics.
         /// </summary>
@@ -57,6 +66,7 @@ namespace LYRA.Server.Pages.Dashboard
             CompanyCount = await _companyService.GetTotalCompanyCountAsync();
             TouchpointCount = await _trustedTouchpointService.GetTotalTouchpointCountAsync();
             PolicyCount = await _accessPolicyService.GetTotalPolicyCountAsync();
+            LogCount = await _logService.GetTotalLogsCountAsync();
         }
     }
 }

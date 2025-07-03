@@ -1,8 +1,10 @@
 ﻿using LYRA.Server.Data.LyraLogsDb;
 using LYRA.Server.Entities.Logging;
 using LYRA.Server.Hubs;
+using LYRA.Server.Models.Logging;
 using LYRA.Server.Services.Logging.Interfaces;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace LYRA.Server.Services.Logging
 {
@@ -51,9 +53,64 @@ namespace LYRA.Server.Services.Logging
 
             if (_hubContext is not null)
             {
-                var formatted = $"[{entry.TimestampUtc:HH:mm:ss}] [{status}] {type}: {description}";
-                await _hubContext.Clients.All.SendAsync("ReceiveLog", formatted);
+                var dto = new LogEntryDto
+                {
+                    Timestamp = entry.TimestampUtc.ToString("yyyy-MM-dd HH:mm:ss"),
+                    Type = entry.Type,
+                    Status = entry.Status ?? "Info",
+                    Description = entry.Description,
+                    Source = entry.Source,
+                    CallerSystem = entry.CallerSystem ?? "",
+                    TargetSystem = entry.TargetSystem ?? "",
+                    SignatureHash = entry.SignatureHash ?? "",
+                    StatusColor = (entry.Status?.ToLower()) switch
+                    {
+                        "success" => "text-success",
+                        "fail" or "error" => "text-danger",
+                        "warning" => "text-warning",
+                        "critical" => "text-danger fw-bold",
+                        _ => "text-secondary"
+                    }
+                };
+
+                await _hubContext.Clients.All.SendAsync("ReceiveLog", dto);
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<LogEntryDto>> GetRecentAsync(int limit = 100)
+        {
+            var logs = await _db.Logs
+                .AsNoTracking()
+                .OrderByDescending(l => l.TimestampUtc)
+                .Take(limit)
+                .ToListAsync();
+
+            return logs.Select(l => new LogEntryDto
+            {
+                Timestamp = l.TimestampUtc.ToString("yyyy-MM-dd HH:mm:ss"),
+                Type = l.Type,
+                Status = l.Status ?? "Info",
+                Description = l.Description,
+                Source = l.Source,
+                CallerSystem = l.CallerSystem ?? "",
+                TargetSystem = l.TargetSystem ?? "",
+                SignatureHash = l.SignatureHash ?? "",
+                StatusColor = (l.Status?.ToLower()) switch
+                {
+                    "success" => "text-success",
+                    "fail" or "error" => "text-danger",
+                    "warning" => "text-warning",
+                    "critical" => "text-danger fw-bold",
+                    _ => "text-secondary"
+                }
+            }).ToList();
+        }
+
+        /// <inheritdoc />
+        public async Task<int> GetTotalLogsCountAsync()
+        {
+            return await _db.Logs.AsNoTracking().CountAsync();
         }
     }
 }
