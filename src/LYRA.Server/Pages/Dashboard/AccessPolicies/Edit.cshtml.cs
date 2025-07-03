@@ -1,3 +1,4 @@
+using LYRA.Security.Enums;
 using LYRA.Server.Models.AccessPolicy;
 using LYRA.Server.Models.TrustedTouchpoint;
 using LYRA.Server.Services.AccessPolicy.Interfaces;
@@ -50,6 +51,11 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         public SelectList TouchpointSelectList { get; set; } = default!;
 
         /// <summary>
+        /// List of selectable Access Contexts (Http, Event, Cache, Grpc, Internal, Soap).
+        /// </summary>
+        public List<SelectListItem> AccessContexts { get; set; } = new();
+
+        /// <summary>
         /// Loads the access policy for editing.
         /// </summary>
         /// <param name="id">The ID of the access policy to edit.</param>
@@ -69,6 +75,7 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
                 IsEnabled = policy.IsEnabled
             };
 
+            AccessContexts = EnumHelper.GetSelectList<AccessContext>();
             Touchpoints = await _touchpointService.GetLightweightAsync();
             TouchpointSelectList = new SelectList(Touchpoints, nameof(TrustedTouchpointDto.SystemName), nameof(TrustedTouchpointDto.SystemName));
 
@@ -80,6 +87,7 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         /// </summary>
         public async Task<IActionResult> OnPostAsync()
         {
+            AccessContexts = EnumHelper.GetSelectList<AccessContext>();
             Touchpoints = await _touchpointService.GetLightweightAsync();
             TouchpointSelectList = new SelectList(Touchpoints, nameof(TrustedTouchpointDto.SystemName), nameof(TrustedTouchpointDto.SystemName));
 

@@ -71,15 +71,8 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="Input.Context" class="form-label">Context</label>
-                <select asp-for="Input.Context" class="form-select">
-                    <option value="Http">Http</option>
-                    <option value="Event">Event</option>
-                    <option value="Cache">Cache</option>
-                    <option value="Grpc">Grpc</option>
-                    <option value="Internal">Internal</option>
-                    <option value="Soap">Soap</option>
-                </select>
+                <label asp-for="Input.Context" class="form-label">Access Context</label>
+                <select asp-for="Input.Context" class="form-select" asp-items="Model.AccessContexts"></select>
                 <span asp-validation-for="Input.Context" class="text-danger small"></span>
             </div>
 

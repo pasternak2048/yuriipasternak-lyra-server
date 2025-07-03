@@ -75,15 +75,8 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="Input.Context" class="form-label">Context</label>
-                <select asp-for="Input.Context" class="form-select">
-                    <option value="Http" selected="@("Http" == Model.Input.Context.ToString())">Http</option>
-                    <option value="Event" selected="@("Event" == Model.Input.Context.ToString())">Event</option>
-                    <option value="Cache" selected="@("Cache" == Model.Input.Context.ToString())">Cache</option>
-                    <option value="Grpc" selected="@("Grpc" == Model.Input.Context.ToString())">Grpc</option>
-                    <option value="Internal" selected="@("Internal" == Model.Input.Context.ToString())">Internal</option>
-                    <option value="Soap" selected="@("Soap" == Model.Input.Context.ToString())">Soap</option>
-                </select>
+                <label asp-for="Input.Context" class="form-label">Access Context</label>
+                <select asp-for="Input.Context" class="form-select" asp-items="Model.AccessContexts"></select>
                 <span asp-validation-for="Input.Context" class="text-danger small"></span>
             </div>
 
