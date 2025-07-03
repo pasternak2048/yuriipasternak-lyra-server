@@ -1,7 +1,9 @@
+using LYRA.Security.Enums;
 using LYRA.Server.Models.AccessPolicy;
 using LYRA.Server.Models.TrustedTouchpoint;
 using LYRA.Server.Services.AccessPolicy.Interfaces;
 using LYRA.Server.Services.TrustedTouchpoint.Interfaces;
+using LYRA.Server.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -49,10 +51,16 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         public SelectList TouchpointSelectList { get; set; } = default!;
 
         /// <summary>
+        /// List of selectable Access Contexts (Http, Event, Cache, Grpc, Internal, Soap).
+        /// </summary>
+        public List<SelectListItem> AccessContexts { get; set; } = new();
+
+        /// <summary>
         /// Handles the GET request, initializing the dropdown list.
         /// </summary>
         public async Task OnGetAsync()
         {
+            AccessContexts = EnumHelper.GetSelectList<AccessContext>();
             Touchpoints = await _touchpointService.GetLightweightAsync();
             TouchpointSelectList = new SelectList(
                 Touchpoints,
@@ -66,6 +74,7 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         /// </summary>
         public async Task<IActionResult> OnPostAsync()
         {
+            AccessContexts = EnumHelper.GetSelectList<AccessContext>();
             Touchpoints = await _touchpointService.GetLightweightAsync();
             TouchpointSelectList = new SelectList(
                 Touchpoints,
