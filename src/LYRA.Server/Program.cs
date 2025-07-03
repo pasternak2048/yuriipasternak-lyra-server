@@ -78,7 +78,7 @@ builder.Services.AddScoped<IAccessPolicyCacheSyncService, AccessPolicyCacheSyncS
 /// Register signature string builders per access context and the factory to resolve them.
 /// </summary>
 builder.Services.AddTransient<ISignatureStringBuilder, HttpSignatureStringBuilder>();
-builder.Services.AddTransient<ISignatureStringBuilder, CacheSignatureStringBuilder>();
+// TODO:  builder.Services.AddTransient<ISignatureStringBuilder, CacheSignatureStringBuilder>();
 builder.Services.AddSingleton<SignatureStringBuilderFactory>();
 
 /// <summary>
