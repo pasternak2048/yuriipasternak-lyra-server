@@ -108,6 +108,20 @@ This architecture allows **constant-time access policy validation**, even under 
 
 ---
 
+## 📈 Real-Time Log Monitoring
+
+LYRA includes a **Live Log Monitor**, powered by **SignalR** and optimized for security observability.
+
+- 📊 Real-time streaming of log entries to the browser via SignalR
+- 📋 Logs include timestamp, status, type, caller, target, hash, and description
+- 🖥️ Displayed in a responsive console-style or tabular interface
+- 🎨 Status-based color coding (Success / Fail / Critical / Warning / Info)
+- 🧾 Logs are structured, stored in SQL Server, and streamed via SignalR
+
+> This lets you **instantly observe validation behavior** as it happens — no page refresh required.
+
+---
+
 ## 💡 Highlights
 
 - ✅ Clean company-to-company and service-to-service trust boundaries  
@@ -131,8 +145,8 @@ This architecture allows **constant-time access policy validation**, even under 
 - Microsoft.Extensions.Caching.Memory  
 - System.Security.Cryptography (HMAC / RSA)  
 - LYRA.Security library (shared signature + crypto logic)  
+- SignalR
 - Docker / local deploy-ready  
-- Designed to integrate with **API Gateways** or microservice boundaries  
 - Built with **no third-party dependencies**
 
 ---
