@@ -32,16 +32,18 @@ namespace LYRA.Server.Services.Company
         }
 
         /// <inheritdoc />
-        public async Task<List<CompanyDto>> GetLightweightAsync()
+        public async Task<List<CompanyDto>> SearchAsync(string term)
         {
             return await _context.Companies
-                .Where(c => c.IsActive && !c.IsDeleted)
+                .Where(c => c.IsActive && !c.IsDeleted &&
+                            (c.DisplayName.Contains(term) || c.SystemName.Contains(term)))
                 .OrderBy(c => c.SystemName)
+                .Take(10)
                 .Select(c => new CompanyDto
                 {
                     Id = c.Id,
-                    SystemName = c.SystemName,
-                    DisplayName = c.DisplayName
+                    DisplayName = c.DisplayName,
+                    SystemName = c.SystemName
                 })
                 .ToListAsync();
         }

@@ -9,27 +9,47 @@
         <h2 class="fw-bold mb-4">
             <i class="bi bi-diagram-3 me-2"></i> Trusted Touchpoints
         </h2>
+
         @if (TempData["Message"] is string msg)
         {
             <div class="alert alert-success">@msg</div>
         }
+
         <form method="get" class="mb-4 row g-2 align-items-end">
             <div class="col-md-4">
                 <label class="form-label">Company</label>
-                <select name="CompanyId" class="form-select">
-                    <option value="">All Companies</option>
-                    @foreach (var c in Model.Companies)
-                    {
-                        <option value="@c.Id" selected="@(Model.Filters.CompanyId == c.Id ? "selected" : null)">
-                            @c.SystemName
-                        </option>
+                <div class="position-relative">
+                    @{
+                        var selectedCompany = Model.Companies.FirstOrDefault(c => c.Id == Model.Filters.CompanyId);
+                        var companyLabel = selectedCompany is null ? "" : $"{selectedCompany.SystemName} ({selectedCompany.DisplayName})";
                     }
-                </select>
+                    <input type="text"
+                           id="companyInput"
+                           class="form-control"
+                           autocomplete="off"
+                           placeholder="Start typing..."
+                           value="@companyLabel" />
+
+                    <input type="hidden"
+                           id="companyIdInput"
+                           name="Filters.CompanyId"
+                           value="@Model.Filters.CompanyId" />
+
+                    <div id="companyDropdown"
+                         class="dropdown-menu w-100 shadow autocomplete-dropdown"
+                         style="max-height: 200px; overflow-y: auto;"></div>
+                </div>
             </div>
+
             <div class="col-md-4">
                 <label class="form-label">Name</label>
-                <input type="text" name="SystemName" class="form-control" value="@Model.Filters.SystemName" placeholder="Search by name..." />
+                <input type="text"
+                       name="Filters.SystemName"
+                       class="form-control"
+                       value="@Model.Filters.SystemName"
+                       placeholder="Search by name..." />
             </div>
+
             <div class="col-md-auto">
                 <button type="submit" class="btn btn-outline-light w-100">
                     <i class="bi bi-search me-1"></i> Search
@@ -58,9 +78,7 @@
                 @foreach (var t in Model.Touchpoints.Items)
                 {
                     <tr style="cursor: pointer;" onclick="location.href='@Url.Page("Details", new { id = t.Id })'">
-                        <td class="fw-semibold text-decoration-underline text-info">
-                            @t.DisplayName
-                        </td>
+                        <td class="fw-semibold text-decoration-underline text-info">@t.DisplayName</td>
                         <td><code>@t.SystemName</code></td>
                         <td>@t.CompanyName</td>
                         <td>
@@ -96,10 +114,19 @@
                 @for (int i = 1; i <= Model.Touchpoints.TotalPages; i++)
                 {
                     <li class="page-item @(i == Model.Filters.Page ? "active" : "")">
-                        <a class="page-link" href="?CompanyId=@Model.Filters.CompanyId&Name=@Model.Filters.SystemName&page=@i">@i</a>
+                        <a class="page-link"
+                           href="?Filters.CompanyId=@Model.Filters.CompanyId&Filters.SystemName=@Model.Filters.SystemName&page=@i">@i</a>
                     </li>
                 }
             </ul>
         </nav>
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/company-autocomplete.js" asp-append-version="true"></script>
+
+    <script>
+        initCompanyAutocomplete({});
+    </script>
+}
