@@ -10,10 +10,12 @@ namespace LYRA.Server.Services.Company.Interfaces
     public interface ICompanyService
     {
         /// <summary>
-        /// Retrieves a lightweight list of companies, typically used for dropdowns or selection lists.
+        /// Searches for active, non-deleted companies by a partial match of their display or system name.
+        /// Returns a lightweight list of matching companies (max 10 results), ordered by system name.
         /// </summary>
-        /// <returns>A list of companies with minimal information (e.g., name and ID).</returns>
-        Task<List<CompanyDto>> GetLightweightAsync();
+        /// <param name="term">The search term to match against the company's display name or system name.</param>
+        /// <returns>A list of matching <see cref="CompanyDto"/> entries.</returns>
+        Task<List<CompanyDto>> SearchAsync(string term);
 
         /// <summary>
         /// Retrieves a paginated list of companies based on the specified filters.

@@ -33,11 +33,6 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
         public TrustedTouchpointCreateRequest Input { get; set; } = new();
 
         /// <summary>
-        /// List of available companies to assign the touchpoint to.
-        /// </summary>
-        public List<CompanyDto> Companies { get; set; } = new();
-
-        /// <summary>
         /// List of selectable signature types (HMAC, RSA, None).
         /// </summary>
         public List<SelectListItem> SignatureTypes { get; set; } = new();
@@ -115,7 +110,6 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
         /// </summary>
         public async Task<IActionResult> OnGetAsync()
         {
-            Companies = await _companyService.GetLightweightAsync();
             SignatureTypes = EnumHelper.GetSelectList<SignatureType>();
             return Page();
         }
@@ -125,7 +119,6 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
         /// </summary>
         public async Task<IActionResult> OnPostAsync()
         {
-            Companies = await _companyService.GetLightweightAsync();
             SignatureTypes = EnumHelper.GetSelectList<SignatureType>();
 
             if (!ModelState.IsValid)

@@ -20,3 +20,12 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.autocomplete-dropdown .dropdown-item {
+    cursor: pointer;
+}
+
+.autocomplete-dropdown .dropdown-item:hover {
+    background-color: #0d6efd;
+    color: white;
+}

@@ -24,14 +24,23 @@
 
         <form method="post">
             <div class="mb-3">
-                <label asp-for="Input.CompanyId" class="form-label">Company</label>
-                <select asp-for="Input.CompanyId" class="form-select">
-                    <option value="">Select a company...</option>
-                    @foreach (var company in Model.Companies)
-                    {
-                        <option value="@company.Id">@company.SystemName</option>
-                    }
-                </select>
+                <label class="form-label">Company</label>
+                <div class="position-relative">
+                    <input type="text"
+                           id="companyInput"
+                           class="form-control"
+                           autocomplete="off"
+                           placeholder="Start typing..." />
+
+                    <input type="hidden"
+                           id="companyIdInput"
+                           name="Input.CompanyId"
+                           value="@Model.Input.CompanyId" />
+
+                    <div id="companyDropdown"
+                         class="dropdown-menu w-100 shadow autocomplete-dropdown"
+                         style="max-height: 200px; overflow-y: auto;"></div>
+                </div>
                 <span asp-validation-for="Input.CompanyId" class="text-danger small"></span>
             </div>
 
@@ -89,4 +98,9 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/lyra-utils.js" asp-append-version="true"></script>
+    <script src="~/js/company-autocomplete.js" asp-append-version="true"></script>
+
+    <script>
+        initCompanyAutocomplete({});
+    </script>
 }
