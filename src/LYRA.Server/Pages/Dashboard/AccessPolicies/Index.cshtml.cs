@@ -1,6 +1,8 @@
 using LYRA.Server.Models.AccessPolicy;
 using LYRA.Server.Models.Pagination;
+using LYRA.Server.Models.TrustedTouchpoint;
 using LYRA.Server.Services.AccessPolicy.Interfaces;
+using LYRA.Server.Services.TrustedTouchpoint.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -14,14 +16,20 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
     public class IndexModel : PageModel
     {
         private readonly IAccessPolicyService _policyService;
+        private readonly ITrustedTouchpointService _touchpointService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="IndexModel"/> class.
         /// </summary>
-        public IndexModel(IAccessPolicyService policyService)
+        public IndexModel(IAccessPolicyService policyService, ITrustedTouchpointService touchpointService)
         {
             _policyService = policyService;
+            _touchpointService = touchpointService;
         }
+
+        public List<TrustedTouchpointDto> Callers { get; set; } = new();
+
+        public List<TrustedTouchpointDto> Targets { get; set; } = new();
 
         /// <summary>
         /// List of access policies matching the current filter.
@@ -40,6 +48,18 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         public async Task OnGetAsync()
         {
             Policies = await _policyService.GetPagedAsync(Filters);
+
+            if (Filters.CallerId.HasValue)
+            {
+                var tp = await _touchpointService.GetByIdAsync(Filters.CallerId.Value);
+                if (tp != null) Callers.Add(tp);
+            }
+
+            if (Filters.TargetId.HasValue)
+            {
+                var tp = await _touchpointService.GetByIdAsync(Filters.TargetId.Value);
+                if (tp != null) Targets.Add(tp);
+            }
         }
     }
 }

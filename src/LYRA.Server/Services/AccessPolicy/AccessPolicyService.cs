@@ -32,17 +32,22 @@ namespace LYRA.Server.Services.AccessPolicy
         /// <inheritdoc />
         public async Task<PaginatedResult<AccessPolicyDto>> GetPagedAsync(AccessPolicyFilters filters)
         {
-            var query = _context.AccessPolicies.AsNoTracking().AsQueryable();
+            var query = _context.AccessPolicies
+                .AsNoTracking().AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(filters.CallerSystemName))
-                query = query.Where(p => EF.Functions.Like(p.CallerSystemName, $"%{filters.CallerSystemName}%"));
+            // Filter by CallerId
+            if (filters.CallerId.HasValue)
+                query = query.Where(p => p.CallerId == filters.CallerId.Value);
 
-            if (!string.IsNullOrWhiteSpace(filters.TargetSystemName))
-                query = query.Where(p => EF.Functions.Like(p.TargetSystemName, $"%{filters.TargetSystemName}%"));
+            // Filter by TargetId
+            if (filters.TargetId.HasValue)
+                query = query.Where(p => p.TargetId == filters.TargetId.Value);
 
+            // Filter by Operation (exact match or contains)
             if (!string.IsNullOrWhiteSpace(filters.Operation))
-                query = query.Where(p => EF.Functions.Like(p.Operation, $"%{filters.Operation}%"));
+                query = query.Where(p => p.Operation.Contains(filters.Operation));
 
+            // Filter by Context (enum match)
             if (filters.Context.HasValue)
                 query = query.Where(p => p.Context == filters.Context.Value);
 

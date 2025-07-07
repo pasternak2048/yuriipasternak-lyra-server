@@ -5,26 +5,32 @@ namespace LYRA.Server.Models.AccessPolicy
 {
     /// <summary>
     /// Filter parameters for querying access policies with pagination support.
+    /// Inherits common paging properties from <see cref="PaginationFilter"/>.
     /// </summary>
     public class AccessPolicyFilters : PaginationFilter
     {
         /// <summary>
-        /// Optional filter by calling touchpoint's system name (partial or exact match).
+        /// Optional filter by the unique identifier of the caller touchpoint.
+        /// If provided, only access policies associated with this caller will be returned.
         /// </summary>
-        public string? CallerSystemName { get; set; }
+        public Guid? CallerId { get; set; }
 
         /// <summary>
-        /// Optional filter by target touchpoint's system name (partial or exact match).
+        /// Optional filter by the unique identifier of the target touchpoint.
+        /// If provided, only access policies targeting this entity will be returned.
         /// </summary>
-        public string? TargetSystemName { get; set; }
+        public Guid? TargetId { get; set; }
 
         /// <summary>
-        /// Optional filter by operation identifier (e.g., path, topic).
+        /// Optional filter by operation string.
+        /// For example: "POST /api/verify" or "topic.subscription.created".
+        /// Supports partial matches when used in the UI.
         /// </summary>
         public string? Operation { get; set; }
 
         /// <summary>
-        /// Optional filter by access context (e.g., Http, Event, Cache).
+        /// Optional filter by access context.
+        /// Specifies the type of access being filtered (e.g., HTTP, Event, Cache).
         /// </summary>
         public AccessContext? Context { get; set; }
     }

@@ -1,24 +1,29 @@
-﻿// Initializes company autocomplete functionality for the specified input group
-function initCompanyAutocomplete({
-    inputId = "companyInput",
-    hiddenInputId = "companyIdInput",
-    dropdownId = "companyDropdown",
-    fetchUrl = "/Shared/CompaniesAutocomplete"
+﻿/// <summary>
+/// Initializes an autocomplete dropdown for any entity input group.
+/// </summary>
+function initAutocomplete({
+    inputId = "autocompleteInput",
+    hiddenInputId = "autocompleteHiddenId",
+    dropdownId = "autocompleteDropdown",
+    fetchUrl = "",
+    getLabel = (item) => `${item.systemName} (${item.displayName})`
 }) {
     const input = document.getElementById(inputId);
     const hiddenInput = document.getElementById(hiddenInputId);
     const dropdown = document.getElementById(dropdownId);
     let debounceTimer;
 
-    if (!input || !hiddenInput || !dropdown) return;
+    if (!input || !hiddenInput || !dropdown || !fetchUrl) return;
 
     input.addEventListener("input", function () {
         const query = this.value;
 
+        // Clear selection if input manually cleared
         if (query.trim() === "") {
             hiddenInput.value = "";
         }
 
+        // Skip search if too short
         if (query.length < 2) {
             dropdown.innerHTML = "";
             dropdown.classList.remove("show");
@@ -38,16 +43,16 @@ function initCompanyAutocomplete({
                         return;
                     }
 
-                    data.forEach(c => {
-                        const label = `${c.systemName} (${c.displayName})`;
+                    data.forEach(itemData => {
+                        const label = getLabel(itemData);
                         const item = document.createElement("div");
                         item.className = "dropdown-item";
                         item.textContent = label;
-                        item.dataset.id = c.id;
+                        item.dataset.id = itemData.id;
 
                         item.onclick = () => {
                             input.value = label;
-                            hiddenInput.value = c.id;
+                            hiddenInput.value = itemData.id;
                             dropdown.innerHTML = "";
                             dropdown.classList.remove("show");
                             input.blur();
