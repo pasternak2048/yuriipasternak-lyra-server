@@ -56,6 +56,12 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         /// </summary>
         public async Task OnGetAsync()
         {
+            if (Filters.Page < 1)
+                Filters.Page = 1;
+
+            if (Filters.PageSize < 1)
+                Filters.PageSize = 10;
+
             Policies = await _policyService.GetPagedAsync(Filters);
 
             if (Filters.CallerId.HasValue)
