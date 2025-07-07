@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace LYRA.Server.Pages.Dashboard.AccessPolicies
 {
     /// <summary>
-    /// Razor Page model for creating a new access policy.
+    /// Razor Page model for creating a new access policy between trusted touchpoints.
     /// </summary>
     [Authorize]
     public class CreateModel : PageModel
@@ -35,51 +35,87 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         }
 
         /// <summary>
-        /// The form input model bound to the page.
+        /// Access policy creation request model bound from form input.
         /// </summary>
-        [BindProperty]
+        [BindProperty(SupportsGet = true)]
         public AccessPolicyCreateRequest Input { get; set; } = new();
 
         /// <summary>
-        /// Lightweight list of trusted touchpoints used for dropdowns.
+        /// Optional preselected caller ID (provided via query string).
         /// </summary>
-        public List<TrustedTouchpointLightDto> Touchpoints { get; set; } = new();
+        [BindProperty(SupportsGet = true)]
+        public Guid? CallerId { get; set; }
 
         /// <summary>
-        /// Select list used in the UI for choosing touchpoints.
+        /// Optional preselected target ID (provided via query string).
         /// </summary>
-        public SelectList TouchpointSelectList { get; set; } = default!;
+        [BindProperty(SupportsGet = true)]
+        public Guid? TargetId { get; set; }
 
         /// <summary>
-        /// List of selectable Access Contexts (Http, Event, Cache, Grpc, Internal, Soap).
+        /// List of selectable access contexts (Http, Event, Grpc, etc).
         /// </summary>
         public List<SelectListItem> AccessContexts { get; set; } = new();
 
         /// <summary>
-        /// Handles the GET request, initializing the dropdown list.
+        /// Preview list containing selected caller (used to render label).
+        /// </summary>
+        public List<TrustedTouchpointDto> Callers { get; set; } = new();
+
+        /// <summary>
+        /// Preview list containing selected target (used to render label).
+        /// </summary>
+        public List<TrustedTouchpointDto> Targets { get; set; } = new();
+
+        /// <summary>
+        /// Handles GET request to initialize form state and pre-fill selected touchpoints.
         /// </summary>
         public async Task OnGetAsync()
         {
             AccessContexts = EnumHelper.GetSelectList<AccessContext>();
-            Touchpoints = await _touchpointService.GetLightweightAsync();
-            TouchpointSelectList = new SelectList(
-                Touchpoints,
-                nameof(TrustedTouchpointDto.SystemName),
-                nameof(TrustedTouchpointDto.SystemName));
+
+            if (CallerId.HasValue)
+            {
+                var caller = await _touchpointService.GetByIdAsync(CallerId.Value);
+                if (caller != null)
+                {
+                    Callers.Add(caller);
+                    Input.CallerId = caller.Id;
+                }
+            }
+
+            if (TargetId.HasValue)
+            {
+                var target = await _touchpointService.GetByIdAsync(TargetId.Value);
+                if (target != null)
+                {
+                    Targets.Add(target);
+                    Input.TargetId = target.Id;
+                }
+            }
         }
 
         /// <summary>
-        /// Handles the POST request to create the new policy.
-        /// Performs validation and invokes the service layer.
+        /// Handles POST request to validate input and create a new access policy.
         /// </summary>
+        /// <returns>Redirects to index on success, or redisplays form on failure.</returns>
         public async Task<IActionResult> OnPostAsync()
         {
             AccessContexts = EnumHelper.GetSelectList<AccessContext>();
-            Touchpoints = await _touchpointService.GetLightweightAsync();
-            TouchpointSelectList = new SelectList(
-                Touchpoints,
-                nameof(TrustedTouchpointDto.SystemName),
-                nameof(TrustedTouchpointDto.SystemName));
+
+            if (Input.CallerId.HasValue)
+            {
+                var caller = await _touchpointService.GetByIdAsync(Input.CallerId.Value);
+                if (caller != null)
+                    Callers.Add(caller);
+            }
+
+            if (Input.TargetId.HasValue)
+            {
+                var target = await _touchpointService.GetByIdAsync(Input.TargetId.Value);
+                if (target != null)
+                    Targets.Add(target);
+            }
 
             if (!ModelState.IsValid)
                 return Page();
