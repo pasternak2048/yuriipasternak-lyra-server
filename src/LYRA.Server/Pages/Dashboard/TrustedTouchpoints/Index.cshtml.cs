@@ -54,6 +54,12 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
 
         public async Task OnGetAsync()
         {
+            if (Filters.Page < 1)
+                Filters.Page = 1;
+
+            if (Filters.PageSize < 1)
+                Filters.PageSize = 10;
+
             Touchpoints = await _touchpointService.GetPagedAsync(Filters);
 
             if (Filters.CompanyId.HasValue)

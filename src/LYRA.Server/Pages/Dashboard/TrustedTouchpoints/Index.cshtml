@@ -115,7 +115,9 @@
                 {
                     <li class="page-item @(i == Model.Filters.Page ? "active" : "")">
                         <a class="page-link"
-                           href="?Filters.CompanyId=@Model.Filters.CompanyId&Filters.SystemName=@Model.Filters.SystemName&page=@i">@i</a>
+                           asp-route-Filters.Page="@i"
+                           asp-route-Filters.CompanyId="@Model.Filters.CompanyId"
+                           asp-route-Filters.SystemName="@Model.Filters.SystemName">@i</a>
                     </li>
                 }
             </ul>

@@ -100,7 +100,10 @@
                 @for (int i = 1; i <= Model.Policies.TotalPages; i++)
                 {
                     <li class="page-item @(i == Model.Filters.Page ? "active" : "")">
-                        <a class="page-link" href="?Filters.CallerId=@Model.Filters.CallerId&Filters.TargetId=@Model.Filters.TargetId&page=@i">@i</a>
+                        <a class="page-link"
+                           asp-route-Filters.Page="@i"
+                           asp-route-Filters.CallerId="@Model.Filters.CallerId"
+                           asp-route-Filters.TargetId="@Model.Filters.TargetId">@i</a>
                     </li>
                 }
             </ul>
