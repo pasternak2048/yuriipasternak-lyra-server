@@ -21,14 +21,22 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         /// <summary>
         /// Initializes a new instance of the <see cref="IndexModel"/> class.
         /// </summary>
+        /// <param name="policyService">Service for managing access policies.</param>
+        /// <param name="touchpointService">Service for retrieving trusted touchpoints.</param>
         public IndexModel(IAccessPolicyService policyService, ITrustedTouchpointService touchpointService)
         {
             _policyService = policyService;
             _touchpointService = touchpointService;
         }
 
+        /// <summary>
+        /// List of caller touchpoints used to display selected values in filters.
+        /// </summary>
         public List<TrustedTouchpointDto> Callers { get; set; } = new();
 
+        /// <summary>
+        /// List of target touchpoints used to display selected values in filters.
+        /// </summary>
         public List<TrustedTouchpointDto> Targets { get; set; } = new();
 
         /// <summary>
@@ -37,13 +45,14 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         public PaginatedResult<AccessPolicyDto> Policies { get; set; } = new();
 
         /// <summary>
-        /// Current filter and pagination state bound from query parameters.
+        /// Current filter and pagination state, bound from query parameters.
         /// </summary>
         [BindProperty(SupportsGet = true)]
         public AccessPolicyFilters Filters { get; set; } = new();
 
         /// <summary>
-        /// Handles GET request to load filtered access policies.
+        /// Handles GET request to load access policies based on filters.
+        /// Populates Callers and Targets to resolve labels for selected IDs.
         /// </summary>
         public async Task OnGetAsync()
         {
@@ -52,13 +61,15 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
             if (Filters.CallerId.HasValue)
             {
                 var tp = await _touchpointService.GetByIdAsync(Filters.CallerId.Value);
-                if (tp != null) Callers.Add(tp);
+                if (tp != null)
+                    Callers.Add(tp);
             }
 
             if (Filters.TargetId.HasValue)
             {
                 var tp = await _touchpointService.GetByIdAsync(Filters.TargetId.Value);
-                if (tp != null) Targets.Add(tp);
+                if (tp != null)
+                    Targets.Add(tp);
             }
         }
     }
