@@ -142,8 +142,6 @@ namespace LYRA.Server.Services.AccessPolicy
                 var caller = await ResolveTouchpointAsync(request.CallerId, request.CallerSystemName, "Caller");
                 var target = await ResolveTouchpointAsync(request.TargetId, request.TargetSystemName, "Target");
 
-                var joinedOperations = DelimitedStringParser.Join(request.Operations);
-
                 if (await PolicyExists(request.Id, caller.SystemName, target.SystemName, request.Context))
                     throw new InvalidOperationException("Such policy already exists.");
 
@@ -151,7 +149,7 @@ namespace LYRA.Server.Services.AccessPolicy
                 entity.CallerSystemName = caller.SystemName;
                 entity.TargetId = target.Id;
                 entity.TargetSystemName = target.SystemName;
-                entity.Operation = joinedOperations;
+                entity.Operation = DelimitedStringParser.Join(request.Operations);
                 entity.Context = request.Context;
                 entity.IsEnabled = request.IsEnabled;
 
@@ -209,6 +207,8 @@ namespace LYRA.Server.Services.AccessPolicy
             Id = p.Id,
             CallerSystemName = p.CallerSystemName,
             TargetSystemName = p.TargetSystemName,
+            CallerId = p.CallerId,
+            TargetId = p.TargetId,
             Operation = p.Operation,
             Context = p.Context,
             IsEnabled = p.IsEnabled,

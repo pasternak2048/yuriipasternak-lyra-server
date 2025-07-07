@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace LYRA.Server.Pages.Dashboard.AccessPolicies
 {
     /// <summary>
-    /// Razor Page model for editing an existing access policy.
+    /// Razor Page model for editing an existing access policy between trusted touchpoints.
     /// </summary>
     [Authorize]
     public class EditModel : PageModel
@@ -21,9 +21,6 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         private readonly ITrustedTouchpointService _touchpointService;
         private readonly ILogger<EditModel> _logger;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="EditModel"/> class.
-        /// </summary>
         public EditModel(
             IAccessPolicyService policyService,
             ITrustedTouchpointService touchpointService,
@@ -35,61 +32,85 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         }
 
         /// <summary>
-        /// Form input model for updating the access policy.
+        /// Input model for editing.
         /// </summary>
         [BindProperty]
         public AccessPolicyUpdateRequest Input { get; set; } = new();
 
         /// <summary>
-        /// Lightweight list of touchpoints for dropdown selection.
+        /// Caller preview list (for rendering autocomplete label).
         /// </summary>
-        public List<TrustedTouchpointLightDto> Touchpoints { get; set; } = new();
+        public List<TrustedTouchpointDto> Callers { get; set; } = new();
 
         /// <summary>
-        /// SelectList used to populate dropdowns in the UI.
+        /// Target preview list (for rendering autocomplete label).
         /// </summary>
-        public SelectList TouchpointSelectList { get; set; } = default!;
+        public List<TrustedTouchpointDto> Targets { get; set; } = new();
 
         /// <summary>
-        /// List of selectable Access Contexts (Http, Event, Cache, Grpc, Internal, Soap).
+        /// Dropdown options for access context (Http, Event, etc).
         /// </summary>
         public List<SelectListItem> AccessContexts { get; set; } = new();
 
         /// <summary>
-        /// Loads the access policy for editing.
+        /// Loads the edit form with access policy and related touchpoints.
         /// </summary>
-        /// <param name="id">The ID of the access policy to edit.</param>
         public async Task<IActionResult> OnGetAsync(Guid id)
         {
             var policy = await _policyService.GetByIdAsync(id);
             if (policy == null)
                 return NotFound();
 
+            // Fill the form
             Input = new AccessPolicyUpdateRequest
             {
                 Id = policy.Id,
-                CallerSystemName = policy.CallerSystemName,
-                TargetSystemName = policy.TargetSystemName,
-                Operations = DelimitedStringParser.Parse(policy.Operation, ",").ToList(), 
+                CallerId = policy.CallerId,
+                TargetId = policy.TargetId,
+                Operations = DelimitedStringParser.Parse(policy.Operation, ",").ToList(),
                 Context = policy.Context,
                 IsEnabled = policy.IsEnabled
             };
 
             AccessContexts = EnumHelper.GetSelectList<AccessContext>();
-            Touchpoints = await _touchpointService.GetLightweightAsync();
-            TouchpointSelectList = new SelectList(Touchpoints, nameof(TrustedTouchpointDto.SystemName), nameof(TrustedTouchpointDto.SystemName));
+
+            if (Input.CallerId.HasValue)
+            {
+                var caller = await _touchpointService.GetByIdAsync(Input.CallerId.Value);
+                if (caller != null)
+                    Callers.Add(caller);
+            }
+
+            if (Input.TargetId.HasValue)
+            {
+                var target = await _touchpointService.GetByIdAsync(Input.TargetId.Value);
+                if (target != null)
+                    Targets.Add(target);
+            }
 
             return Page();
         }
 
         /// <summary>
-        /// Handles the POST request to update the access policy.
+        /// Handles saving the updated policy.
         /// </summary>
         public async Task<IActionResult> OnPostAsync()
         {
             AccessContexts = EnumHelper.GetSelectList<AccessContext>();
-            Touchpoints = await _touchpointService.GetLightweightAsync();
-            TouchpointSelectList = new SelectList(Touchpoints, nameof(TrustedTouchpointDto.SystemName), nameof(TrustedTouchpointDto.SystemName));
+
+            if (Input.CallerId.HasValue)
+            {
+                var caller = await _touchpointService.GetByIdAsync(Input.CallerId.Value);
+                if (caller != null)
+                    Callers.Add(caller);
+            }
+
+            if (Input.TargetId.HasValue)
+            {
+                var target = await _touchpointService.GetByIdAsync(Input.TargetId.Value);
+                if (target != null)
+                    Targets.Add(target);
+            }
 
             if (!ModelState.IsValid)
                 return Page();
