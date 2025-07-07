@@ -32,17 +32,22 @@ namespace LYRA.Server.Services.AccessPolicy
         /// <inheritdoc />
         public async Task<PaginatedResult<AccessPolicyDto>> GetPagedAsync(AccessPolicyFilters filters)
         {
-            var query = _context.AccessPolicies.AsNoTracking().AsQueryable();
+            var query = _context.AccessPolicies
+                .AsNoTracking().AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(filters.CallerSystemName))
-                query = query.Where(p => EF.Functions.Like(p.CallerSystemName, $"%{filters.CallerSystemName}%"));
+            // Filter by CallerId
+            if (filters.CallerId.HasValue)
+                query = query.Where(p => p.CallerId == filters.CallerId.Value);
 
-            if (!string.IsNullOrWhiteSpace(filters.TargetSystemName))
-                query = query.Where(p => EF.Functions.Like(p.TargetSystemName, $"%{filters.TargetSystemName}%"));
+            // Filter by TargetId
+            if (filters.TargetId.HasValue)
+                query = query.Where(p => p.TargetId == filters.TargetId.Value);
 
+            // Filter by Operation (exact match or contains)
             if (!string.IsNullOrWhiteSpace(filters.Operation))
-                query = query.Where(p => EF.Functions.Like(p.Operation, $"%{filters.Operation}%"));
+                query = query.Where(p => p.Operation.Contains(filters.Operation));
 
+            // Filter by Context (enum match)
             if (filters.Context.HasValue)
                 query = query.Where(p => p.Context == filters.Context.Value);
 
@@ -91,21 +96,8 @@ namespace LYRA.Server.Services.AccessPolicy
         {
             try
             {
-                var caller = request.CallerId.HasValue
-                    ? await ActiveTouchpoints().FirstOrDefaultAsync(t => t.Id == request.CallerId)
-                    : await GetTouchpointByNameAsync(request.CallerSystemName!);
-
-                if (caller == null)
-                    throw new InvalidOperationException("Caller touchpoint not found.");
-
-                var target = request.TargetId.HasValue
-                    ? await ActiveTouchpoints().FirstOrDefaultAsync(t => t.Id == request.TargetId)
-                    : await GetTouchpointByNameAsync(request.TargetSystemName!);
-
-                if (target == null)
-                    throw new InvalidOperationException("Target touchpoint not found.");
-
-                var joinedOperations = DelimitedStringParser.Join(request.Operations);
+                var caller = await ResolveTouchpointAsync(request.CallerId, request.CallerSystemName, "Caller");
+                var target = await ResolveTouchpointAsync(request.TargetId, request.TargetSystemName, "Target");
 
                 if (await PolicyExists(null, caller.SystemName, target.SystemName, request.Context))
                     throw new InvalidOperationException("Such policy already exists.");
@@ -117,7 +109,7 @@ namespace LYRA.Server.Services.AccessPolicy
                     CallerSystemName = caller.SystemName,
                     TargetId = target.Id,
                     TargetSystemName = target.SystemName,
-                    Operation = joinedOperations,
+                    Operation = DelimitedStringParser.Join(request.Operations),
                     Context = request.Context,
                     IsEnabled = request.IsEnabled,
                     CreatedAt = DateTime.UtcNow
@@ -150,8 +142,6 @@ namespace LYRA.Server.Services.AccessPolicy
                 var caller = await ResolveTouchpointAsync(request.CallerId, request.CallerSystemName, "Caller");
                 var target = await ResolveTouchpointAsync(request.TargetId, request.TargetSystemName, "Target");
 
-                var joinedOperations = DelimitedStringParser.Join(request.Operations);
-
                 if (await PolicyExists(request.Id, caller.SystemName, target.SystemName, request.Context))
                     throw new InvalidOperationException("Such policy already exists.");
 
@@ -159,7 +149,7 @@ namespace LYRA.Server.Services.AccessPolicy
                 entity.CallerSystemName = caller.SystemName;
                 entity.TargetId = target.Id;
                 entity.TargetSystemName = target.SystemName;
-                entity.Operation = joinedOperations;
+                entity.Operation = DelimitedStringParser.Join(request.Operations);
                 entity.Context = request.Context;
                 entity.IsEnabled = request.IsEnabled;
 
@@ -217,6 +207,8 @@ namespace LYRA.Server.Services.AccessPolicy
             Id = p.Id,
             CallerSystemName = p.CallerSystemName,
             TargetSystemName = p.TargetSystemName,
+            CallerId = p.CallerId,
+            TargetId = p.TargetId,
             Operation = p.Operation,
             Context = p.Context,
             IsEnabled = p.IsEnabled,
@@ -251,20 +243,19 @@ namespace LYRA.Server.Services.AccessPolicy
             return entity ?? throw new InvalidOperationException($"Touchpoint '{systemName}' not found.");
         }
 
-        private async Task<TrustedTouchpointEntity> ResolveTouchpointAsync(Guid? id, string? systemName, string label)
+        private async Task<TrustedTouchpointEntity> ResolveTouchpointAsync(Guid? id, string? systemName, string role)
         {
-            TrustedTouchpointEntity? entity = null;
+            TrustedTouchpointEntity? touchpoint = null;
 
-            if (!string.IsNullOrWhiteSpace(systemName))
-            {
-                entity = await ActiveTouchpoints().FirstOrDefaultAsync(t => t.SystemName == systemName);
-            }
-            else if (id.HasValue)
-            {
-                entity = await ActiveTouchpoints().FirstOrDefaultAsync(t => t.Id == id.Value);
-            }
+            if (id.HasValue)
+                touchpoint = await ActiveTouchpoints().FirstOrDefaultAsync(t => t.Id == id.Value);
+            else if (!string.IsNullOrWhiteSpace(systemName))
+                touchpoint = await GetTouchpointByNameAsync(systemName);
 
-            return entity ?? throw new InvalidOperationException($"{label} touchpoint not found.");
+            if (touchpoint == null)
+                throw new InvalidOperationException($"{role} touchpoint not found.");
+
+            return touchpoint;
         }
     }
 }

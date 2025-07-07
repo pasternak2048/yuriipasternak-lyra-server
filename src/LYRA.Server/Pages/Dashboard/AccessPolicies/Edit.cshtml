@@ -26,39 +26,53 @@
             <input type="hidden" asp-for="Input.Id" />
 
             <div class="mb-3">
-                <label asp-for="Input.CallerSystemName" class="form-label">Caller System Name</label>
-                <select asp-for="Input.CallerSystemName" class="form-select" asp-items="Model.TouchpointSelectList">
-                    <option value="">Select caller touchpoint...</option>
-                </select>
-                <span asp-validation-for="Input.CallerSystemName" class="text-danger small"></span>
+                <label class="form-label">Caller</label>
+                <div class="position-relative">
+                    @{
+                        var caller = Model.Callers.FirstOrDefault(t => t.Id == Model.Input.CallerId);
+                        var callerLabel = caller is null ? "" : $"{caller.SystemName} ({caller.DisplayName})";
+                    }
+                    <input type="text" id="autocompleteCallerInput" class="form-control" autocomplete="off"
+                           placeholder="Start typing..." value="@callerLabel" />
+                    <input type="hidden" id="autocompleteCallerHiddenId" name="Input.CallerId" value="@Model.Input.CallerId" />
+                    <div id="autocompleteCallerDropdown" class="dropdown-menu w-100 shadow autocomplete-dropdown"
+                         style="max-height: 200px; overflow-y: auto;"></div>
+                </div>
+                <span asp-validation-for="Input.CallerId" class="text-danger small"></span>
             </div>
 
             <div class="mb-3">
-                <label asp-for="Input.TargetSystemName" class="form-label">Target System Name</label>
-                <select asp-for="Input.TargetSystemName" class="form-select" asp-items="Model.TouchpointSelectList">
-                    <option value="">Select target touchpoint...</option>
-                </select>
-                <span asp-validation-for="Input.TargetSystemName" class="text-danger small"></span>
+                <label class="form-label">Target</label>
+                <div class="position-relative">
+                    @{
+                        var target = Model.Targets.FirstOrDefault(t => t.Id == Model.Input.TargetId);
+                        var targetLabel = target is null ? "" : $"{target.SystemName} ({target.DisplayName})";
+                    }
+                    <input type="text" id="autocompleteTargetInput" class="form-control" autocomplete="off"
+                           placeholder="Start typing..." value="@targetLabel" />
+                    <input type="hidden" id="autocompleteTargetHiddenId" name="Input.TargetId" value="@Model.Input.TargetId" />
+                    <div id="autocompleteTargetDropdown" class="dropdown-menu w-100 shadow autocomplete-dropdown"
+                         style="max-height: 200px; overflow-y: auto;"></div>
+                </div>
+                <span asp-validation-for="Input.TargetId" class="text-danger small"></span>
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Allowed Operations</label>
                 <div id="operationList">
-                    @if (Model.Input.Operations.Count > 0)
+                    @for (int i = 0; i < Model.Input.Operations.Count; i++)
                     {
-                        foreach (var op in Model.Input.Operations)
-                        {
-                            var key = Guid.NewGuid().ToString("N");
-                            <input type="hidden" name="Input.Operations.index" value="@key" />
-                            <div class="input-group mb-2" id="op-@key">
-                                <input type="text" class="form-control" name="Input.Operations[@key]" value="@op" />
-                                <button type="button" class="btn btn-outline-danger" onclick="lyra.removeOperation('@key')">
-                                    <i class="bi bi-x"></i>
-                                </button>
-                            </div>
-                        }
+                        var key = Guid.NewGuid().ToString("N");
+                        <input type="hidden" name="Input.Operations.index" value="@key" />
+                        <div class="input-group mb-2" id="op-@key">
+                            <input type="text" class="form-control" name="Input.Operations[@key]" value="@Model.Input.Operations[i]" />
+                            <button type="button" class="btn btn-outline-danger" onclick="lyra.removeOperation('@key')">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
                     }
-                    else
+
+                    @if (Model.Input.Operations.Count == 0)
                     {
                         var key = Guid.NewGuid().ToString("N");
                         <input type="hidden" name="Input.Operations.index" value="@key" />
@@ -70,7 +84,6 @@
                         </div>
                     }
                 </div>
-
                 <button type="button" class="btn btn-outline-light btn-sm" onclick="lyra.addOperation()">Add Operation</button>
             </div>
 
@@ -96,4 +109,21 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/lyra-utils.js" asp-append-version="true"></script>
+    <script src="~/js/autocomplete.js" asp-append-version="true"></script>
+
+    <script>
+        initAutocomplete({
+            inputId: "autocompleteCallerInput",
+            hiddenInputId: "autocompleteCallerHiddenId",
+            dropdownId: "autocompleteCallerDropdown",
+            fetchUrl: "/Shared/TrustedTouchpointsAutocomplete"
+        });
+
+        initAutocomplete({
+            inputId: "autocompleteTargetInput",
+            hiddenInputId: "autocompleteTargetHiddenId",
+            dropdownId: "autocompleteTargetDropdown",
+            fetchUrl: "/Shared/TrustedTouchpointsAutocomplete"
+        });
+    </script>
 }

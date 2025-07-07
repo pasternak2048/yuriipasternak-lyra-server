@@ -18,11 +18,38 @@
         <form method="get" class="mb-4 row g-2 align-items-end">
             <div class="col-md-4">
                 <label class="form-label">Caller</label>
-                <input type="text" name="CallerSystemName" class="form-control" value="@Model.Filters.CallerSystemName" placeholder="e.g. gateway@bcorp" />
+                <div class="position-relative">
+                    @{
+                        var selectedCaller = Model.Callers.FirstOrDefault(t => t.Id == Model.Filters.CallerId);
+                        var callerLabel = selectedCaller is null ? "" : $"{selectedCaller.SystemName} ({selectedCaller.DisplayName})";
+                    }
+                    <input type="text" id="autocompleteCallerInput" class="form-control" autocomplete="off"
+                           placeholder="Start typing..." value="@callerLabel" />
+
+                    <input type="hidden" id="autocompleteCallerHiddenId" name="Filters.CallerId" value="@Model.Filters.CallerId" />
+
+                    <div id="autocompleteCallerDropdown"
+                         class="dropdown-menu w-100 shadow autocomplete-dropdown"
+                         style="max-height: 200px; overflow-y: auto;"></div>
+                </div>
             </div>
+
             <div class="col-md-4">
                 <label class="form-label">Target</label>
-                <input type="text" name="TargetSystemName" class="form-control" value="@Model.Filters.TargetSystemName" placeholder="e.g. billing@acorp" />
+                <div class="position-relative">
+                    @{
+                        var selectedTarget = Model.Targets.FirstOrDefault(t => t.Id == Model.Filters.TargetId);
+                        var targetLabel = selectedTarget is null ? "" : $"{selectedTarget.SystemName} ({selectedTarget.DisplayName})";
+                    }
+                    <input type="text" id="autocompleteTargetInput" class="form-control" autocomplete="off"
+                           placeholder="Start typing..." value="@targetLabel" />
+
+                    <input type="hidden" id="autocompleteTargetHiddenId" name="Filters.TargetId" value="@Model.Filters.TargetId" />
+
+                    <div id="autocompleteTargetDropdown"
+                         class="dropdown-menu w-100 shadow autocomplete-dropdown"
+                         style="max-height: 200px; overflow-y: auto;"></div>
+                </div>
             </div>
             <div class="col-md-auto">
                 <button type="submit" class="btn btn-outline-light w-100">
@@ -73,10 +100,30 @@
                 @for (int i = 1; i <= Model.Policies.TotalPages; i++)
                 {
                     <li class="page-item @(i == Model.Filters.Page ? "active" : "")">
-                        <a class="page-link" href="?CallerSystemName=@Model.Filters.CallerSystemName&TargetSystemName=@Model.Filters.TargetSystemName&page=@i">@i</a>
+                        <a class="page-link" href="?Filters.CallerId=@Model.Filters.CallerId&Filters.TargetId=@Model.Filters.TargetId&page=@i">@i</a>
                     </li>
                 }
             </ul>
         </nav>
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/autocomplete.js" asp-append-version="true"></script>
+
+    <script>
+        initAutocomplete({
+            inputId: "autocompleteCallerInput",
+            hiddenInputId: "autocompleteCallerHiddenId",
+            dropdownId: "autocompleteCallerDropdown",
+            fetchUrl: "/Shared/TrustedTouchpointsAutocomplete"
+        });
+
+        initAutocomplete({
+            inputId: "autocompleteTargetInput",
+            hiddenInputId: "autocompleteTargetHiddenId",
+            dropdownId: "autocompleteTargetDropdown",
+            fetchUrl: "/Shared/TrustedTouchpointsAutocomplete"
+        });
+    </script>
+}

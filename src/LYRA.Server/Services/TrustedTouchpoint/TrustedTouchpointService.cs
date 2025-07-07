@@ -32,6 +32,23 @@ namespace LYRA.Server.Services.TrustedTouchpoint
         }
 
         /// <inheritdoc />
+        public async Task<List<TrustedTouchpointDto>> SearchAsync(string term)
+        {
+            return await _context.TrustedTouchpoints
+                .Where(c => c.IsActive && !c.IsDeleted &&
+                            (c.DisplayName.Contains(term) || c.SystemName.Contains(term)))
+                .OrderBy(c => c.SystemName)
+                .Take(10)
+                .Select(c => new TrustedTouchpointDto
+                {
+                    Id = c.Id,
+                    DisplayName = c.DisplayName,
+                    SystemName = c.SystemName
+                })
+                .ToListAsync();
+        }
+
+        /// <inheritdoc />
         public async Task<List<TrustedTouchpointLightDto>> GetLightweightAsync()
         {
             return await _context.TrustedTouchpoints

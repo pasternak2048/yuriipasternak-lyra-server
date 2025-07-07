@@ -1,4 +1,5 @@
-﻿using LYRA.Server.Models.Pagination;
+﻿using LYRA.Server.Models.Company;
+using LYRA.Server.Models.Pagination;
 using LYRA.Server.Models.Shared;
 using LYRA.Server.Models.TrustedTouchpoint;
 
@@ -9,6 +10,14 @@ namespace LYRA.Server.Services.TrustedTouchpoint.Interfaces
     /// </summary>
     public interface ITrustedTouchpointService
     {
+        /// <summary>
+        /// Searches for active, non-deleted touchpoints by a partial match of their display or system name.
+        /// Returns a lightweight list of matching touchpoints (max 10 results), ordered by system name.
+        /// </summary>
+        /// <param name="term">The search term to match against the touchpoint's display name or system name.</param>
+        /// <returns>A list of matching <see cref="TrustedTouchpointDto"/> entries.</returns>
+        Task<List<TrustedTouchpointDto>> SearchAsync(string term);
+
         /// <summary>
         /// Retrieves a lightweight list of trusted touchpoints, typically used for dropdowns or references.
         /// </summary>
