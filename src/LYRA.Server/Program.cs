@@ -89,6 +89,8 @@ builder.Services.AddSingleton<ICacheService, MemoryCacheService>();
 builder.Services.AddScoped<ICachedAccessPolicyMemoryService, CachedAccessPolicyMemoryService>();
 builder.Services.AddScoped<IAccessPolicyCacheSyncService, AccessPolicyCacheSyncService>();
 builder.Services.AddScoped<ILogService, LogService>();
+builder.Services.AddSingleton<ILogQueue, InMemoryLogQueue>();
+builder.Services.AddHostedService<BackgroundLogWriterService>();
 
 /// <summary>
 /// Register signature string builders per access context and the factory to resolve them.

@@ -1,6 +1,7 @@
 ﻿using LYRA.Security.Models.Verify;
 using LYRA.Security.Signature;
 using LYRA.Security.Utilities.Security;
+using LYRA.Server.Models.Logging;
 using LYRA.Server.Services.AccessPolicy.Interfaces;
 using LYRA.Server.Services.Logging.Interfaces;
 using LYRA.Server.Services.Verify.Interfaces;
@@ -17,18 +18,18 @@ namespace LYRA.Server.Services.Verify
     {
         private readonly SignatureStringBuilderFactory _factory;
         private readonly ICachedAccessPolicyMemoryService _memory;
-        private readonly ILogService _logger;
+        private readonly ILogQueue _logQueue;
         private readonly ILogger<VerifyService> _loggerDotNet;
 
         public VerifyService(
             SignatureStringBuilderFactory factory,
             ICachedAccessPolicyMemoryService memory,
-            ILogService logger,
+			ILogQueue logQueue,
             ILogger<VerifyService> loggerDotNet)
         {
             _factory = factory;
             _memory = memory;
-            _logger = logger;
+			_logQueue = logQueue;
             _loggerDotNet = loggerDotNet;
         }
 
@@ -45,7 +46,7 @@ namespace LYRA.Server.Services.Verify
                 // Parse and validate the timestamp.
                 if (!DateTime.TryParse(request.Timestamp, null, DateTimeStyles.AdjustToUniversal, out var requestTimeUtc))
                 {
-                    return await FailAsync(
+                    return FailAsync(
                         description: "Invalid timestamp format",
                         request: request);
                 }
@@ -55,7 +56,7 @@ namespace LYRA.Server.Services.Verify
                 var hourDiff = Math.Abs((int)(now - requestTimeUtc).TotalHours);
                 if (hourDiff > 2)
                 {
-                    return await FailAsync(
+                    return FailAsync(
                         description: "Request timestamp is outside the allowed +- 2 hours window.",
                         request: request);
                 }
@@ -64,7 +65,7 @@ namespace LYRA.Server.Services.Verify
                 var policy = await _memory.GetAsync(request.Caller, request.Target, request.Context.ToString());
                 if (policy == null || !policy.IsEnabled)
                 {
-                    return await FailAsync(
+                    return FailAsync(
                         description: "Access denied: no policy or disabled",
                         request: request);
                 }
@@ -74,7 +75,7 @@ namespace LYRA.Server.Services.Verify
                 var allowedOps = DelimitedStringParser.Parse(policy.Operation);
                 if (!allowedOps.Any(op => operationKey.StartsWith(op)))
                 {
-                    return await FailAsync(
+                    return FailAsync(
                         description: $"Operation not allowed: {operationKey}",
                         request: request);
                 }
@@ -85,14 +86,14 @@ namespace LYRA.Server.Services.Verify
                 {
                     if (string.IsNullOrWhiteSpace(request.Payload))
                     {
-                        return await FailAsync(
+                        return FailAsync(
                             description: "Payload is required for this context and method.",
                             request: request);
                     }
 
                     if (string.IsNullOrWhiteSpace(request.PayloadHash))
                     {
-                        return await FailAsync(
+                        return FailAsync(
                             description: "PayloadHash is required for this context and method.",
                             request: request);
                     }
@@ -100,7 +101,7 @@ namespace LYRA.Server.Services.Verify
                     var computed = EncryptionHelper.ComputeSha512(request.Payload);
                     if (!EncryptionHelper.SecureEquals(computed, request.PayloadHash))
                     {
-                        return await FailAsync(
+                        return FailAsync(
                             description: "PayloadHash does not match payload.",
                             request: request);
                     }
@@ -119,30 +120,32 @@ namespace LYRA.Server.Services.Verify
 
                 if (!isValid)
                 {
-                    return await FailAsync(
+                    return FailAsync(
                         description: "Invalid signature.",
                         request: request,
                         signatureHash: request.Signature);
                 }
 
-                // Success log
-                await _logger.WriteAsync(
-                    type: "Verification",
-                    status: "Success",
-                    description: "Request verified successfully",
-                    callerSystem: request.Caller,
-                    targetSystem: request.Target,
-                    signatureHash: request.Signature,
-                    source: nameof(VerifyService));
+				// Success log
+				_logQueue.Enqueue(new LogEntryDto
+				{
+					Type = "Verification",
+					Status = "Success",
+					Description = "Request verified successfully",
+					CallerSystem = request.Caller,
+					TargetSystem = request.Target,
+					SignatureHash = request.Signature,
+					Source = nameof(VerifyService)
+				});
 
-                return VerifyResponse.Success;
+				return VerifyResponse.Success;
             }
             catch (Exception ex)
             {
                 // Unexpected error log
                 _loggerDotNet.LogError(ex, "Unexpected verification failure");
 
-                return await FailAsync(
+                return FailAsync(
                     description: "Exception during verification",
                     request: request,
                     exception: ex.ToString(),
@@ -160,24 +163,26 @@ namespace LYRA.Server.Services.Verify
         /// <param name="signatureHash">Optional signature involved in the failure.</param>
         /// <param name="status">Log severity (Fail, Error, Warning, etc.).</param>
         /// <returns>A failed <see cref="VerifyResponse"/> with the specified message.</returns>
-        private async Task<VerifyResponse> FailAsync(
+        private VerifyResponse FailAsync(
             string description,
             VerifyRequest request,
             string? exception = null,
             string? signatureHash = null,
             string status = "Fail")
         {
-            await _logger.WriteAsync(
-                type: "Verification",
-                status: status,
-                description: description,
-                callerSystem: request.Caller,
-                targetSystem: request.Target,
-                exception: exception,
-                signatureHash: signatureHash,
-                source: nameof(VerifyService));
+			_logQueue.Enqueue(new LogEntryDto
+			{
+				Type = "Verification",
+				Status = status,
+				Description = description,
+				CallerSystem = request.Caller,
+				TargetSystem = request.Target,
+                Exception = exception,
+				SignatureHash = signatureHash,
+				Source = nameof(VerifyService)
+			});
 
-            return new VerifyResponse
+			return new VerifyResponse
             {
                 IsSuccess = false,
                 ErrorMessage = description
