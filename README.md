@@ -13,7 +13,7 @@ It ensures that each request across service or company boundaries is intentional
 
 ---
 
-## 🧱 What is LYRA.Server?
+## What is LYRA.Server?
 
 **LYRA.Server** is the central verifier in the LYRA ecosystem. It checks incoming signed requests using cryptographic validation and enforced access rules.
 
@@ -24,7 +24,7 @@ It ensures that each request across service or company boundaries is intentional
 
 ---
 
-## 🚦 How it Works
+## How it Works
 
 1. A sender system builds a `GenericMetadata` object:
    - `caller`, `target`, `action`, `resource`, `payloadHash`, `timestamp`
@@ -37,7 +37,7 @@ It ensures that each request across service or company boundaries is intentional
 
 ---
 
-## 🧠 Core Concepts
+## Core Concepts
 
 | Concept              | Description |
 |----------------------|-------------|
@@ -51,7 +51,7 @@ It ensures that each request across service or company boundaries is intentional
 
 ---
 
-## 📦 Authorization Flow Example
+## Authorization Flow Example
 
 ```json
 POST /api/verify
@@ -73,7 +73,7 @@ POST /api/verify
 
 ---
 
-## ⚡ Architecture Highlights
+## Architecture Highlights
 
 - ✅ Built-in `SaveChangesInterceptor` to auto-update cache
 - ✅ Denormalized `CachedAccessPolicy` for lightning-fast lookups
@@ -84,7 +84,7 @@ POST /api/verify
 
 ---
 
-## 🔧 Tech Stack
+## Tech Stack
 
 - ASP.NET Core 8 + Razor Pages
 - Entity Framework Core + SQL Server
@@ -95,7 +95,7 @@ POST /api/verify
 
 ---
 
-## 🔗 Used by
+## Used by
 
 - `LYRA.Client` for signing and sending
 - `LYRA.Security` for shared models and crypto
@@ -103,7 +103,7 @@ POST /api/verify
 
 ---
 
-## 📄 License
+## License
 
 Licensed under the [MIT License](LICENSE).
 
