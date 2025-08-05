@@ -9,8 +9,6 @@
 **LYRA** (*Let Yourself Remain Authenticated*) is a self-hosted authorization system for verifying **signed requests** between **trusted systems**.  
 It ensures that each request across service or company boundaries is intentional, validated, and safe — without inspecting the business payload.
 
-> 🔐 Built for signed trust. Designed to run anywhere. Depends on no one.
-
 ---
 
 ## What is LYRA.Server?
