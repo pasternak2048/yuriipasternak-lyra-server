@@ -1,12 +1,13 @@
 ﻿using LYRA.Security.Enums;
-using LYRA.Security.Utilities;
-using LYRA.Security.Utilities.Security;
 using LYRA.Server.Data.LyraDb;
 using LYRA.Server.Entities;
+using LYRA.Server.Enums;
 using LYRA.Server.Models.Pagination;
 using LYRA.Server.Models.Shared;
 using LYRA.Server.Models.TrustedTouchpoint;
 using LYRA.Server.Services.TrustedTouchpoint.Interfaces;
+using LYRA.Server.Utilities.Naming;
+using LYRA.Server.Utilities.Security;
 using Microsoft.EntityFrameworkCore;
 
 namespace LYRA.Server.Services.TrustedTouchpoint
@@ -115,7 +116,7 @@ namespace LYRA.Server.Services.TrustedTouchpoint
                 if (company == null)
                     throw new InvalidOperationException("Target company does not exist.");
 
-                var tpSlug = NameHelper.EnsureSlug(request.DisplayName);
+                var tpSlug = SystemNameGenerator.Ensure(request.DisplayName);
                 var fullName = $"{tpSlug}@{company.SystemName}";
 
                 var exists = await _context.TrustedTouchpoints.AnyAsync(t =>
@@ -145,7 +146,6 @@ namespace LYRA.Server.Services.TrustedTouchpoint
                     UseCompanySecret = request.UseCompanySecret,
                     IsActive = request.IsActive,
                     CreatedAt = DateTime.UtcNow,
-                    Mode = Enum.Parse<TouchpointMode>(request.Mode),
                     SignatureType = Enum.Parse<SignatureType>(request.SignatureType),
                     Description = request.Description?.Trim(),
                     IsDeleted = false
@@ -162,7 +162,6 @@ namespace LYRA.Server.Services.TrustedTouchpoint
                     SystemName = entity.SystemName,
                     DisplayName = entity.DisplayName,
                     CompanyName = company.SystemName,
-                    Mode = entity.Mode.ToString(),
                     SignatureType = entity.SignatureType.ToString(),
                     IsActive = entity.IsActive,
                     UseCompanySecret = entity.UseCompanySecret,
@@ -191,7 +190,6 @@ namespace LYRA.Server.Services.TrustedTouchpoint
                 entity.DisplayName = request.DisplayName;
                 entity.UseCompanySecret = request.UseCompanySecret;
                 entity.IsActive = request.IsActive;
-                entity.Mode = Enum.Parse<TouchpointMode>(request.Mode);
                 entity.SignatureType = Enum.Parse<SignatureType>(request.SignatureType);
                 entity.Description = request.Description?.Trim();
 
@@ -266,7 +264,6 @@ namespace LYRA.Server.Services.TrustedTouchpoint
                         CompanyName = t.Company != null ? t.Company.SystemName : "(unknown)",
                         UseCompanySecret = t.UseCompanySecret,
                         IsActive = t.IsActive,
-                        Mode = t.Mode,
                         SignatureType = t.SignatureType,
                         Description = t.Description,
                         CreatedAt = t.CreatedAt
@@ -333,7 +330,6 @@ namespace LYRA.Server.Services.TrustedTouchpoint
                 CompanyName = t.Company?.SystemName ?? "(unknown)",
                 UseCompanySecret = t.UseCompanySecret,
                 IsActive = t.IsActive,
-                Mode = t.Mode,
                 SignatureType = t.SignatureType,
                 Description = t.Description,
                 CreatedAt = t.CreatedAt

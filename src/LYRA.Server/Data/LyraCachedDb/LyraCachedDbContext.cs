@@ -41,8 +41,7 @@ namespace LYRA.Server.Data.LyraCachedDb
                 entity.HasIndex(p => new
                 {
                     p.CallerSystemName,
-                    p.TargetSystemName,
-                    p.Context
+                    p.TargetSystemName
                 })
                 .IsUnique()
                 .HasDatabaseName("IX_CachedAccessPolicy_Key");
@@ -63,11 +62,6 @@ namespace LYRA.Server.Data.LyraCachedDb
                 entity.Property(p => p.Operation)
                       .IsRequired()
                       .HasMaxLength(2000);
-
-                // Context of the operation: Http, Event, Cache, etc.
-                entity.Property(p => p.Context)
-                      .IsRequired()
-                      .HasMaxLength(50);
 
                 // Signature type used for validation (HMAC / RSA)
                 entity.Property(p => p.SignatureType)

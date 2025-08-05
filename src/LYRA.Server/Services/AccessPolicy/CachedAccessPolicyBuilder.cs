@@ -39,7 +39,6 @@ namespace LYRA.Server.Services.AccessPolicy
                 CallerSystemName = policy.CallerSystemName,
                 TargetSystemName = policy.TargetSystemName,
                 Operation = policy.Operation.ToLowerInvariant(),
-                Context = policy.Context.ToString(),
                 CallerSecret = secret,
                 SignatureType = caller.SignatureType.ToString(),
                 IsEnabled = true,

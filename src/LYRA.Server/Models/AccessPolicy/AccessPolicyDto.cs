@@ -39,11 +39,6 @@ namespace LYRA.Server.Models.AccessPolicy
         public string Operation { get; set; } = null!;
 
         /// <summary>
-        /// The context/type of the access (e.g., Http, Event, Cache).
-        /// </summary>
-        public AccessContext Context { get; set; }
-
-        /// <summary>
         /// Indicates if the policy is currently enabled.
         /// </summary>
         public bool IsEnabled { get; set; }

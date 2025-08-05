@@ -29,9 +29,9 @@ namespace LYRA.Server.Services.AccessPolicy.Interfaces
         Task ClearAsync();
 
         /// <summary>
-        /// Finds a cached access policy by system names, context, and operation.
+        /// Finds a cached access policy by system names.
         /// </summary>
-        Task<CachedAccessPolicyEntity?> FindAsync(string caller, string target, string context);
+        Task<CachedAccessPolicyEntity?> FindAsync(string caller, string target);
 
         /// <summary>
         /// Retrieves all cached access policies from persistent storage.

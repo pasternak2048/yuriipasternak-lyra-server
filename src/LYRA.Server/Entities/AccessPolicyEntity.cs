@@ -64,12 +64,6 @@ namespace LYRA.Server.Entities
         public string Operation { get; set; } = null!;
 
         /// <summary>
-        /// Type of interaction: http / event / cache / grpc / internal / etc.
-        /// </summary>
-        [Required]
-        public AccessContext Context { get; set; } = AccessContext.Http;
-
-        /// <summary>
         /// Whether this policy is currently enabled.
         /// </summary>
         public bool IsEnabled { get; set; } = true;

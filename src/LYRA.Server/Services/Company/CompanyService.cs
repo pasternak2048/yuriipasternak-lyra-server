@@ -1,12 +1,12 @@
-﻿using LYRA.Security.Enums;
-using LYRA.Security.Utilities;
-using LYRA.Security.Utilities.Security;
-using LYRA.Server.Data.LyraDb;
+﻿using LYRA.Server.Data.LyraDb;
 using LYRA.Server.Entities;
+using LYRA.Server.Enums;
 using LYRA.Server.Models.Company;
 using LYRA.Server.Models.Pagination;
 using LYRA.Server.Models.Shared;
 using LYRA.Server.Services.Company.Interfaces;
+using LYRA.Server.Utilities.Naming;
+using LYRA.Server.Utilities.Security;
 using Microsoft.EntityFrameworkCore;
 
 namespace LYRA.Server.Services.Company
@@ -106,7 +106,7 @@ namespace LYRA.Server.Services.Company
                 if (string.IsNullOrWhiteSpace(request.DisplayName))
                     throw new ArgumentException("DisplayName is required.", nameof(request.DisplayName));
 
-                var normalizedName = NameHelper.EnsureSlug(request.DisplayName);
+                var normalizedName = SystemNameGenerator.Ensure(request.DisplayName);
                 var exists = await _context.Companies
                     .AnyAsync(c => c.SystemName == normalizedName && !c.IsDeleted);
 

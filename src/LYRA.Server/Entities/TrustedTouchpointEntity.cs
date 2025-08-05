@@ -58,14 +58,9 @@ namespace LYRA.Server.Entities
         public bool IsDeleted { get; set; } = false;
 
         /// <summary>
-        /// Defines the communication role of the touchpoint: CallerOnly, TargetOnly, or Both.
-        /// </summary>
-        public TouchpointMode Mode { get; set; } = TouchpointMode.Both;
-
-        /// <summary>
         /// The signature type used for verifying requests (e.g., HMAC, RSA, None).
         /// </summary>
-        public SignatureType SignatureType { get; set; } = SignatureType.HMAC;
+        public SignatureType SignatureType { get; set; } = SignatureType.HmacSha512;
 
         /// <summary>
         /// Optional description for administrative or documentation purposes.
@@ -88,18 +83,6 @@ namespace LYRA.Server.Entities
         /// Incoming access policies where this touchpoint is the target.
         /// </summary>
         public ICollection<AccessPolicyEntity> IncomingPolicies { get; set; } = new List<AccessPolicyEntity>();
-
-        /// <summary>
-        /// True if this touchpoint is allowed to sign outgoing requests.
-        /// </summary>
-        [NotMapped]
-        public bool ShouldSign => Mode is TouchpointMode.CallerOnly or TouchpointMode.Both;
-
-        /// <summary>
-        /// True if this touchpoint is allowed to receive and validate signed requests.
-        /// </summary>
-        [NotMapped]
-        public bool ShouldAccept => Mode is TouchpointMode.TargetOnly or TouchpointMode.Both;
 
         /// <summary>
         /// Audit: The UTC timestamp when the touchpoint was created.

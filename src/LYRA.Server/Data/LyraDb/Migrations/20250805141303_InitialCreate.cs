@@ -188,7 +188,6 @@ namespace LYRA.Server.Data.LyraDb.Migrations
                     UseCompanySecret = table.Column<bool>(type: "bit", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    Mode = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SignatureType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
                     AllowedSourceIp = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
@@ -218,7 +217,6 @@ namespace LYRA.Server.Data.LyraDb.Migrations
                     CallerSystemName = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: false),
                     TargetSystemName = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: false),
                     Operation = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
-                    Context = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     IsEnabled = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     CreatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
@@ -255,7 +253,7 @@ namespace LYRA.Server.Data.LyraDb.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_AccessPolicy_Key",
                 table: "AccessPolicies",
-                columns: new[] { "CallerSystemName", "TargetSystemName", "Context" },
+                columns: new[] { "CallerSystemName", "TargetSystemName" },
                 unique: true);
 
             migrationBuilder.CreateIndex(

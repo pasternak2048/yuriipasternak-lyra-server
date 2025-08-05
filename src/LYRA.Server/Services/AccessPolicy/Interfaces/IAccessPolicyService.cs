@@ -12,7 +12,7 @@ namespace LYRA.Server.Services.AccessPolicy.Interfaces
         /// <summary>
         /// Retrieves a paginated list of access policies based on the specified filters.
         /// </summary>
-        /// <param name="filters">Filtering options such as context, caller, target, or operation.</param>
+        /// <param name="filters">Filtering options such as, caller, target, or operation.</param>
         /// <returns>A paginated result of access policy DTOs.</returns>
         Task<PaginatedResult<AccessPolicyDto>> GetPagedAsync(AccessPolicyFilters filters);
 
@@ -49,8 +49,8 @@ namespace LYRA.Server.Services.AccessPolicy.Interfaces
         Task<int> GetTotalPolicyCountAsync();
 
         /// <summary>
-        /// Determines if the caller is allowed to access the target for a given operation and context.
+        /// Determines if the caller is allowed to access the target for a given operation.
         /// </summary>
-        Task<bool> IsAuthorizedAsync(string caller, string target, AccessContext context, string operation);
+        Task<bool> IsAuthorizedAsync(string caller, string target, string operation);
     }
 }

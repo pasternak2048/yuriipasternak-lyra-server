@@ -1,4 +1,4 @@
-﻿using LYRA.Security.Enums;
+﻿using LYRA.Server.Enums;
 
 namespace LYRA.Server.Models.Shared
 {

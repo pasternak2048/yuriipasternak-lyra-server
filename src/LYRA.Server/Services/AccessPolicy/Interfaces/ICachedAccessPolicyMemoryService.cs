@@ -11,17 +11,17 @@ namespace LYRA.Server.Services.AccessPolicy.Interfaces
         /// <summary>
         /// Tries to get cached policy from RAM or persistent storage.
         /// </summary>
-        Task<CachedAccessPolicyEntity?> GetAsync(string caller, string target, string context);
+        Task<CachedAccessPolicyEntity?> GetAsync(string caller, string target);
 
         /// <summary>
         /// Invalidates the cache for a given policy.
         /// </summary>
-        void Invalidate(string caller, string target, string context);
+        void Invalidate(string caller, string target);
 
         /// <summary>
         /// Forcefully refreshes the RAM cache entry.
         /// </summary>
-        Task RefreshAsync(string caller, string target, string context);
+        Task RefreshAsync(string caller, string target);
 
         /// <summary>
         /// Preloads all policies from persistent cache into memory.

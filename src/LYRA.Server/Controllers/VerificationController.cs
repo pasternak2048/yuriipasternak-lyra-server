@@ -1,4 +1,4 @@
-﻿using LYRA.Security.Models.Verify;
+﻿using LYRA.Security.Signing;
 using LYRA.Server.Services.Verify.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -40,10 +40,10 @@ namespace LYRA.Server.Controllers
 
             var response = await _verifyService.Verify(request);
 
-            if (response.IsSuccess)
+            if (response.Success)
                 return Ok(response);
 
-            _logger.LogWarning("Verification failed: {Message}", response.ErrorMessage);
+            _logger.LogWarning("Verification failed: {Message}", response.Details);
             return BadRequest(response);
         }
     }

@@ -47,10 +47,6 @@ namespace LYRA.Server.Services.AccessPolicy
             if (!string.IsNullOrWhiteSpace(filters.Operation))
                 query = query.Where(p => p.Operation.Contains(filters.Operation));
 
-            // Filter by Context (enum match)
-            if (filters.Context.HasValue)
-                query = query.Where(p => p.Context == filters.Context.Value);
-
             var totalItems = await query.CountAsync();
 
             var items = await query
@@ -66,7 +62,6 @@ namespace LYRA.Server.Services.AccessPolicy
                     TargetId = p.TargetId,
                     TargetSystemName = p.TargetSystemName,
                     Operation = p.Operation,
-                    Context = p.Context,
                     IsEnabled = p.IsEnabled,
                     CreatedAt = p.CreatedAt
                 })
@@ -99,7 +94,7 @@ namespace LYRA.Server.Services.AccessPolicy
                 var caller = await ResolveTouchpointAsync(request.CallerId, request.CallerSystemName, "Caller");
                 var target = await ResolveTouchpointAsync(request.TargetId, request.TargetSystemName, "Target");
 
-                if (await PolicyExists(null, caller.SystemName, target.SystemName, request.Context))
+                if (await PolicyExists(null, caller.SystemName, target.SystemName))
                     throw new InvalidOperationException("Such policy already exists.");
 
                 var entity = new AccessPolicyEntity
@@ -110,7 +105,6 @@ namespace LYRA.Server.Services.AccessPolicy
                     TargetId = target.Id,
                     TargetSystemName = target.SystemName,
                     Operation = DelimitedStringParser.Join(request.Operations),
-                    Context = request.Context,
                     IsEnabled = request.IsEnabled,
                     CreatedAt = DateTime.UtcNow
                 };
@@ -142,7 +136,7 @@ namespace LYRA.Server.Services.AccessPolicy
                 var caller = await ResolveTouchpointAsync(request.CallerId, request.CallerSystemName, "Caller");
                 var target = await ResolveTouchpointAsync(request.TargetId, request.TargetSystemName, "Target");
 
-                if (await PolicyExists(request.Id, caller.SystemName, target.SystemName, request.Context))
+                if (await PolicyExists(request.Id, caller.SystemName, target.SystemName))
                     throw new InvalidOperationException("Such policy already exists.");
 
                 entity.CallerId = caller.Id;
@@ -150,7 +144,6 @@ namespace LYRA.Server.Services.AccessPolicy
                 entity.TargetId = target.Id;
                 entity.TargetSystemName = target.SystemName;
                 entity.Operation = DelimitedStringParser.Join(request.Operations);
-                entity.Context = request.Context;
                 entity.IsEnabled = request.IsEnabled;
 
                 await _context.SaveChangesAsync();
@@ -184,14 +177,13 @@ namespace LYRA.Server.Services.AccessPolicy
         }
 
         /// <inheritdoc />
-        public async Task<bool> IsAuthorizedAsync(string caller, string target, AccessContext context, string operation)
+        public async Task<bool> IsAuthorizedAsync(string caller, string target, string operation)
         {
             var normalizedOperation = operation.ToLowerInvariant().Trim();
 
             return await _context.AccessPolicies.AsNoTracking().AnyAsync(p =>
                 p.CallerSystemName == caller &&
                 p.TargetSystemName == target &&
-                p.Context == context &&
                 p.Operation == normalizedOperation &&
                 p.IsEnabled);
         }
@@ -210,7 +202,6 @@ namespace LYRA.Server.Services.AccessPolicy
             CallerId = p.CallerId,
             TargetId = p.TargetId,
             Operation = p.Operation,
-            Context = p.Context,
             IsEnabled = p.IsEnabled,
             CreatedAt = p.CreatedAt
         };
@@ -226,13 +217,12 @@ namespace LYRA.Server.Services.AccessPolicy
         /// <summary>
         /// Returns whether a policy already exists for given parameters (excluding a specific ID).
         /// </summary>
-        private async Task<bool> PolicyExists(Guid? policyId, string caller, string target, AccessContext context)
+        private async Task<bool> PolicyExists(Guid? policyId, string caller, string target)
         {
             return await _context.AccessPolicies.AsNoTracking().AnyAsync(p =>
                 (!policyId.HasValue || p.Id != policyId.Value) &&
                 p.CallerSystemName == caller &&
-                p.TargetSystemName == target &&
-                p.Context == context);
+                p.TargetSystemName == target);
         }
 
         private async Task<TrustedTouchpointEntity> GetTouchpointByNameAsync(string systemName)

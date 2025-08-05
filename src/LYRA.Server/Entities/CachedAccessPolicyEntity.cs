@@ -32,13 +32,6 @@ namespace LYRA.Server.Entities
         public string Operation { get; set; } = null!;
 
         /// <summary>
-        /// Context of the request (Http, Event, Cache, etc.). Stored as string.
-        /// </summary>
-        [Required]
-        [MaxLength(50)]
-        public string Context { get; set; } = null!;
-
-        /// <summary>
         /// Secret used for verifying the signature of the caller (resolved from Caller or Company).
         /// </summary>
         [Required]

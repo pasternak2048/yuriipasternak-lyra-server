@@ -1,10 +1,10 @@
 ﻿using LYRA.Security.Enums;
-using LYRA.Security.Utilities;
-using LYRA.Security.Utilities.Security;
 using LYRA.Server.Entities;
 using LYRA.Server.Entities.Identity;
 using LYRA.Server.Services.AccessPolicy.Interfaces;
 using LYRA.Server.Services.Logging.Interfaces;
+using LYRA.Server.Utilities.Naming;
+using LYRA.Server.Utilities.Security;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -70,7 +70,7 @@ namespace LYRA.Server.Data.LyraDb
                 {
                     Id = Guid.NewGuid(),
                     DisplayName = displayName,
-                    SystemName = SlugHelper.Slugify(displayName),
+                    SystemName = SystemNameGenerator.Ensure(displayName),
                     Secret = secret,
                     IsActive = true,
                     IsDeleted = false,
@@ -91,7 +91,7 @@ namespace LYRA.Server.Data.LyraDb
             {
                 var c = companies[i];
                 var name = $"Default TP #{i + 1:00}";
-                var tpSlug = SlugHelper.Slugify(name);
+                var tpSlug = SystemNameGenerator.Ensure(name);
                 var systemName = $"{tpSlug}@{c.SystemName}";
                 var secret = EncryptionHelper.EncryptSecret($"tp-secret-{i + 1:00}");
 
@@ -107,8 +107,7 @@ namespace LYRA.Server.Data.LyraDb
                     IsDeleted = false,
                     CreatedAt = DateTime.UtcNow,
                     CreatedBy = systemUserId,
-                    Mode = TouchpointMode.Both,
-                    SignatureType = SignatureType.HMAC
+                    SignatureType = SignatureType.HmacSha512
                 };
 
                 touchpoints.Add(tp);
@@ -133,7 +132,6 @@ namespace LYRA.Server.Data.LyraDb
                     CallerSystemName = caller.SystemName,
                     TargetSystemName = target.SystemName,
                     Operation = "POST /api/verify",
-                    Context = AccessContext.Http,
                     IsEnabled = true,
                     CreatedAt = DateTime.UtcNow,
                     CreatedBy = systemUserId

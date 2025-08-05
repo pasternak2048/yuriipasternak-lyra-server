@@ -68,11 +68,8 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
                 CallerId = policy.CallerId,
                 TargetId = policy.TargetId,
                 Operations = DelimitedStringParser.Parse(policy.Operation, ",").ToList(),
-                Context = policy.Context,
                 IsEnabled = policy.IsEnabled
             };
-
-            AccessContexts = EnumHelper.GetSelectList<AccessContext>();
 
             if (Input.CallerId.HasValue)
             {
@@ -96,8 +93,6 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         /// </summary>
         public async Task<IActionResult> OnPostAsync()
         {
-            AccessContexts = EnumHelper.GetSelectList<AccessContext>();
-
             if (Input.CallerId.HasValue)
             {
                 var caller = await _touchpointService.GetByIdAsync(Input.CallerId.Value);

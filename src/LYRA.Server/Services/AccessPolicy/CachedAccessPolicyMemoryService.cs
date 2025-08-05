@@ -23,15 +23,15 @@ namespace LYRA.Server.Services.AccessPolicy
         }
 
         /// <inheritdoc/>
-        public async Task<CachedAccessPolicyEntity?> GetAsync(string caller, string target, string context)
+        public async Task<CachedAccessPolicyEntity?> GetAsync(string caller, string target)
         {
-            var key = BuildKey(caller, target, context);
+            var key = BuildKey(caller, target);
 
             var cached = await _cache.GetAsync<CachedAccessPolicyEntity>(key);
             if (cached != null)
                 return cached;
 
-            cached = await _persistent.FindAsync(caller, target, context);
+            cached = await _persistent.FindAsync(caller, target);
             if (cached != null)
                 await _cache.SetAsync(key, cached, DefaultTtl);
 
@@ -39,10 +39,10 @@ namespace LYRA.Server.Services.AccessPolicy
         }
 
         /// <inheritdoc/>
-        public async Task RefreshAsync(string caller, string target, string context)
+        public async Task RefreshAsync(string caller, string target)
         {
-            var key = BuildKey(caller, target, context);
-            var cached = await _persistent.FindAsync(caller, target, context);
+            var key = BuildKey(caller, target);
+            var cached = await _persistent.FindAsync(caller, target);
 
             if (cached != null)
                 await _cache.SetAsync(key, cached, DefaultTtl);
@@ -51,9 +51,9 @@ namespace LYRA.Server.Services.AccessPolicy
         }
 
         /// <inheritdoc/>
-        public async void Invalidate(string caller, string target, string context)
+        public async void Invalidate(string caller, string target)
         {
-            var key = BuildKey(caller, target, context);
+            var key = BuildKey(caller, target);
             await _cache.RemoveAsync(key);
         }
 
@@ -65,12 +65,12 @@ namespace LYRA.Server.Services.AccessPolicy
 
             foreach (var policy in all)
             {
-                var key = BuildKey(policy.CallerSystemName, policy.TargetSystemName, policy.Context);
+                var key = BuildKey(policy.CallerSystemName, policy.TargetSystemName);
                 await _cache.SetAsync(key, policy, DefaultTtl);
             }
         }
 
-        private static string BuildKey(string caller, string target, string context)
-            => $"{caller}::{target}::{context}".ToLowerInvariant();
+        private static string BuildKey(string caller, string target)
+            => $"{caller}::{target}".ToLowerInvariant();
     }
 }
