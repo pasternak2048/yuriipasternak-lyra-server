@@ -95,8 +95,8 @@ POST /api/verify
 
 ## Used by
 
-- `LYRA.Client` for signing and sending
-- `LYRA.Security` for shared models and crypto
+- **[LYRA.Client](https://github.com/pasternak2048/yuriipasternak-lyra-client)** for signing and sending
+- **[LYRA.Security](https://github.com/pasternak2048/yuriipasternak-lyra-security)** for shared models and crypto
 - Can be extended for gRPC / EventBus / Custom flows
 
 ---
