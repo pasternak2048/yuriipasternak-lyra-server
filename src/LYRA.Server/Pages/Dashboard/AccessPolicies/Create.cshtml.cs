@@ -72,8 +72,6 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         /// </summary>
         public async Task OnGetAsync()
         {
-            AccessContexts = EnumHelper.GetSelectList<AccessContext>();
-
             if (CallerId.HasValue)
             {
                 var caller = await _touchpointService.GetByIdAsync(CallerId.Value);
@@ -101,8 +99,6 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         /// <returns>Redirects to index on success, or redisplays form on failure.</returns>
         public async Task<IActionResult> OnPostAsync()
         {
-            AccessContexts = EnumHelper.GetSelectList<AccessContext>();
-
             if (Input.CallerId.HasValue)
             {
                 var caller = await _touchpointService.GetByIdAsync(Input.CallerId.Value);

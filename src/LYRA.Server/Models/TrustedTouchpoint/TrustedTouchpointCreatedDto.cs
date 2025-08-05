@@ -26,11 +26,6 @@
         public string CompanyName { get; set; } = default!;
 
         /// <summary>
-        /// Interaction mode: CallerOnly, TargetOnly, or Both.
-        /// </summary>
-        public string Mode { get; set; } = default!;
-
-        /// <summary>
         /// Signature algorithm used by this touchpoint (e.g., HMAC or RSA).
         /// </summary>
         public string SignatureType { get; set; } = default!;

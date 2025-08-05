@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LYRA.Server.Data.LyraCachedDb.Migrations
 {
     [DbContext(typeof(LyraCachedDbContext))]
-    [Migration("20250703095810_InitialCreate")]
+    [Migration("20250805141331_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -52,11 +52,6 @@ namespace LYRA.Server.Data.LyraCachedDb.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Context")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<bool>("IsEnabled")
                         .HasColumnType("bit");
 
@@ -82,7 +77,7 @@ namespace LYRA.Server.Data.LyraCachedDb.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CallerSystemName", "TargetSystemName", "Context")
+                    b.HasIndex("CallerSystemName", "TargetSystemName")
                         .IsUnique()
                         .HasDatabaseName("IX_CachedAccessPolicy_Key");
 

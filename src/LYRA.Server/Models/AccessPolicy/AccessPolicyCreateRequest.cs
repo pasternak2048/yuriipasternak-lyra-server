@@ -38,12 +38,6 @@ namespace LYRA.Server.Models.AccessPolicy
         public List<string> Operations { get; set; } = new();
 
         /// <summary>
-        /// Context of the access policy (e.g., Http, Event, Grpc).
-        /// </summary>
-        [Required]
-        public AccessContext Context { get; set; }
-
-        /// <summary>
         /// Indicates whether this access policy is enabled.
         /// </summary>
         public bool IsEnabled { get; set; } = true;

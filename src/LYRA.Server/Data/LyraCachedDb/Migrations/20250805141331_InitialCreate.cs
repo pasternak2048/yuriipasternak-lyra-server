@@ -19,7 +19,6 @@ namespace LYRA.Server.Data.LyraCachedDb.Migrations
                     CallerSystemName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     TargetSystemName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Operation = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
-                    Context = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     CallerSecret = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SignatureType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     IsEnabled = table.Column<bool>(type: "bit", nullable: false),
@@ -36,7 +35,7 @@ namespace LYRA.Server.Data.LyraCachedDb.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_CachedAccessPolicy_Key",
                 table: "CachedAccessPolicies",
-                columns: new[] { "CallerSystemName", "TargetSystemName", "Context" },
+                columns: new[] { "CallerSystemName", "TargetSystemName" },
                 unique: true);
         }
 

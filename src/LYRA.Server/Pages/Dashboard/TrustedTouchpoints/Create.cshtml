@@ -61,16 +61,6 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="Input.Mode" class="form-label">Touchpoint Mode</label>
-                <select asp-for="Input.Mode" class="form-select">
-                    <option value="CallerOnly">CallerOnly</option>
-                    <option value="TargetOnly">TargetOnly</option>
-                    <option value="Both">Both</option>
-                </select>
-                <span asp-validation-for="Input.Mode" class="text-danger small"></span>
-            </div>
-
-            <div class="mb-3">
                 <label asp-for="Input.SignatureType" class="form-label">Signature Type</label>
                 <select asp-for="Input.SignatureType" class="form-select" asp-items="Model.SignatureTypes"></select>
             </div>

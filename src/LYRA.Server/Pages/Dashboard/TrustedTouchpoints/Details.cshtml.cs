@@ -44,9 +44,6 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
         /// <summary> Whether the company-wide secret is used. </summary>
         [TempData] public string? UseCompanySecret { get; set; }
 
-        /// <summary> Touchpoint role mode. </summary>
-        [TempData] public string? Mode { get; set; }
-
         /// <summary> Signature type used. </summary>
         [TempData] public string? SignatureType { get; set; }
 
@@ -93,7 +90,6 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
                 CompanyName = touchpoint.CompanyName;
                 IsActive = touchpoint.IsActive.ToString();
                 UseCompanySecret = touchpoint.UseCompanySecret.ToString();
-                Mode = touchpoint.Mode.ToString();
                 SignatureType = touchpoint.SignatureType.ToString();
                 CreatedAt = touchpoint.CreatedAt.ToString("yyyy-MM-dd HH:mm");
                 Id = touchpoint.Id;

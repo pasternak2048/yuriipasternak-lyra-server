@@ -27,11 +27,5 @@ namespace LYRA.Server.Models.AccessPolicy
         /// Supports partial matches when used in the UI.
         /// </summary>
         public string? Operation { get; set; }
-
-        /// <summary>
-        /// Optional filter by access context.
-        /// Specifies the type of access being filtered (e.g., HTTP, Event, Cache).
-        /// </summary>
-        public AccessContext? Context { get; set; }
     }
 }

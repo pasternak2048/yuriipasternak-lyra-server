@@ -31,17 +31,11 @@ namespace LYRA.Server.Models.TrustedTouchpoint
         /// </summary>
         public bool IsActive { get; set; } = true;
 
-        /// <summary>
-        /// Defines the role of this touchpoint: CallerOnly, TargetOnly, or Both.
-        /// </summary>
-        [Required]
-        public string Mode { get; set; } = "Both";
-
-        /// <summary>
-        /// Specifies the type of signature expected: HMAC, RSA, or None.
-        /// </summary>
-        [Required]
-        public string SignatureType { get; set; } = "HMAC";
+		/// <summary>
+		/// Specifies the type of signature expected: HmacSha512, HmacSha256, etc.
+		/// </summary>
+		[Required]
+        public string SignatureType { get; set; } = "HmacSha512";
 
         /// <summary>
         /// Optional description for administrative or documentation purposes.

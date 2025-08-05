@@ -63,14 +63,13 @@ namespace LYRA.Server.Services.AccessPolicy
         }
 
         /// <inheritdoc/>
-        public async Task<CachedAccessPolicyEntity?> FindAsync(string caller, string target, string context)
+        public async Task<CachedAccessPolicyEntity?> FindAsync(string caller, string target)
         {
             return await _db.CachedAccessPolicies
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p =>
                     p.CallerSystemName == caller &&
-                    p.TargetSystemName == target &&
-                    p.Context.ToLower() == context.ToLower());
+                    p.TargetSystemName == target);
         }
 
         /// <inheritdoc/>

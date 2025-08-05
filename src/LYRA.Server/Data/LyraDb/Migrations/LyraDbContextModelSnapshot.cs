@@ -37,10 +37,6 @@ namespace LYRA.Server.Data.LyraDb.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<string>("Context")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -80,7 +76,7 @@ namespace LYRA.Server.Data.LyraDb.Migrations
 
                     b.HasIndex("TargetId");
 
-                    b.HasIndex("CallerSystemName", "TargetSystemName", "Context")
+                    b.HasIndex("CallerSystemName", "TargetSystemName")
                         .IsUnique()
                         .HasDatabaseName("IX_AccessPolicy_Key");
 
@@ -242,10 +238,6 @@ namespace LYRA.Server.Data.LyraDb.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
-
-                    b.Property<string>("Mode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");

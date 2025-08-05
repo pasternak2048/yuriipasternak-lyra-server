@@ -1,4 +1,3 @@
-using LYRA.Security.Signature;
 using LYRA.Server.Data.Core.Auditing;
 using LYRA.Server.Data.Core.Caching;
 using LYRA.Server.Data.LyraCachedDb;
@@ -91,13 +90,6 @@ builder.Services.AddScoped<IAccessPolicyCacheSyncService, AccessPolicyCacheSyncS
 builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddSingleton<ILogQueue, InMemoryLogQueue>();
 builder.Services.AddHostedService<BackgroundLogWriterService>();
-
-/// <summary>
-/// Register signature string builders per access context and the factory to resolve them.
-/// </summary>
-builder.Services.AddTransient<ISignatureStringBuilder, HttpSignatureStringBuilder>();
-// TODO:  builder.Services.AddTransient<ISignatureStringBuilder, CacheSignatureStringBuilder>();
-builder.Services.AddSingleton<SignatureStringBuilderFactory>();
 
 /// <summary>
 /// Add Web API support for attribute-based controllers (e.g., VerificationController).

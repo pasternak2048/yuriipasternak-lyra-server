@@ -94,8 +94,7 @@ namespace LYRA.Server.Data.Core.Caching
 
                 _memory.Invalidate(
                     policy.CallerSystemName,
-                    policy.TargetSystemName,
-                    policy.Context.ToString());
+                    policy.TargetSystemName);
             }
 
             // ------------------- Remove deleted policies from cache -------------------
@@ -106,8 +105,7 @@ namespace LYRA.Server.Data.Core.Caching
 
                 _memory.Invalidate(
                     policy.CallerSystemName,
-                    policy.TargetSystemName,
-                    policy.Context.ToString());
+                    policy.TargetSystemName);
             }
 
             return result;

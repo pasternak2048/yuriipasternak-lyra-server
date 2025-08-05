@@ -44,11 +44,6 @@ namespace LYRA.Server.Models.TrustedTouchpoint
         public bool IsActive { get; set; }
 
         /// <summary>
-        /// Role of the touchpoint — allowed directions of communication.
-        /// </summary>
-        public TouchpointMode Mode { get; set; }
-
-        /// <summary>
         /// Type of digital signature expected: HMAC, RSA, or none.
         /// </summary>
         public SignatureType SignatureType { get; set; }

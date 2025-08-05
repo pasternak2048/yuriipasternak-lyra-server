@@ -91,10 +91,6 @@ namespace LYRA.Server.Data.LyraDb
                       .IsRequired()
                       .HasMaxLength(200);
 
-                // Enum conversions to strings
-                entity.Property(t => t.Mode)
-                      .HasConversion<string>();
-
                 entity.Property(t => t.SignatureType)
                       .HasConversion<string>();
 
@@ -152,10 +148,6 @@ namespace LYRA.Server.Data.LyraDb
                           v => v
                       );
 
-                // Store Context enum as string
-                entity.Property(p => p.Context)
-                      .HasConversion<string>();
-
                 // IsEnabled defaults to true
                 entity.Property(p => p.IsEnabled)
                       .HasDefaultValue(true);
@@ -173,8 +165,7 @@ namespace LYRA.Server.Data.LyraDb
                 entity.HasIndex(p => new
                 {
                     p.CallerSystemName,
-                    p.TargetSystemName,
-                    p.Context
+                    p.TargetSystemName
                 })
                 .IsUnique()
                 .HasDatabaseName("IX_AccessPolicy_Key");

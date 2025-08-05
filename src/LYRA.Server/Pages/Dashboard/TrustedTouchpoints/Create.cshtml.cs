@@ -76,12 +76,6 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
         public string? UseCompanySecret { get; set; }
 
         /// <summary>
-        /// Role mode of the touchpoint (CallerOnly, TargetOnly, Both).
-        /// </summary>
-        [TempData]
-        public string? Mode { get; set; }
-
-        /// <summary>
         /// Signature type used (HMAC, RSA, None).
         /// </summary>
         [TempData]
@@ -134,7 +128,6 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
                 CompanyName = created.CompanyName;
                 IsActive = created.IsActive.ToString();
                 UseCompanySecret = created.UseCompanySecret.ToString();
-                Mode = created.Mode;
                 SignatureType = created.SignatureType;
                 CreatedAt = created.CreatedAt.ToString("yyyy-MM-dd HH:mm");
                 Id = created.Id;

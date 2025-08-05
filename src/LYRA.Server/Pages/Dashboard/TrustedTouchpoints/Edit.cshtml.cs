@@ -62,7 +62,6 @@ namespace LYRA.Server.Pages.Dashboard.TrustedTouchpoints
                 DisplayName = touchpoint.DisplayName,
                 IsActive = touchpoint.IsActive,
                 UseCompanySecret = touchpoint.UseCompanySecret,
-                Mode = touchpoint.Mode.ToString(),
                 SignatureType = touchpoint.SignatureType.ToString(),
                 Description = touchpoint.Description,
                 AllowedSourceIp = touchpoint.AllowedSourceIp
