@@ -70,12 +70,12 @@ POST /api/verify
 
 ## Architecture Highlights
 
-- ✅ Built-in `SaveChangesInterceptor` to auto-update cache
-- ✅ Denormalized `CachedAccessPolicy` for lightning-fast lookups
-- ✅ In-memory cache for hot-path verification
-- ✅ Razor Pages UI for managing Companies, Touchpoints, and Policies
-- ✅ Live console viewer for security logs via SignalR
-- ✅ Supports `HMAC`, `RSA`, and extensible signature types
+- Built-in `SaveChangesInterceptor` to auto-update cache
+- Denormalized `CachedAccessPolicy` for lightning-fast lookups
+- In-memory cache for hot-path verification
+- Razor Pages UI for managing Companies, Touchpoints, and Policies
+- Live console viewer for security logs via SignalR
+- Supports `HMAC`, `RSA`, and extensible signature types
 
 ---
 
