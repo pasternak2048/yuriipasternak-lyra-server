@@ -86,7 +86,7 @@ POST /api/verify
 - SignalR for live streaming logs
 - `Microsoft.Extensions.Caching.Memory`
 - `System.Security.Cryptography`
-- LYRA.Security (for signing contracts and validation helpers)
+- **[LYRA.Security](https://github.com/pasternak2048/yuriipasternak-lyra-security)** (for signing contracts and validation helpers)
 
 ---
 
