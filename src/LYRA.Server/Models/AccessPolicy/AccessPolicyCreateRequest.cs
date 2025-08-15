@@ -1,5 +1,4 @@
-﻿using LYRA.Security.Enums;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace LYRA.Server.Models.AccessPolicy
 {

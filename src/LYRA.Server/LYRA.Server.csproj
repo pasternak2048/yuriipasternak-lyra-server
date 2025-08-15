@@ -20,9 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="LYRA.Security">
-      <HintPath>..\..\..\LYRA.Libs\LYRA.Security.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\LYRA.Security\LYRA.Security.csproj" />
   </ItemGroup>
 
 </Project>

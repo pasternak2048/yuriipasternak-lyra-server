@@ -1,9 +1,7 @@
-using LYRA.Security.Enums;
 using LYRA.Server.Models.AccessPolicy;
 using LYRA.Server.Models.TrustedTouchpoint;
 using LYRA.Server.Services.AccessPolicy.Interfaces;
 using LYRA.Server.Services.TrustedTouchpoint.Interfaces;
-using LYRA.Server.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
