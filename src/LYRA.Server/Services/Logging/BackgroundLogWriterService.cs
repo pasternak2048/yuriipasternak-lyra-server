@@ -44,7 +44,6 @@ namespace LYRA.Server.Services.Logging
 			{
 				try
 				{
-					// Create a new scoped lifetime to resolve ILogService and DbContext safely.
 					using var scope = _provider.CreateScope();
 					var writer = scope.ServiceProvider.GetRequiredService<ILogService>();
 
@@ -60,7 +59,6 @@ namespace LYRA.Server.Services.Logging
 				}
 				catch (Exception ex)
 				{
-					// Logs failure to persist a log entry (does not break the loop).
 					_logger.LogError(ex, "Failed to write log");
 				}
 			}
