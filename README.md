@@ -1,4 +1,5 @@
-# 🛡️LYRA. Let Yourself Remain Authenticated.
+# 🛡️ LYRA — Let Yourself Remain Authenticated
+
 ---
 
 ## What is LYRA?
@@ -8,45 +9,33 @@ It ensures that each request across service or company boundaries is intentional
 
 ---
 
-## What is LYRA.Server?
+## Project Overview
 
-**LYRA.Server** is the central verifier in the LYRA ecosystem. It checks incoming signed requests using cryptographic validation and enforced access rules.
-
-- Receives and verifies `VerifyRequest` structures from clients or systems
-- Validates signatures (HMAC, RSA)
-- Resolves `AccessPolicy` between known systems (Trusted Touchpoints)
-- Stores structured logs and enforces replay/time-based protections
+| Component       | Role                                                                 |
+|----------------|----------------------------------------------------------------------|
+| `LYRA.Server`   | Central verifier for signed requests. Enforces access policies.       |
+| `LYRA.Client`   | SDK for generating and signing requests from trusted systems.         |
+| `LYRA.Security` | Cryptographic core: signing, hashing, contracts, and string builders. |
 
 ---
 
-## How it Works
+##  How It Works
 
 1. A sender system builds a `GenericMetadata` object:
-   - `caller`, `target`, `action`, `resource`, `payloadHash`, `timestamp`
-2. It signs the canonical string and sends a `VerifyRequest`
-3. LYRA.Server:
-   - Looks up the caller and target
-   - Validates the signature using the correct secret or key
-   - Confirms the access is allowed by policy
-   - Returns a `VerifyResponse` indicating success or failure
+   - Includes `caller`, `target`, `action`, `resource`, `payloadHash`, `timestamp`
+2. It signs the canonical string using HMAC or RSA.
+3. It sends a `VerifyRequest` to `LYRA.Server`
+4. `LYRA.Server` performs:
+   - Signature validation using the appropriate secret or public key
+   - Policy check based on `AccessPolicy`
+   - Optional payload hash recomputation
+   - Returns `VerifyResponse` indicating success/failure
 
 ---
 
-## Core Concepts
+## Sample Flow
 
-| Concept              | Description |
-|----------------------|-------------|
-| `Company`            | Represents an organization (owns touchpoints) |
-| `TrustedTouchpoint`  | A named system component with a secret/key |
-| `AccessPolicy`       | Rule granting permission from one touchpoint to another |
-| `SignatureType`      | Algorithm used (HMAC, RSA) |
-| `GenericMetadata`    | Canonical fields used for signing |
-| `VerifyRequest`      | Payload sent to `/api/verify` |
-| `VerifyResponse`     | Result: success/failure + optional reason |
-
----
-
-## Authorization Flow Example
+### VerifyRequest
 
 ```json
 POST /api/verify
@@ -68,38 +57,103 @@ POST /api/verify
 
 ---
 
-## Architecture Highlights
+## Core Concepts
 
-- Built-in `SaveChangesInterceptor` to auto-update cache
-- Denormalized `CachedAccessPolicy` for lightning-fast lookups
-- In-memory cache for hot-path verification
-- Razor Pages UI for managing Companies, Touchpoints, and Policies
-- Live console viewer for security logs via SignalR
-- Supports `HMAC`, `RSA`, and extensible signature types
+| Concept              | Description |
+|----------------------|-------------|
+| `Company`            | Represents an organization (owns touchpoints) |
+| `TrustedTouchpoint`  | A named system component with a secret/key |
+| `AccessPolicy`       | Rule granting permission from one touchpoint to another |
+| `SignatureType`      | Algorithm used (HMAC, RSA) |
+| `GenericMetadata`    | Canonical fields used for signing |
+| `VerifyRequest`      | Payload sent to `/api/verify` |
+| `VerifyResponse`     | Result: success/failure + optional reason |
+
+---
+
+## Canonicalization Example
+
+```csharp
+SignatureStringBuilder.BuildStringToSign(metadata);
+// Returns:
+"caller=...&target=...&action=...&resource=...&payloadHash=...&timestamp=..."
+```
+
+- No percent-encoding; values must be normalized.
+- `payloadHash` is SHA‑512 of raw payload, Base64 encoded.
+
+---
+
+## LYRA.Server Highlights
+
+- ASP.NET Core 8 + Razor Pages
+- SQL Server + EF Core
+- SignalR log console
+- Denormalized cache for fast policy lookup
+- SaveChangesInterceptor for real-time sync
+- HMAC / RSA support via `LYRA.Security`
+
+---
+
+## LYRA.Client Highlights
+
+- SDK for generating `GenericMetadata` and `SignedMetadata`
+- Signs request using HMAC or RSA
+- Can generate `VerifyRequest` or just headers
+- Works in APIs, workers, gateways
+- Multi-touchpoint support (apps with multiple identities)
+
+```csharp
+var signer = new LyraSigner(touchpoint);
+var signed = signer.Sign(metadata);
+```
+
+---
+
+## LYRA.Security Highlights
+
+- Pure C# 12 / .NET 8, no third-party deps
+- `GenericMetadata`, `SignedMetadata`, `VerifyRequest`
+- `EncryptionHelper` for SHA‑512, HMAC, SecureEquals
+- `Signer.Sign(...)`, `Signer.Verify(...)`
+- `SignatureStringBuilder.BuildStringToSign(...)`
+- Strict, deterministic signing
+
+---
+
+## Security Recommendations
+
+- Use UTC timestamps in Unix format
+- Enforce max allowed time drift (e.g. ±2h)
+- Use constant-time comparison for all signature checks
+- Prefer per-touchpoint secrets with rotation
+- Normalize and validate paths, actions, and payloads
+
+---
+
+## Integration Tips
+
+- Add signed values to HTTP headers (for REST)
+- Use LYRA.Client to sign all inter-system requests
+- Use `/api/verify` endpoint in LYRA.Server to validate
+- Store all secrets encrypted at rest
 
 ---
 
 ## Tech Stack
 
-- ASP.NET Core 8 + Razor Pages
-- Entity Framework Core + SQL Server
-- SignalR for live streaming logs
-- `Microsoft.Extensions.Caching.Memory`
-- `System.Security.Cryptography`
-- **[LYRA.Security](https://github.com/pasternak2048/yuriipasternak-lyra-security)** (for signing contracts and validation helpers)
-
----
-
-## Used by
-
-- **[LYRA.Client](https://github.com/pasternak2048/yuriipasternak-lyra-client)** for signing and sending
-- **[LYRA.Security](https://github.com/pasternak2048/yuriipasternak-lyra-security)** for shared models and crypto
-- Can be extended for gRPC / EventBus / Custom flows
+- .NET 8 (C# 12)
+- ASP.NET Core Razor Pages + API
+- SQL Server + EF Core
+- SignalR
+- System.Security.Cryptography
 
 ---
 
 ## License
 
-Licensed under the [MIT License](LICENSE).
+MIT License — see [LICENSE](LICENSE).
 
-**🛡️LYRA. Let Yourself Remain Authenticated.**
+---
+
+**🛡️ LYRA. Let Yourself Remain Authenticated.**

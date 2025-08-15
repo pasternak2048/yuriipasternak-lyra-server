@@ -1,5 +1,4 @@
-﻿using LYRA.Security.Enums;
-using LYRA.Server.Models.Pagination;
+﻿using LYRA.Server.Models.Pagination;
 
 namespace LYRA.Server.Models.AccessPolicy
 {

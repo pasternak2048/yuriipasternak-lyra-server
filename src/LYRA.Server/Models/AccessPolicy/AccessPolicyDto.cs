@@ -1,6 +1,4 @@
-﻿using LYRA.Security.Enums;
-
-namespace LYRA.Server.Models.AccessPolicy
+﻿namespace LYRA.Server.Models.AccessPolicy
 {
     /// <summary>
     /// Data transfer object representing an access policy.
