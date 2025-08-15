@@ -35,15 +35,12 @@ namespace LYRA.Server.Services.AccessPolicy
             var query = _context.AccessPolicies
                 .AsNoTracking().AsQueryable();
 
-            // Filter by CallerId
             if (filters.CallerId.HasValue)
                 query = query.Where(p => p.CallerId == filters.CallerId.Value);
 
-            // Filter by TargetId
             if (filters.TargetId.HasValue)
                 query = query.Where(p => p.TargetId == filters.TargetId.Value);
 
-            // Filter by Operation (exact match or contains)
             if (!string.IsNullOrWhiteSpace(filters.Operation))
                 query = query.Where(p => p.Operation.Contains(filters.Operation));
 

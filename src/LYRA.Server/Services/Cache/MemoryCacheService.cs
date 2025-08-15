@@ -55,7 +55,6 @@ namespace LYRA.Server.Services.Cache
         /// <inheritdoc/>
         public Task ClearAsync()
         {
-            // No built-in method, so forcefully compact all entries
             if (_memoryCache is MemoryCache concrete)
                 concrete.Compact(1.0);
 

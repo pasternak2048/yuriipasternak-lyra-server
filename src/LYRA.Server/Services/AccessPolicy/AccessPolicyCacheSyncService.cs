@@ -28,7 +28,6 @@ namespace LYRA.Server.Services.AccessPolicy
         /// <inheritdoc/>
         public async Task SyncFromDbAsync()
         {
-            // Load all access policies including necessary navigation properties
             var policies = await _mainDb.AccessPolicies
                 .Include(p => p.Caller)
                     .ThenInclude(t => t.Company)
@@ -37,14 +36,12 @@ namespace LYRA.Server.Services.AccessPolicy
                 .AsNoTracking()
                 .ToListAsync();
 
-            // Transform and filter
             var cached = policies
                 .Select(p => _builder.Build(p))
                 .Where(p => p != null)
                 .Cast<CachedAccessPolicyEntity>()
                 .ToList();
 
-            // Replace cache
             await _cacheService.ReplaceAllAsync(cached);
         }
     }

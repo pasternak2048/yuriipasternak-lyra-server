@@ -7,7 +7,6 @@ namespace LYRA.Server.Services.AccessPolicy
     {
         public CachedAccessPolicyEntity? Build(AccessPolicyEntity policy)
         {
-            // Validate policy and both ends
             if (!policy.IsEnabled)
                 return null;
 
@@ -28,7 +27,6 @@ namespace LYRA.Server.Services.AccessPolicy
             if (!targetCompany.IsActive || targetCompany.IsDeleted)
                 return null;
 
-            // Determine which secret to use
             var secret = caller.UseCompanySecret
                 ? callerCompany.Secret
                 : caller.Secret;

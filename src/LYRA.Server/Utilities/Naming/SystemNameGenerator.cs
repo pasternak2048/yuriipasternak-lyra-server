@@ -47,25 +47,19 @@ namespace LYRA.Server.Utilities.Naming
 
 			options ??= new SlugOptions();
 
-			// Normalize and optionally remove diacritics
 			var normalized = input.Trim().ToLowerInvariant();
+
 			if (options.AsciiOnly)
 				normalized = RemoveDiacritics(normalized);
 
-			// Replace whitespace/underscores with separator
 			var step1 = SpaceOrUnderscore.Replace(normalized, options.Separator.ToString());
-
-			// Remove disallowed characters
 			var allowedPattern = $"[^a-z0-9{Regex.Escape(options.Separator.ToString())}]";
 			var step2 = Regex.Replace(step1, allowedPattern, string.Empty);
-
-			// Collapse duplicate separators
 			var sep = Regex.Escape(options.Separator.ToString());
 			var step3 = Regex.Replace(step2, $"{sep}+", options.Separator.ToString());
 
 			var result = options.TrimSeparators ? step3.Trim(options.Separator) : step3;
 
-			// Truncate if needed
 			if (options.MaxLength is > 0 && result.Length > options.MaxLength.Value)
 				result = result[..options.MaxLength.Value].Trim(options.Separator);
 
