@@ -16,11 +16,19 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.8" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1-Preview.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\LYRA.Security\LYRA.Security.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="MILANO.Client">
+      <HintPath>..\..\..\Shared\MILANO\MILANO.Client.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

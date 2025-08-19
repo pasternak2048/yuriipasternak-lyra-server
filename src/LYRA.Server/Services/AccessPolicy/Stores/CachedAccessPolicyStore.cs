@@ -3,14 +3,19 @@ using LYRA.Server.Entities;
 using LYRA.Server.Services.AccessPolicy.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace LYRA.Server.Services.AccessPolicy
+namespace LYRA.Server.Services.AccessPolicy.Stores
 {
-	public sealed class CachedAccessPolicyService : ICachedAccessPolicyService
+	/// <summary>
+	/// Physical SQL-based store for cached access policies.
+	/// Serves as a source of truth for MILANO-distributed memory cache.
+	/// </summary>
+	public sealed class CachedAccessPolicyStore : ICachedAccessPolicyStore
 	{
 		private readonly LyraCachedDbContext _db;
 
-		public CachedAccessPolicyService(LyraCachedDbContext db) => _db = db;
+		public CachedAccessPolicyStore(LyraCachedDbContext db) => _db = db;
 
+		/// <inheritdoc />
 		public async Task UpsertAsync(CachedAccessPolicyEntity item, CancellationToken ct = default)
 		{
 			var existing = await _db.CachedAccessPolicies
@@ -25,6 +30,7 @@ namespace LYRA.Server.Services.AccessPolicy
 			await _db.SaveChangesAsync(ct);
 		}
 
+		/// <inheritdoc />
 		public async Task UpsertManyAsync(IEnumerable<CachedAccessPolicyEntity> items, CancellationToken ct = default)
 		{
 			var list = items.ToList();
@@ -53,6 +59,7 @@ namespace LYRA.Server.Services.AccessPolicy
 			await _db.SaveChangesAsync(ct);
 		}
 
+		/// <inheritdoc />
 		public async Task DeleteByIdAsync(Guid id, CancellationToken ct = default)
 		{
 			await _db.CachedAccessPolicies
@@ -70,6 +77,7 @@ namespace LYRA.Server.Services.AccessPolicy
 				.ExecuteDeleteAsync(ct);
 		}
 
+		/// <inheritdoc />
 		public async Task<CachedAccessPolicyEntity?> FindAsync(string caller, string target, CancellationToken ct = default)
 		{
 			var c = caller.ToLowerInvariant();
@@ -82,6 +90,7 @@ namespace LYRA.Server.Services.AccessPolicy
 					x.TargetSystemName == t, ct);
 		}
 
+		/// <inheritdoc />
 		public async Task<Dictionary<(string caller, string target), CachedAccessPolicyEntity>> FindManyAsync(
 			IEnumerable<(string caller, string target)> keys, CancellationToken ct = default)
 		{
@@ -105,6 +114,7 @@ namespace LYRA.Server.Services.AccessPolicy
 				.ToDictionary(x => (x.CallerSystemName, x.TargetSystemName));
 		}
 
+		/// <inheritdoc />
 		public async Task<CachedAccessPolicyEntity?> FindByIdAsync(Guid id, CancellationToken ct = default)
 		{
 			return await _db.CachedAccessPolicies
@@ -112,6 +122,7 @@ namespace LYRA.Server.Services.AccessPolicy
 				.FirstOrDefaultAsync(x => x.Id == id, ct);
 		}
 
+		/// <inheritdoc />
 		public async Task ReplaceAllAsync(IEnumerable<CachedAccessPolicyEntity> items, CancellationToken ct = default)
 		{
 			using var tx = await _db.Database.BeginTransactionAsync(ct);
@@ -125,11 +136,13 @@ namespace LYRA.Server.Services.AccessPolicy
 			await tx.CommitAsync(ct);
 		}
 
+		/// <inheritdoc />
 		public async Task ClearAsync(CancellationToken ct = default)
 		{
 			await _db.CachedAccessPolicies.ExecuteDeleteAsync(ct);
 		}
 
+		/// <inheritdoc />
 		public async Task<List<CachedAccessPolicyEntity>> GetAllAsync(CancellationToken ct = default)
 		{
 			return await _db.CachedAccessPolicies.AsNoTracking().ToListAsync(ct);
