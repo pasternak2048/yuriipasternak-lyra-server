@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LYRA.Server.Extensions
 {
-	public static class AppBuilderExtensions
+	public static class HostExtensions
 	{
-		public static async Task MigrateAndSeedAsync(this IHost app)
+		public static async Task MigrateAndSeedAsync(this IHost host)
 		{
-			using var scope = app.Services.CreateScope();
+			using var scope = host.Services.CreateScope();
 
 			var lyraDbContext = scope.ServiceProvider.GetRequiredService<LyraDbContext>();
 			var lyraCachedDbContext = scope.ServiceProvider.GetRequiredService<LyraCachedDbContext>();
