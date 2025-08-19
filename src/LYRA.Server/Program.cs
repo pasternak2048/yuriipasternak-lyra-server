@@ -7,8 +7,7 @@ using LYRA.Server.Entities.Identity;
 using LYRA.Server.Hubs;
 using LYRA.Server.Services.AccessPolicy;
 using LYRA.Server.Services.AccessPolicy.Interfaces;
-using LYRA.Server.Services.Cache;
-using LYRA.Server.Services.Cache.Interfaces;
+using LYRA.Server.Services.AccessPolicy.Stores;
 using LYRA.Server.Services.Company;
 using LYRA.Server.Services.Company.Interfaces;
 using LYRA.Server.Services.Identity;
@@ -21,6 +20,8 @@ using LYRA.Server.Services.Verify;
 using LYRA.Server.Services.Verify.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using MILANO.Client.Extensions;
+using MILANO.Client.Interfaces;
 using System.Text.Json.Serialization;
 
 /// <summary>
@@ -76,16 +77,30 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 /// <summary>
 /// Register domain services for company, touchpoint, access policy, and identity management.
 /// </summary>
+builder.Services.AddMilanoCacheClient(options =>
+{
+	options.ServerHost = "http://host.docker.internal:7010";
+	options.ApiKey = "test-key-full-access";
+	options.Timeout = TimeSpan.FromSeconds(5);
+});
+
 builder.Services.AddScoped<IIdentityService, IdentityService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<ITrustedTouchpointService, TrustedTouchpointService>();
 builder.Services.AddScoped<IAccessPolicyService, AccessPolicyService>();
 builder.Services.AddScoped<IVerifyService, VerifyService>();
 builder.Services.AddScoped<ICachedAccessPolicyBuilder, CachedAccessPolicyBuilder>();
-builder.Services.AddScoped<ICachedAccessPolicyService, CachedAccessPolicyService>();
-builder.Services.AddMemoryCache();
-builder.Services.AddSingleton<ICacheService, MemoryCacheService>();
-builder.Services.AddScoped<ICachedAccessPolicyMemoryService, CachedAccessPolicyMemoryService>();
+builder.Services.AddSingleton<IAccessPolicyCacheKeyBuilder, AccessPolicyCacheKeyBuilder>();
+builder.Services.AddScoped<CachedAccessPolicyStore>();
+builder.Services.AddScoped<ICachedAccessPolicyStore>(provider =>
+{
+	var store = provider.GetRequiredService<CachedAccessPolicyStore>();
+	var cache = provider.GetRequiredService<IMilanoCacheClient>();
+	var keyBuilder = provider.GetRequiredService<IAccessPolicyCacheKeyBuilder>();
+
+	return new CachedAccessPolicyStoreDecorator(store, cache, keyBuilder);
+});
+builder.Services.AddScoped<IAccessPolicyCacheKeyBuilder, AccessPolicyCacheKeyBuilder>();
 builder.Services.AddScoped<IAccessPolicyCacheSyncService, AccessPolicyCacheSyncService>();
 builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddSingleton<ILogQueue, InMemoryLogQueue>();

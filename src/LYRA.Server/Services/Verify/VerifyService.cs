@@ -12,26 +12,26 @@ namespace LYRA.Server.Services.Verify
 {
 	/// <summary>
 	/// Service responsible for verifying signed requests by validating the digital signature
-	/// using cached access policy data from in-memory cache for maximum performance.
+	/// using access policy data retrieved via distributed + memory cache for performance and consistency.
 	/// </summary>
 	public class VerifyService : IVerifyService
 	{
-		private readonly ICachedAccessPolicyMemoryService _memory;
+		private readonly ICachedAccessPolicyStore _policyStore;
 		private readonly ILogQueue _logQueue;
-		private readonly ILogger<VerifyService> _loggerDotNet;
+		private readonly ILogger<VerifyService> _logger;
 
 		public VerifyService(
-			ICachedAccessPolicyMemoryService memory,
+			ICachedAccessPolicyStore policyStore,
 			ILogQueue logQueue,
-			ILogger<VerifyService> loggerDotNet)
+			ILogger<VerifyService> logger)
 		{
-			_memory = memory;
+			_policyStore = policyStore;
 			_logQueue = logQueue;
-			_loggerDotNet = loggerDotNet;
+			_logger = logger;
 		}
 
 		/// <summary>
-		/// Performs verification using memory-cached access policy with denormalized data.
+		/// Performs verification using cached access policies (MILANO or in-memory).
 		/// Logs detailed structured entries for each failure/success scenario.
 		/// </summary>
 		public async Task<VerifyResponse> Verify(VerifyRequest request)
@@ -40,7 +40,7 @@ namespace LYRA.Server.Services.Verify
 			{
 				var meta = request.Metadata;
 
-				// 1) Timestamp: Unix seconds -> DateTimeOffset
+				// 1) Timestamp
 				if (!long.TryParse(meta.Timestamp, NumberStyles.Integer, CultureInfo.InvariantCulture, out var tsSeconds))
 					return Fail("Invalid timestamp format (expected Unix seconds)", request, reason: "BadTimestamp");
 
@@ -52,18 +52,18 @@ namespace LYRA.Server.Services.Verify
 					return Fail("Request timestamp is outside the allowed ±2 hours window", request, reason: "Expired",
 						details: $"offsetHours={hourDiff:F2}");
 
-				// 2) Access policy lookup
-				var policy = await _memory.GetAsync(meta.CallerSystemName, meta.TargetSystemName);
-				if (policy == null || !policy.IsEnabled)
+				// 2) Access policy lookup (Distributed cache + fallback)
+				var policy = await _policyStore.FindAsync(meta.CallerSystemName, meta.TargetSystemName);
+				if (policy is null || !policy.IsEnabled)
 					return Fail("Access denied: no policy or disabled", request, reason: "PolicyDenied");
 
 				// 3) Operation check
 				var operationKey = $"{meta.Action} {meta.Resource}".ToLowerInvariant();
-				var allowedOps = DelimitedStringParser.Parse(policy.Operation); // e.g. "post /api/verify"
+				var allowedOps = DelimitedStringParser.Parse(policy.Operation);
 				if (!allowedOps.Any(op => operationKey.StartsWith(op)))
 					return Fail($"Operation not allowed: {operationKey}", request, reason: "OperationDenied");
 
-				// 4) Validate payload integrity
+				// 4) Payload hash
 				if (!string.IsNullOrEmpty(request.Payload))
 				{
 					var computedHash = EncryptionHelper.ComputeSha512(request.Payload);
@@ -74,10 +74,10 @@ namespace LYRA.Server.Services.Verify
 					}
 				}
 
-				// 5) Build canonical string
+				// 5) Canonical string
 				var stringToSign = SignatureStringBuilder.BuildStringToSign(meta);
 
-				// 6) Resolve secret and verify signature
+				// 6) Decrypt secret & validate signature
 				var decryptedSecret = EncryptionHelper.DecryptSecret(policy.CallerSecret);
 				var ok = Signer.Verify(stringToSign, decryptedSecret, request.Signed.Signature, request.Signed.SignatureType);
 
@@ -100,7 +100,7 @@ namespace LYRA.Server.Services.Verify
 			}
 			catch (Exception ex)
 			{
-				_loggerDotNet.LogError(ex, "Unexpected verification failure");
+				_logger.LogError(ex, "Unexpected verification failure");
 
 				return Fail("Exception during verification", request,
 					reason: "Error", exception: ex.ToString(), signatureHash: request.Signed?.Signature);

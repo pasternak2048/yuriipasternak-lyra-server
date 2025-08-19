@@ -7,7 +7,7 @@ namespace LYRA.Server.Services.AccessPolicy.Interfaces
 	/// Used to optimize runtime verification by storing denormalized access data
 	/// for fast, memory-friendly lookups.
 	/// </summary>
-	public interface ICachedAccessPolicyService
+	public interface ICachedAccessPolicyStore
 	{
 		/// <summary>
 		/// Inserts or updates a single cached access policy in the database.
@@ -56,12 +56,6 @@ namespace LYRA.Server.Services.AccessPolicy.Interfaces
 		/// Clears all existing entries before inserting new ones.
 		/// </summary>
 		Task ReplaceAllAsync(IEnumerable<CachedAccessPolicyEntity> items, CancellationToken ct = default);
-
-		/// <summary>
-		/// Deletes all cached access policies from the storage.
-		/// Use with caution — this clears the entire cache.
-		/// </summary>
-		Task ClearAsync(CancellationToken ct = default);
 
 		/// <summary>
 		/// Returns all cached access policies in the system.

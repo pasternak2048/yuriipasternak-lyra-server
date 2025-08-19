@@ -2,34 +2,39 @@
 using LYRA.Server.Services.AccessPolicy.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using MILANO.Client.Interfaces;
 using System.Runtime.CompilerServices;
 
 namespace LYRA.Server.Data.Core.Caching
 {
-    /// <summary>
-    /// Intercepts SaveChanges to synchronize both physical (SQL) and memory (RAM) cache in real time.
-    /// Ensures that any change to AccessPolicyEntity, TrustedTouchpointEntity, or CompanyEntity
-    /// is reflected in the denormalized SQL cache and corresponding memory cache entry is invalidated.
-    /// </summary>
-    public class AccessPolicyCacheSyncInterceptor : SaveChangesInterceptor
-    {
-        private readonly ICachedAccessPolicyBuilder _builder;
-        private readonly ICachedAccessPolicyService _cache;
-        private readonly ICachedAccessPolicyMemoryService _memory;
+	/// <summary>
+	/// Intercepts SaveChanges to synchronize both physical (SQL) and memory (RAM) cache in real time.
+	/// Ensures that any change to AccessPolicyEntity, TrustedTouchpointEntity, or CompanyEntity
+	/// is reflected in the denormalized SQL cache and corresponding memory cache entry is invalidated.
+	/// </summary>
+	public class AccessPolicyCacheSyncInterceptor : SaveChangesInterceptor
+	{
+		private readonly ICachedAccessPolicyBuilder _builder;
+		private readonly ICachedAccessPolicyStore _cache;
+		private readonly IMilanoCacheClient _milanoCache;
+		private readonly IAccessPolicyCacheKeyBuilder _keyBuilder;
+
 		private static readonly ConditionalWeakTable<DbContext, SyncState> _state = new();
 
 		public AccessPolicyCacheSyncInterceptor(
-            ICachedAccessPolicyBuilder builder,
-            ICachedAccessPolicyService cache,
-            ICachedAccessPolicyMemoryService memory)
-        {
-            _builder = builder;
-            _cache = cache;
-            _memory = memory;
-        }
+			ICachedAccessPolicyBuilder builder,
+			ICachedAccessPolicyStore cache,
+			IMilanoCacheClient milanoCache,
+			IAccessPolicyCacheKeyBuilder keyBuilder)
+		{
+			_builder = builder;
+			_cache = cache;
+			_milanoCache = milanoCache;
+			_keyBuilder = keyBuilder;
+		}
 
 		public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
-		DbContextEventData eventData, InterceptionResult<int> result, CancellationToken ct = default)
+			DbContextEventData eventData, InterceptionResult<int> result, CancellationToken ct = default)
 		{
 			var ctx = eventData.Context;
 			if (ctx is null) return new(result);
@@ -87,7 +92,6 @@ namespace LYRA.Server.Data.Core.Caching
 		{
 			var ctx = eventData.Context;
 			if (ctx is null || result <= 0) return result;
-
 			if (!_state.TryGetValue(ctx, out var state)) return result;
 
 			var policies = await ctx.Set<AccessPolicyEntity>()
@@ -101,15 +105,31 @@ namespace LYRA.Server.Data.Core.Caching
 			foreach (var p in policies)
 			{
 				var built = _builder.Build(p);
-				if (built != null) toUpsert.Add(built);
-				else state.PolicyIdsToDelete.Add(p.Id);
+				if (built != null)
+					toUpsert.Add(built);
+				else
+					state.PolicyIdsToDelete.Add(p.Id);
 			}
 
 			if (toUpsert.Count > 0) await _cache.UpsertManyAsync(toUpsert, ct);
 			if (state.PolicyIdsToDelete.Count > 0) await _cache.DeleteManyAsync(state.PolicyIdsToDelete, ct);
 
-			var newKeys = toUpsert.Select(x => (x.CallerSystemName, x.TargetSystemName));
-			_memory.InvalidateMany(state.MemoryKeysToInvalidate.Concat(newKeys));
+			var keysToRemove = new HashSet<string>();
+
+			foreach (var (caller, target) in state.MemoryKeysToInvalidate)
+				keysToRemove.Add(_keyBuilder.ForCallerTarget(caller, target));
+
+			foreach (var entity in toUpsert)
+			{
+				keysToRemove.Add(_keyBuilder.ForCallerTarget(entity.CallerSystemName, entity.TargetSystemName));
+				keysToRemove.Add(_keyBuilder.ForId(entity.Id));
+			}
+
+			foreach (var id in state.PolicyIdsToDelete)
+				keysToRemove.Add(_keyBuilder.ForId(id));
+
+			foreach (var key in keysToRemove)
+				await _milanoCache.RemoveAsync(key, ct);
 
 			state.Clear();
 			return result;
