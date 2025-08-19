@@ -16,6 +16,7 @@ It ensures that each request across service or company boundaries is intentional
 | `LYRA.Server`   | Central verifier for signed requests. Enforces access policies.       |
 | `LYRA.Client`   | SDK for generating and signing requests from trusted systems.         |
 | `LYRA.Security` | Cryptographic core: signing, hashing, contracts, and string builders. |
+| `MILANO` | Distributed in-memory cache with API key-based access control.        |
 
 ---
 
@@ -118,6 +119,28 @@ var signed = signer.Sign(metadata);
 - `Signer.Sign(...)`, `Signer.Verify(...)`
 - `SignatureStringBuilder.BuildStringToSign(...)`
 - Strict, deterministic signing
+
+---
+
+## **[MILANO](https://github.com/pasternak2048/yuriipasternak-milano-distributedcache)** Highlights
+
+- Distributed in-memory cache with TTL and sharding
+- Secure API key-based access for each endpoint
+- Horizontal scalability via `ShardCount` and HashModuloShardingStrategy strategy
+- Background cleanup for expired entries
+- Configurable via appsettings
+- Designed as a lightweight alternative to Redis for trusted environments
+
+```json
+POST /cache
+Headers: X-Milano-ApiKey: secret123
+Body:
+{
+  "key": "user:123",
+  "value": "{\"name\": \"Gloria\", \"level\": 9000}",
+  "expirationSeconds ": 600
+}
+```
 
 ---
 
