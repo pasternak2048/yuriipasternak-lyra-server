@@ -78,15 +78,14 @@ namespace LYRA.Server.Services.Verify
                         request,
                         reason: "OperationDenied");
 
-                // 4) Body hash
-                if (!string.IsNullOrEmpty(request.Payload))
+                // 4) Body hash (always verify, even for empty payload)
+                var payload = request.Payload ?? string.Empty;
+                var computedHash = EncryptionHelper.ComputeSha512(payload);
+
+                if (!string.Equals(meta.BodyHash, computedHash, StringComparison.Ordinal))
                 {
-                    var computedHash = EncryptionHelper.ComputeSha512(request.Payload);
-                    if (!string.Equals(meta.BodyHash, computedHash, StringComparison.Ordinal))
-                    {
-                        return Fail("Payload hash mismatch — possible tampering detected", request, reason: "BadPayloadHash",
-                            details: $"expected={meta.BodyHash}, actual={computedHash}");
-                    }
+                    return Fail("Payload hash mismatch — possible tampering detected", request, reason: "BadPayloadHash",
+                        details: $"expected={meta.BodyHash}, actual={computedHash}");
                 }
 
                 // 5) Canonical string

@@ -58,14 +58,18 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Allowed Operations</label>
+                <label class="form-label">Allowed Routes</label>
                 <div id="operationList">
                     @for (int i = 0; i < Model.Input.Operations.Count; i++)
                     {
                         var key = Guid.NewGuid().ToString("N");
                         <input type="hidden" name="Input.Operations.index" value="@key" />
                         <div class="input-group mb-2" id="op-@key">
-                            <input type="text" class="form-control" name="Input.Operations[@key]" value="@Model.Input.Operations[i]" />
+                            <input type="text"
+                                   class="form-control"
+                                   name="Input.Operations[@key]"
+                                   value="@Model.Input.Operations[i]"
+                                   placeholder="GET /api/orders or POST /api/orders/*" />
                             <button type="button" class="btn btn-outline-danger" onclick="lyra.removeOperation('@key')">
                                 <i class="bi bi-x"></i>
                             </button>
@@ -77,14 +81,17 @@
                         var key = Guid.NewGuid().ToString("N");
                         <input type="hidden" name="Input.Operations.index" value="@key" />
                         <div class="input-group mb-2" id="op-@key">
-                            <input type="text" class="form-control" name="Input.Operations[@key]" />
+                            <input type="text"
+                                   class="form-control"
+                                   name="Input.Operations[@key]"
+                                   placeholder="GET /api/orders or POST /api/orders/*" />
                             <button type="button" class="btn btn-outline-danger" onclick="lyra.removeOperation('@key')">
                                 <i class="bi bi-x"></i>
                             </button>
                         </div>
                     }
                 </div>
-                <button type="button" class="btn btn-outline-light btn-sm" onclick="lyra.addOperation()">Add Operation</button>
+                <button type="button" class="btn btn-outline-light btn-sm" onclick="lyra.addOperation()">Add Route</button>
             </div>
 
             <div class="form-check form-switch mb-3">

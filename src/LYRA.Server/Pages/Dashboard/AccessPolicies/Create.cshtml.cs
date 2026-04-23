@@ -19,9 +19,6 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         private readonly ITrustedTouchpointService _touchpointService;
         private readonly ILogger<CreateModel> _logger;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CreateModel"/> class.
-        /// </summary>
         public CreateModel(
             IAccessPolicyService policyService,
             ITrustedTouchpointService touchpointService,
@@ -33,10 +30,14 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         }
 
         /// <summary>
-        /// Access policy creation request model bound from form input.
+        /// Input model bound from form input.
         /// </summary>
         [BindProperty(SupportsGet = true)]
-        public AccessPolicyCreateRequest Input { get; set; } = new();
+        public AccessPolicyCreateRequest Input { get; set; } = new()
+        {
+            Operations = new List<string> { string.Empty },
+            IsEnabled = true
+        };
 
         /// <summary>
         /// Optional preselected caller ID (provided via query string).
@@ -49,11 +50,6 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         /// </summary>
         [BindProperty(SupportsGet = true)]
         public Guid? TargetId { get; set; }
-
-        /// <summary>
-        /// List of selectable access contexts (Http, Event, Grpc, etc).
-        /// </summary>
-        public List<SelectListItem> AccessContexts { get; set; } = new();
 
         /// <summary>
         /// Preview list containing selected caller (used to render label).
@@ -110,6 +106,13 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
                 if (target != null)
                     Targets.Add(target);
             }
+
+            Input.Operations = Input.Operations
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+
+            if (Input.Operations.Count == 0)
+                ModelState.AddModelError(string.Empty, "At least one route is required.");
 
             if (!ModelState.IsValid)
                 return Page();

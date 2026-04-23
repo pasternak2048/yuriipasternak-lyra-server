@@ -9,7 +9,7 @@ namespace LYRA.Security.Signing
     ///
     /// Design rules:
     /// 1) Fixed key order and names (MUST NOT change):
-    ///    caller, target, action, resource, payloadHash, timestamp
+    ///    caller, target, method, path, bodyHash, timestamp
     /// 2) Values are used as-is (raw strings, normalized).
     /// 3) The resulting string is signed and later verified byte-for-byte.
     /// </summary>

@@ -47,11 +47,6 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         public List<TrustedTouchpointDto> Targets { get; set; } = new();
 
         /// <summary>
-        /// Dropdown options for access context (Http, Event, etc).
-        /// </summary>
-        public List<SelectListItem> AccessContexts { get; set; } = new();
-
-        /// <summary>
         /// Loads the edit form with access policy and related touchpoints.
         /// </summary>
         public async Task<IActionResult> OnGetAsync(Guid id)
@@ -66,7 +61,7 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
                 Id = policy.Id,
                 CallerId = policy.CallerId,
                 TargetId = policy.TargetId,
-                Operations = DelimitedStringParser.Parse(policy.Operation, ",").ToList(),
+                Operations = DelimitedStringParser.Parse(policy.Operation).ToList(),
                 IsEnabled = policy.IsEnabled
             };
 
@@ -105,6 +100,13 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
                 if (target != null)
                     Targets.Add(target);
             }
+
+            Input.Operations = Input.Operations
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+
+            if (Input.Operations.Count == 0)
+                ModelState.AddModelError(string.Empty, "At least one route is required.");
 
             if (!ModelState.IsValid)
                 return Page();
