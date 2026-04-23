@@ -60,25 +60,17 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
                 Id = policy.Id,
                 CallerId = policy.CallerId,
                 TargetId = policy.TargetId,
-                Operations = policy.Rules
-                    .Select(r => $"{r.Method} {r.PathPattern}")
+                Rules = policy.Rules
+                    .Select(r => new AccessRuleInput
+                    {
+                        Method = r.Method == "*" ? "ANY" : r.Method,
+                        PathPattern = r.PathPattern
+                    })
                     .ToList(),
                 IsEnabled = policy.IsEnabled
             };
 
-            if (Input.CallerId.HasValue)
-            {
-                var caller = await _touchpointService.GetByIdAsync(Input.CallerId.Value);
-                if (caller != null)
-                    Callers.Add(caller);
-            }
-
-            if (Input.TargetId.HasValue)
-            {
-                var target = await _touchpointService.GetByIdAsync(Input.TargetId.Value);
-                if (target != null)
-                    Targets.Add(target);
-            }
+            await LoadSelectedTouchpointsAsync();
 
             return Page();
         }
@@ -88,25 +80,14 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         /// </summary>
         public async Task<IActionResult> OnPostAsync()
         {
-            if (Input.CallerId.HasValue)
-            {
-                var caller = await _touchpointService.GetByIdAsync(Input.CallerId.Value);
-                if (caller != null)
-                    Callers.Add(caller);
-            }
+            await LoadSelectedTouchpointsAsync();
 
-            if (Input.TargetId.HasValue)
-            {
-                var target = await _touchpointService.GetByIdAsync(Input.TargetId.Value);
-                if (target != null)
-                    Targets.Add(target);
-            }
-
-            Input.Operations = Input.Operations
-                .Where(x => !string.IsNullOrWhiteSpace(x))
+            Input.Rules = Input.Rules
+                .Where(r => r is not null)
+                .Where(r => !string.IsNullOrWhiteSpace(r.Method) || !string.IsNullOrWhiteSpace(r.PathPattern))
                 .ToList();
 
-            if (Input.Operations.Count == 0)
+            if (Input.Rules.Count == 0)
                 ModelState.AddModelError(string.Empty, "At least one route is required.");
 
             if (!ModelState.IsValid)
@@ -123,6 +104,26 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
                 _logger.LogError(ex, "Failed to update access policy.");
                 ModelState.AddModelError(string.Empty, ex.Message);
                 return Page();
+            }
+        }
+
+        private async Task LoadSelectedTouchpointsAsync()
+        {
+            Callers.Clear();
+            Targets.Clear();
+
+            if (Input.CallerId.HasValue)
+            {
+                var caller = await _touchpointService.GetByIdAsync(Input.CallerId.Value);
+                if (caller != null)
+                    Callers.Add(caller);
+            }
+
+            if (Input.TargetId.HasValue)
+            {
+                var target = await _touchpointService.GetByIdAsync(Input.TargetId.Value);
+                if (target != null)
+                    Targets.Add(target);
             }
         }
     }

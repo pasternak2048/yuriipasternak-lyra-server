@@ -35,7 +35,10 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         [BindProperty(SupportsGet = true)]
         public AccessPolicyCreateRequest Input { get; set; } = new()
         {
-            Operations = new List<string> { string.Empty },
+            Rules = new List<AccessRuleInput>
+            {
+                new() { Method = "GET", PathPattern = "/" }
+            },
             IsEnabled = true
         };
 
@@ -93,25 +96,14 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         /// <returns>Redirects to index on success, or redisplays form on failure.</returns>
         public async Task<IActionResult> OnPostAsync()
         {
-            if (Input.CallerId.HasValue)
-            {
-                var caller = await _touchpointService.GetByIdAsync(Input.CallerId.Value);
-                if (caller != null)
-                    Callers.Add(caller);
-            }
+            await LoadSelectedTouchpointsAsync();
 
-            if (Input.TargetId.HasValue)
-            {
-                var target = await _touchpointService.GetByIdAsync(Input.TargetId.Value);
-                if (target != null)
-                    Targets.Add(target);
-            }
-
-            Input.Operations = Input.Operations
-                .Where(x => !string.IsNullOrWhiteSpace(x))
+            Input.Rules = Input.Rules
+                .Where(r => r is not null)
+                .Where(r => !string.IsNullOrWhiteSpace(r.Method) || !string.IsNullOrWhiteSpace(r.PathPattern))
                 .ToList();
 
-            if (Input.Operations.Count == 0)
+            if (Input.Rules.Count == 0)
                 ModelState.AddModelError(string.Empty, "At least one route is required.");
 
             if (!ModelState.IsValid)
@@ -128,6 +120,23 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
                 _logger.LogError(ex, "Failed to create access policy.");
                 ModelState.AddModelError(string.Empty, ex.Message);
                 return Page();
+            }
+        }
+
+        private async Task LoadSelectedTouchpointsAsync()
+        {
+            if (Input.CallerId.HasValue)
+            {
+                var caller = await _touchpointService.GetByIdAsync(Input.CallerId.Value);
+                if (caller != null)
+                    Callers.Add(caller);
+            }
+
+            if (Input.TargetId.HasValue)
+            {
+                var target = await _touchpointService.GetByIdAsync(Input.TargetId.Value);
+                if (target != null)
+                    Targets.Add(target);
             }
         }
     }

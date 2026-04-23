@@ -63,7 +63,7 @@ namespace LYRA.Server.Services.Verify
                 var rules = JsonSerializer.Deserialize<List<AccessRule>>(policy.RulesJson) ?? new List<AccessRule>();
 
                 var isAllowed = rules.Any(rule =>
-                    string.Equals(requestedMethod, rule.Method, StringComparison.OrdinalIgnoreCase) &&
+                    OperationParser.MethodMatches(requestedMethod, rule.Method) &&
                     OperationParser.PathMatches(requestedPath, rule.PathPattern));
 
                 if (!isAllowed)

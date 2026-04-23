@@ -96,14 +96,7 @@ namespace LYRA.Server.Services.AccessPolicy
                 if (await PolicyExists(null, caller.SystemName, target.SystemName))
                     throw new InvalidOperationException("Such policy already exists.");
 
-                var normalizedRules = request.Operations
-                    .Where(x => !string.IsNullOrWhiteSpace(x))
-                    .Select(ParseRule)
-                    .DistinctBy(r => $"{r.Method}|{r.PathPattern}")
-                    .ToList();
-
-                if (normalizedRules.Count == 0)
-                    throw new InvalidOperationException("At least one route is required.");
+                var normalizedRules = NormalizeRules(request.Rules);
 
                 var entity = new AccessPolicyEntity
                 {
@@ -145,7 +138,6 @@ namespace LYRA.Server.Services.AccessPolicy
             try
             {
                 var entity = await _context.AccessPolicies
-                    .Include(p => p.Rules)
                     .FirstOrDefaultAsync(p => p.Id == request.Id);
 
                 if (entity == null)
@@ -157,24 +149,20 @@ namespace LYRA.Server.Services.AccessPolicy
                 if (await PolicyExists(request.Id, caller.SystemName, target.SystemName))
                     throw new InvalidOperationException("Such policy already exists.");
 
-                var normalizedRules = request.Operations
-                    .Where(x => !string.IsNullOrWhiteSpace(x))
-                    .Select(ParseRule)
-                    .DistinctBy(r => $"{r.Method}|{r.PathPattern}")
-                    .ToList();
-
-                if (normalizedRules.Count == 0)
-                    throw new InvalidOperationException("At least one route is required.");
+                var normalizedRules = NormalizeRules(request.Rules);
 
                 entity.CallerId = caller.Id;
                 entity.CallerSystemName = caller.SystemName;
                 entity.TargetId = target.Id;
                 entity.TargetSystemName = target.SystemName;
                 entity.IsEnabled = request.IsEnabled;
+                entity.ModifiedAt = DateTime.UtcNow;
 
-                _context.AccessPolicyRules.RemoveRange(entity.Rules);
+                await _context.AccessPolicyRules
+                    .Where(r => r.AccessPolicyId == entity.Id)
+                    .ExecuteDeleteAsync();
 
-                entity.Rules = normalizedRules
+                var newRules = normalizedRules
                     .Select(r => new AccessPolicyRuleEntity
                     {
                         Id = Guid.NewGuid(),
@@ -184,7 +172,10 @@ namespace LYRA.Server.Services.AccessPolicy
                     })
                     .ToList();
 
+                await _context.AccessPolicyRules.AddRangeAsync(newRules);
+
                 await _context.SaveChangesAsync();
+
                 _logger.LogInformation("Updated access policy: {PolicyId}", entity.Id);
             }
             catch (Exception ex)
@@ -234,7 +225,7 @@ namespace LYRA.Server.Services.AccessPolicy
                 .ToListAsync();
 
             return rules.Any(rule =>
-                string.Equals(requestedMethod, rule.Method, StringComparison.OrdinalIgnoreCase) &&
+                OperationParser.MethodMatches(requestedMethod, rule.Method) &&
                 OperationParser.PathMatches(requestedPath, rule.PathPattern));
         }
 
@@ -264,21 +255,24 @@ namespace LYRA.Server.Services.AccessPolicy
             CreatedAt = p.CreatedAt
         };
 
-        private static AccessRule ParseRule(string operation)
+        private static List<AccessRule> NormalizeRules(IEnumerable<AccessRuleInput> rules)
         {
-            var parsed = OperationParser.ParseSingle(operation);
+            var normalized = rules
+                .Where(r => r is not null)
+                .Where(r => !string.IsNullOrWhiteSpace(r.Method) || !string.IsNullOrWhiteSpace(r.PathPattern))
+                .Select(r => new AccessRule
+                {
+                    Method = OperationParser.NormalizeMethod(r.Method),
+                    PathPattern = OperationParser.NormalizePath(r.PathPattern)
+                })
+                .Where(r => !string.IsNullOrWhiteSpace(r.Method))
+                .DistinctBy(r => $"{r.Method}|{r.PathPattern}")
+                .ToList();
 
-            if (string.IsNullOrWhiteSpace(parsed.Method))
-                throw new InvalidOperationException("Invalid method.");
+            if (normalized.Count == 0)
+                throw new InvalidOperationException("At least one route is required.");
 
-            if (!parsed.PathPattern.StartsWith("/"))
-                throw new InvalidOperationException("Path must start with '/'.");
-
-            return new AccessRule
-            {
-                Method = OperationParser.NormalizeMethod(parsed.Method),
-                PathPattern = OperationParser.NormalizePath(parsed.PathPattern)
-            };
+            return normalized;
         }
 
         private IQueryable<TrustedTouchpointEntity> ActiveTouchpoints()
