@@ -1,5 +1,6 @@
 ﻿using LYRA.Security.Crypto.Core;
 using LYRA.Security.Signing;
+using LYRA.Server.Models.AccessPolicy;
 using LYRA.Server.Models.Logging;
 using LYRA.Server.Services.AccessPolicy.Interfaces;
 using LYRA.Server.Services.Logging.Interfaces;
@@ -61,18 +62,15 @@ namespace LYRA.Server.Services.Verify
                 var requestedMethod = OperationParser.NormalizeMethod(meta.Method);
                 var requestedPath = OperationParser.NormalizePath(meta.Path);
 
-                var allowedOps = DelimitedStringParser.Parse(policy.Operation);
+                var rules = AccessRuleParser.Parse(policy.Operation);
 
-                var isAllowed = allowedOps.Any(op =>
-                {
-                    var parsed = OperationParser.ParseSingle(op);
-
-                    return string.Equals(
-                               requestedMethod,
-                               OperationParser.NormalizeMethod(parsed.Method),
-                               StringComparison.OrdinalIgnoreCase)
-                        && OperationParser.PathMatches(requestedPath, parsed.PathPattern);
-                });
+                var isAllowed = rules.Any(rule =>
+                    string.Equals(
+                        requestedMethod,
+                        rule.Method,
+                        StringComparison.OrdinalIgnoreCase)
+                    && OperationParser.PathMatches(requestedPath, rule.PathPattern)
+                );
 
                 if (!isAllowed)
                     return Fail(

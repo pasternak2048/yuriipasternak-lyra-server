@@ -196,18 +196,17 @@ namespace LYRA.Server.Services.AccessPolicy
                 .Select(p => p.Operation)
                 .ToListAsync();
 
-            return policies
-                .SelectMany(p => DelimitedStringParser.Parse(p))
-                .Any(op =>
-                {
-                    var allowed = OperationParser.ParseSingle(op);
+            var rules = policies
+                .SelectMany(p => AccessRuleParser.Parse(p))
+                .ToList();
 
-                    return string.Equals(
-                               OperationParser.NormalizeMethod(requested.Method),
-                               OperationParser.NormalizeMethod(allowed.Method),
-                               StringComparison.OrdinalIgnoreCase)
-                        && OperationParser.PathMatches(requested.PathPattern, allowed.PathPattern);
-                });
+            return rules.Any(rule =>
+                string.Equals(
+                    OperationParser.NormalizeMethod(requested.Method),
+                    rule.Method,
+                    StringComparison.OrdinalIgnoreCase)
+                && OperationParser.PathMatches(requested.PathPattern, rule.PathPattern)
+            );
         }
 
         /// <inheritdoc />
@@ -231,6 +230,13 @@ namespace LYRA.Server.Services.AccessPolicy
         private static string NormalizeOperation(string operation)
         {
             var parsed = OperationParser.ParseSingle(operation);
+
+            if (string.IsNullOrWhiteSpace(parsed.Method))
+                throw new InvalidOperationException("Invalid method");
+
+            if (!parsed.PathPattern.StartsWith("/"))
+                throw new InvalidOperationException("Path must start with '/'");
+
             return $"{OperationParser.NormalizeMethod(parsed.Method)} {OperationParser.NormalizePath(parsed.PathPattern)}";
         }
 
