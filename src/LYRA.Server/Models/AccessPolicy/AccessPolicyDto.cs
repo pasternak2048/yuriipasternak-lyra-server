@@ -31,8 +31,8 @@
         public string TargetSystemName { get; set; } = null!;
 
         /// <summary>
-        /// Identifier of the operation this policy applies to 
-        /// (e.g., HTTP path, event topic, or method name).
+        /// Comma-separated list of allowed rules in format:
+        /// "METHOD /path" or "METHOD /path/*"
         /// </summary>
         public string Operation { get; set; } = null!;
 

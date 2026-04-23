@@ -12,6 +12,10 @@ namespace LYRA.Server.Services.AccessPolicy
     /// Service responsible for managing access policies that define allowed operations 
     /// between trusted touchpoints across different access contexts.
     /// </summary>
+    /// <summary>
+    /// Service responsible for managing access policies that define allowed operations 
+    /// between trusted touchpoints across different access contexts.
+    /// </summary>
     public class AccessPolicyService : IAccessPolicyService
     {
         private readonly LyraDbContext _context;
@@ -93,6 +97,10 @@ namespace LYRA.Server.Services.AccessPolicy
                 if (await PolicyExists(null, caller.SystemName, target.SystemName))
                     throw new InvalidOperationException("Such policy already exists.");
 
+                var normalizedOperations = request.Operations
+                    .Select(NormalizeOperation)
+                    .ToList();
+
                 var entity = new AccessPolicyEntity
                 {
                     Id = Guid.NewGuid(),
@@ -100,7 +108,7 @@ namespace LYRA.Server.Services.AccessPolicy
                     CallerSystemName = caller.SystemName,
                     TargetId = target.Id,
                     TargetSystemName = target.SystemName,
-                    Operation = DelimitedStringParser.Join(request.Operations),
+                    Operation = DelimitedStringParser.Join(normalizedOperations),
                     IsEnabled = request.IsEnabled,
                     CreatedAt = DateTime.UtcNow
                 };
@@ -109,7 +117,7 @@ namespace LYRA.Server.Services.AccessPolicy
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("Created access policy {Caller} → {Target}: {Operation}",
-                    caller.SystemName, target.SystemName, request.Operations);
+                    caller.SystemName, target.SystemName, entity.Operation);
 
                 return MapToDto(entity);
             }
@@ -135,11 +143,15 @@ namespace LYRA.Server.Services.AccessPolicy
                 if (await PolicyExists(request.Id, caller.SystemName, target.SystemName))
                     throw new InvalidOperationException("Such policy already exists.");
 
+                var normalizedOperations = request.Operations
+                    .Select(NormalizeOperation)
+                    .ToList();
+
                 entity.CallerId = caller.Id;
                 entity.CallerSystemName = caller.SystemName;
                 entity.TargetId = target.Id;
                 entity.TargetSystemName = target.SystemName;
-                entity.Operation = DelimitedStringParser.Join(request.Operations);
+                entity.Operation = DelimitedStringParser.Join(normalizedOperations);
                 entity.IsEnabled = request.IsEnabled;
 
                 await _context.SaveChangesAsync();
@@ -175,13 +187,27 @@ namespace LYRA.Server.Services.AccessPolicy
         /// <inheritdoc />
         public async Task<bool> IsAuthorizedAsync(string caller, string target, string operation)
         {
-            var normalizedOperation = operation.ToLowerInvariant().Trim();
+            var requested = OperationParser.ParseSingle(operation);
+            var policies = await _context.AccessPolicies
+                .AsNoTracking()
+                .Where(p => p.CallerSystemName == caller &&
+                            p.TargetSystemName == target &&
+                            p.IsEnabled)
+                .Select(p => p.Operation)
+                .ToListAsync();
 
-            return await _context.AccessPolicies.AsNoTracking().AnyAsync(p =>
-                p.CallerSystemName == caller &&
-                p.TargetSystemName == target &&
-                p.Operation == normalizedOperation &&
-                p.IsEnabled);
+            return policies
+                .SelectMany(p => DelimitedStringParser.Parse(p))
+                .Any(op =>
+                {
+                    var allowed = OperationParser.ParseSingle(op);
+
+                    return string.Equals(
+                               OperationParser.NormalizeMethod(requested.Method),
+                               OperationParser.NormalizeMethod(allowed.Method),
+                               StringComparison.OrdinalIgnoreCase)
+                        && OperationParser.PathMatches(requested.PathPattern, allowed.PathPattern);
+                });
         }
 
         /// <inheritdoc />
@@ -201,6 +227,12 @@ namespace LYRA.Server.Services.AccessPolicy
             IsEnabled = p.IsEnabled,
             CreatedAt = p.CreatedAt
         };
+
+        private static string NormalizeOperation(string operation)
+        {
+            var parsed = OperationParser.ParseSingle(operation);
+            return $"{OperationParser.NormalizeMethod(parsed.Method)} {OperationParser.NormalizePath(parsed.PathPattern)}";
+        }
 
         /// <summary>
         /// Returns a base query for only active (not deleted) touchpoints.

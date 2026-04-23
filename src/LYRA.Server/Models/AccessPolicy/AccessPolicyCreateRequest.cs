@@ -30,7 +30,13 @@ namespace LYRA.Server.Models.AccessPolicy
         public Guid? TargetId { get; set; }
 
         /// <summary>
-        /// Operation identifier, such as an HTTP path, event topic, or method name.
+        /// Allowed rules in format:
+        /// "METHOD /path" or "METHOD /path/*"
+        ///
+        /// Examples:
+        /// - "GET /api/orders"
+        /// - "POST /api/orders/create"
+        /// - "GET /api/catalog/*"
         /// </summary>
         [Required]
         [MaxLength(2000)]
