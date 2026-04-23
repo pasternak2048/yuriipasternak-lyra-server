@@ -7,148 +7,155 @@ using System.Runtime.CompilerServices;
 
 namespace LYRA.Server.Data.Core.Caching
 {
-	/// <summary>
-	/// Intercepts SaveChanges to synchronize both physical (SQL) and memory (RAM) cache in real time.
-	/// Ensures that any change to AccessPolicyEntity, TrustedTouchpointEntity, or CompanyEntity
-	/// is reflected in the denormalized SQL cache and corresponding memory cache entry is invalidated.
-	/// </summary>
-	public class AccessPolicyCacheSyncInterceptor : SaveChangesInterceptor
-	{
-		private readonly ICachedAccessPolicyBuilder _builder;
-		private readonly ICachedAccessPolicyStore _cache;
-		private readonly IMilanoCacheClient _milanoCache;
-		private readonly IAccessPolicyCacheKeyBuilder _keyBuilder;
+    /// <summary>
+    /// Intercepts SaveChanges to synchronize both physical (SQL) and memory (RAM) cache in real time.
+    /// Ensures that any change to AccessPolicyEntity, AccessPolicyRuleEntity, TrustedTouchpointEntity, or CompanyEntity
+    /// is reflected in the denormalized SQL cache and corresponding memory cache entry is invalidated.
+    /// </summary>
+    public class AccessPolicyCacheSyncInterceptor : SaveChangesInterceptor
+    {
+        private readonly ICachedAccessPolicyBuilder _builder;
+        private readonly ICachedAccessPolicyStore _cache;
+        private readonly IMilanoCacheClient _milanoCache;
+        private readonly IAccessPolicyCacheKeyBuilder _keyBuilder;
 
-		private static readonly ConditionalWeakTable<DbContext, SyncState> _state = new();
+        private static readonly ConditionalWeakTable<DbContext, SyncState> _state = new();
 
-		public AccessPolicyCacheSyncInterceptor(
-			ICachedAccessPolicyBuilder builder,
-			ICachedAccessPolicyStore cache,
-			IMilanoCacheClient milanoCache,
-			IAccessPolicyCacheKeyBuilder keyBuilder)
-		{
-			_builder = builder;
-			_cache = cache;
-			_milanoCache = milanoCache;
-			_keyBuilder = keyBuilder;
-		}
+        public AccessPolicyCacheSyncInterceptor(
+            ICachedAccessPolicyBuilder builder,
+            ICachedAccessPolicyStore cache,
+            IMilanoCacheClient milanoCache,
+            IAccessPolicyCacheKeyBuilder keyBuilder)
+        {
+            _builder = builder;
+            _cache = cache;
+            _milanoCache = milanoCache;
+            _keyBuilder = keyBuilder;
+        }
 
-		public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
-			DbContextEventData eventData, InterceptionResult<int> result, CancellationToken ct = default)
-		{
-			var ctx = eventData.Context;
-			if (ctx is null) return new(result);
+        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
+            DbContextEventData eventData, InterceptionResult<int> result, CancellationToken ct = default)
+        {
+            var ctx = eventData.Context;
+            if (ctx is null) return new(result);
 
-			var state = _state.GetOrCreateValue(ctx);
-			state.Clear();
+            var state = _state.GetOrCreateValue(ctx);
+            state.Clear();
 
-			var changed = ctx.ChangeTracker.Entries<AccessPolicyEntity>()
-				.Where(e => e.State is EntityState.Added or EntityState.Modified)
-				.Select(e => e.Entity.Id)
-				.ToList();
+            var changedPolicies = ctx.ChangeTracker.Entries<AccessPolicyEntity>()
+                .Where(e => e.State is EntityState.Added or EntityState.Modified)
+                .Select(e => e.Entity.Id)
+                .ToList();
 
-			var deleted = ctx.ChangeTracker.Entries<AccessPolicyEntity>()
-				.Where(e => e.State == EntityState.Deleted)
-				.Select(e => e.Entity.Id)
-				.ToList();
+            var deletedPolicies = ctx.ChangeTracker.Entries<AccessPolicyEntity>()
+                .Where(e => e.State == EntityState.Deleted)
+                .Select(e => e.Entity.Id)
+                .ToList();
 
-			state.PolicyIdsToRebuild.UnionWith(changed);
-			state.PolicyIdsToDelete.UnionWith(deleted);
+            var changedRules = ctx.ChangeTracker.Entries<AccessPolicyRuleEntity>()
+                .Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+                .Select(e => e.Entity.AccessPolicyId)
+                .ToList();
 
-			var touchIds = ctx.ChangeTracker.Entries<TrustedTouchpointEntity>()
-				.Where(e => e.State == EntityState.Modified)
-				.Select(e => e.Entity.Id)
-				.ToHashSet();
+            state.PolicyIdsToRebuild.UnionWith(changedPolicies);
+            state.PolicyIdsToRebuild.UnionWith(changedRules);
+            state.PolicyIdsToDelete.UnionWith(deletedPolicies);
 
-			var compIds = ctx.ChangeTracker.Entries<CompanyEntity>()
-				.Where(e => e.State == EntityState.Modified)
-				.Select(e => e.Entity.Id)
-				.ToHashSet();
+            var touchIds = ctx.ChangeTracker.Entries<TrustedTouchpointEntity>()
+                .Where(e => e.State == EntityState.Modified)
+                .Select(e => e.Entity.Id)
+                .ToHashSet();
 
-			if (touchIds.Count > 0 || compIds.Count > 0)
-			{
-				var affected = ctx.Set<AccessPolicyEntity>()
-					.Where(p => touchIds.Contains(p.CallerId) || touchIds.Contains(p.TargetId)
-							 || compIds.Contains(p.Caller.CompanyId) || compIds.Contains(p.Target.CompanyId))
-					.Select(p => p.Id)
-					.ToList();
+            var compIds = ctx.ChangeTracker.Entries<CompanyEntity>()
+                .Where(e => e.State == EntityState.Modified)
+                .Select(e => e.Entity.Id)
+                .ToHashSet();
 
-				state.PolicyIdsToRebuild.UnionWith(affected);
-			}
+            if (touchIds.Count > 0 || compIds.Count > 0)
+            {
+                var affected = ctx.Set<AccessPolicyEntity>()
+                    .Where(p => touchIds.Contains(p.CallerId) || touchIds.Contains(p.TargetId)
+                             || compIds.Contains(p.Caller.CompanyId) || compIds.Contains(p.Target.CompanyId))
+                    .Select(p => p.Id)
+                    .ToList();
 
-			foreach (var e in ctx.ChangeTracker.Entries<AccessPolicyEntity>().Where(e => e.State == EntityState.Modified))
-			{
-				var oldCaller = e.OriginalValues.GetValue<string>(nameof(AccessPolicyEntity.CallerSystemName));
-				var oldTarget = e.OriginalValues.GetValue<string>(nameof(AccessPolicyEntity.TargetSystemName));
-				if (!string.IsNullOrWhiteSpace(oldCaller) && !string.IsNullOrWhiteSpace(oldTarget))
-					state.MemoryKeysToInvalidate.Add((oldCaller, oldTarget));
-			}
+                state.PolicyIdsToRebuild.UnionWith(affected);
+            }
 
-			return new(result);
-		}
+            foreach (var e in ctx.ChangeTracker.Entries<AccessPolicyEntity>().Where(e => e.State == EntityState.Modified))
+            {
+                var oldCaller = e.OriginalValues.GetValue<string>(nameof(AccessPolicyEntity.CallerSystemName));
+                var oldTarget = e.OriginalValues.GetValue<string>(nameof(AccessPolicyEntity.TargetSystemName));
+                if (!string.IsNullOrWhiteSpace(oldCaller) && !string.IsNullOrWhiteSpace(oldTarget))
+                    state.MemoryKeysToInvalidate.Add((oldCaller, oldTarget));
+            }
 
-		public override async ValueTask<int> SavedChangesAsync(
-			SaveChangesCompletedEventData eventData, int result, CancellationToken ct = default)
-		{
-			var ctx = eventData.Context;
-			if (ctx is null || result <= 0) return result;
-			if (!_state.TryGetValue(ctx, out var state)) return result;
+            return new(result);
+        }
 
-			var policies = await ctx.Set<AccessPolicyEntity>()
-				.Where(p => state.PolicyIdsToRebuild.Contains(p.Id))
-				.Include(p => p.Caller).ThenInclude(t => t.Company)
-				.Include(p => p.Target).ThenInclude(t => t.Company)
-				.AsNoTracking()
-				.ToListAsync(ct);
+        public override async ValueTask<int> SavedChangesAsync(
+            SaveChangesCompletedEventData eventData, int result, CancellationToken ct = default)
+        {
+            var ctx = eventData.Context;
+            if (ctx is null || result <= 0) return result;
+            if (!_state.TryGetValue(ctx, out var state)) return result;
 
-			var toUpsert = new List<CachedAccessPolicyEntity>(policies.Count);
-			foreach (var p in policies)
-			{
-				var built = _builder.Build(p);
-				if (built != null)
-					toUpsert.Add(built);
-				else
-					state.PolicyIdsToDelete.Add(p.Id);
-			}
+            var policies = await ctx.Set<AccessPolicyEntity>()
+                .Where(p => state.PolicyIdsToRebuild.Contains(p.Id))
+                .Include(p => p.Caller).ThenInclude(t => t.Company)
+                .Include(p => p.Target).ThenInclude(t => t.Company)
+                .Include(p => p.Rules)
+                .AsNoTracking()
+                .ToListAsync(ct);
 
-			if (toUpsert.Count > 0) await _cache.UpsertManyAsync(toUpsert, ct);
-			if (state.PolicyIdsToDelete.Count > 0) await _cache.DeleteManyAsync(state.PolicyIdsToDelete, ct);
+            var toUpsert = new List<CachedAccessPolicyEntity>(policies.Count);
+            foreach (var p in policies)
+            {
+                var built = _builder.Build(p);
+                if (built != null)
+                    toUpsert.Add(built);
+                else
+                    state.PolicyIdsToDelete.Add(p.Id);
+            }
 
-			var keysToRemove = new HashSet<string>();
+            if (toUpsert.Count > 0) await _cache.UpsertManyAsync(toUpsert, ct);
+            if (state.PolicyIdsToDelete.Count > 0) await _cache.DeleteManyAsync(state.PolicyIdsToDelete, ct);
 
-			foreach (var (caller, target) in state.MemoryKeysToInvalidate)
-				keysToRemove.Add(_keyBuilder.ForCallerTarget(caller, target));
+            var keysToRemove = new HashSet<string>();
 
-			foreach (var entity in toUpsert)
-			{
-				keysToRemove.Add(_keyBuilder.ForCallerTarget(entity.CallerSystemName, entity.TargetSystemName));
-				keysToRemove.Add(_keyBuilder.ForId(entity.Id));
-			}
+            foreach (var (caller, target) in state.MemoryKeysToInvalidate)
+                keysToRemove.Add(_keyBuilder.ForCallerTarget(caller, target));
 
-			foreach (var id in state.PolicyIdsToDelete)
-				keysToRemove.Add(_keyBuilder.ForId(id));
+            foreach (var entity in toUpsert)
+            {
+                keysToRemove.Add(_keyBuilder.ForCallerTarget(entity.CallerSystemName, entity.TargetSystemName));
+                keysToRemove.Add(_keyBuilder.ForId(entity.Id));
+            }
 
-			foreach (var key in keysToRemove)
-				await _milanoCache.RemoveAsync(key, ct);
+            foreach (var id in state.PolicyIdsToDelete)
+                keysToRemove.Add(_keyBuilder.ForId(id));
 
-			state.Clear();
-			return result;
-		}
+            foreach (var key in keysToRemove)
+                await _milanoCache.RemoveAsync(key, ct);
 
-		private sealed class SyncState
-		{
-			public HashSet<Guid> PolicyIdsToRebuild { get; } = new();
+            state.Clear();
+            return result;
+        }
 
-			public HashSet<Guid> PolicyIdsToDelete { get; } = new();
+        private sealed class SyncState
+        {
+            public HashSet<Guid> PolicyIdsToRebuild { get; } = new();
 
-			public HashSet<(string caller, string target)> MemoryKeysToInvalidate { get; } = new();
+            public HashSet<Guid> PolicyIdsToDelete { get; } = new();
 
-			public void Clear()
-			{
-				PolicyIdsToRebuild.Clear();
-				PolicyIdsToDelete.Clear();
-				MemoryKeysToInvalidate.Clear();
-			}
-		}
-	}
+            public HashSet<(string caller, string target)> MemoryKeysToInvalidate { get; } = new();
+
+            public void Clear()
+            {
+                PolicyIdsToRebuild.Clear();
+                PolicyIdsToDelete.Clear();
+                MemoryKeysToInvalidate.Clear();
+            }
+        }
+    }
 }

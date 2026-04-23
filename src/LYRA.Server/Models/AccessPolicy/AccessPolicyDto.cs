@@ -31,10 +31,9 @@
         public string TargetSystemName { get; set; } = null!;
 
         /// <summary>
-        /// Comma-separated list of allowed rules in format:
-        /// "METHOD /path" or "METHOD /path/*"
+        /// Allowed route rules.
         /// </summary>
-        public string Operation { get; set; } = null!;
+        public List<AccessRule> Rules { get; set; } = new();
 
         /// <summary>
         /// Indicates if the policy is currently enabled.

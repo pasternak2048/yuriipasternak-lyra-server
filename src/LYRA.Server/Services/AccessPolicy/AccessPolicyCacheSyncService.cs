@@ -5,47 +5,48 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LYRA.Server.Services.AccessPolicy
 {
-	/// <summary>
-	/// Synchronizes access policies from the main database into the cache database and MILANO distributed cache.
-	/// Filters out disabled, inactive, or deleted entries before caching.
-	/// </summary>
-	public class AccessPolicyCacheSyncService : IAccessPolicyCacheSyncService
-	{
-		private readonly LyraDbContext _mainDb;
-		private readonly ICachedAccessPolicyBuilder _builder;
-		private readonly ICachedAccessPolicyStore _cacheService;
-		private readonly IAccessPolicyCacheKeyBuilder _keyBuilder;
+    /// <summary>
+    /// Synchronizes access policies from the main database into the cache database and MILANO distributed cache.
+    /// Filters out disabled, inactive, or deleted entries before caching.
+    /// </summary>
+    public class AccessPolicyCacheSyncService : IAccessPolicyCacheSyncService
+    {
+        private readonly LyraDbContext _mainDb;
+        private readonly ICachedAccessPolicyBuilder _builder;
+        private readonly ICachedAccessPolicyStore _cacheService;
+        private readonly IAccessPolicyCacheKeyBuilder _keyBuilder;
 
-		public AccessPolicyCacheSyncService(
-			LyraDbContext mainDb,
-			ICachedAccessPolicyBuilder builder,
-			ICachedAccessPolicyStore cacheService,
-			IAccessPolicyCacheKeyBuilder keyBuilder)
-		{
-			_mainDb = mainDb;
-			_builder = builder;
-			_cacheService = cacheService;
-			_keyBuilder = keyBuilder;
-		}
+        public AccessPolicyCacheSyncService(
+            LyraDbContext mainDb,
+            ICachedAccessPolicyBuilder builder,
+            ICachedAccessPolicyStore cacheService,
+            IAccessPolicyCacheKeyBuilder keyBuilder)
+        {
+            _mainDb = mainDb;
+            _builder = builder;
+            _cacheService = cacheService;
+            _keyBuilder = keyBuilder;
+        }
 
-		/// <inheritdoc />
-		public async Task SyncFromDbAsync()
-		{
-			var policies = await _mainDb.AccessPolicies
-				.Include(p => p.Caller)
-					.ThenInclude(t => t.Company)
-				.Include(p => p.Target)
-					.ThenInclude(t => t.Company)
-				.AsNoTracking()
-				.ToListAsync();
+        /// <inheritdoc />
+        public async Task SyncFromDbAsync()
+        {
+            var policies = await _mainDb.AccessPolicies
+                .Include(p => p.Caller)
+                    .ThenInclude(t => t.Company)
+                .Include(p => p.Target)
+                    .ThenInclude(t => t.Company)
+                .Include(p => p.Rules)
+                .AsNoTracking()
+                .ToListAsync();
 
-			var cached = policies
-				.Select(p => _builder.Build(p))
-				.Where(p => p != null)
-				.Cast<CachedAccessPolicyEntity>()
-				.ToList();
+            var cached = policies
+                .Select(p => _builder.Build(p))
+                .Where(p => p != null)
+                .Cast<CachedAccessPolicyEntity>()
+                .ToList();
 
-			await _cacheService.ReplaceAllAsync(cached);
-		}
-	}
+            await _cacheService.ReplaceAllAsync(cached);
+        }
+    }
 }

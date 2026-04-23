@@ -8,6 +8,7 @@ using LYRA.Server.Services.Verify.Interfaces;
 using LYRA.Server.Utilities;
 using LYRA.Server.Utilities.Security;
 using System.Globalization;
+using System.Text.Json;
 
 namespace LYRA.Server.Services.Verify
 {
@@ -41,7 +42,6 @@ namespace LYRA.Server.Services.Verify
             {
                 var meta = request.Metadata;
 
-                // 1) Timestamp
                 if (!long.TryParse(meta.Timestamp, NumberStyles.Integer, CultureInfo.InvariantCulture, out var tsSeconds))
                     return Fail("Invalid timestamp format (expected Unix seconds)", request, reason: "BadTimestamp");
 
@@ -53,24 +53,18 @@ namespace LYRA.Server.Services.Verify
                     return Fail("Request timestamp is outside the allowed ±2 hours window", request, reason: "Expired",
                         details: $"offsetHours={hourDiff:F2}");
 
-                // 2) Access policy lookup (Distributed cache + fallback)
                 var policy = await _policyStore.FindAsync(meta.CallerSystemName, meta.TargetSystemName);
                 if (policy is null || !policy.IsEnabled)
                     return Fail("Access denied: no policy or disabled", request, reason: "PolicyDenied");
 
-                // 3) Method + path check using current Operation storage
                 var requestedMethod = OperationParser.NormalizeMethod(meta.Method);
                 var requestedPath = OperationParser.NormalizePath(meta.Path);
 
-                var rules = AccessRuleParser.Parse(policy.Operation);
+                var rules = JsonSerializer.Deserialize<List<AccessRule>>(policy.RulesJson) ?? new List<AccessRule>();
 
                 var isAllowed = rules.Any(rule =>
-                    string.Equals(
-                        requestedMethod,
-                        rule.Method,
-                        StringComparison.OrdinalIgnoreCase)
-                    && OperationParser.PathMatches(requestedPath, rule.PathPattern)
-                );
+                    string.Equals(requestedMethod, rule.Method, StringComparison.OrdinalIgnoreCase) &&
+                    OperationParser.PathMatches(requestedPath, rule.PathPattern));
 
                 if (!isAllowed)
                     return Fail(
@@ -78,7 +72,6 @@ namespace LYRA.Server.Services.Verify
                         request,
                         reason: "OperationDenied");
 
-                // 4) Body hash (always verify, even for empty payload)
                 var payload = request.Payload ?? string.Empty;
                 var computedHash = EncryptionHelper.ComputeSha512(payload);
 
@@ -88,17 +81,14 @@ namespace LYRA.Server.Services.Verify
                         details: $"expected={meta.BodyHash}, actual={computedHash}");
                 }
 
-                // 5) Canonical string
                 var stringToSign = SignatureStringBuilder.BuildStringToSign(meta);
 
-                // 6) Decrypt secret & validate signature
                 var decryptedSecret = EncryptionHelper.DecryptSecret(policy.CallerSecret);
                 var ok = Signer.Verify(stringToSign, decryptedSecret, request.Signed.Signature, request.Signed.SignatureType);
 
                 if (!ok)
                     return Fail("Invalid signature", request, reason: "BadSignature", signatureHash: request.Signed.Signature);
 
-                // 7) Success
                 _logQueue.Enqueue(new LogEntryDto
                 {
                     Type = "Verification",

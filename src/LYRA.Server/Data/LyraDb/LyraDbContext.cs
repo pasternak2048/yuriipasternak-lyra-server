@@ -29,6 +29,11 @@ namespace LYRA.Server.Data.LyraDb
         public DbSet<AccessPolicyEntity> AccessPolicies => Set<AccessPolicyEntity>();
 
         /// <summary>
+        /// DbSet for access policy rules.
+        /// </summary>
+        public DbSet<AccessPolicyRuleEntity> AccessPolicyRules => Set<AccessPolicyRuleEntity>();
+
+        /// <summary>
         /// Configures the entity mappings and constraints for the model.
         /// Sets up indexes, property conversions, and relationships.
         /// </summary>
@@ -40,37 +45,30 @@ namespace LYRA.Server.Data.LyraDb
             // ------------------- Company -------------------
             modelBuilder.Entity<CompanyEntity>(entity =>
             {
-                // Normalize SystemName to lowercase, store as varchar(100)
                 entity.Property(c => c.SystemName)
                       .HasConversion(v => v.ToLowerInvariant(), v => v)
                       .IsUnicode(false)
                       .HasMaxLength(100);
 
-                // DisplayName is required and max 200 chars
                 entity.Property(c => c.DisplayName)
                       .IsRequired()
                       .HasMaxLength(200);
 
-                // Soft delete flag defaults to false
                 entity.Property(c => c.IsDeleted)
                       .HasDefaultValue(false);
 
-                // CreatedAt defaults to current UTC timestamp by database
                 entity.Property(c => c.CreatedAt)
                       .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                // Audit properties are optional
                 entity.Property(c => c.CreatedBy).IsRequired(false);
                 entity.Property(c => c.ModifiedAt).IsRequired(false);
                 entity.Property(c => c.ModifiedBy).IsRequired(false);
 
-                // One-to-many relation with TrustedTouchpoints
                 entity.HasMany(c => c.TrustedTouchpoints)
                       .WithOne(t => t.Company)
                       .HasForeignKey(t => t.CompanyId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                // Unique filtered index on SystemName (only active, not deleted)
                 entity.HasIndex(c => c.SystemName)
                       .IsUnique()
                       .HasFilter("[IsDeleted] = 0 AND [IsActive] = 1")
@@ -80,13 +78,11 @@ namespace LYRA.Server.Data.LyraDb
             // ------------------- TrustedTouchpoint -------------------
             modelBuilder.Entity<TrustedTouchpointEntity>(entity =>
             {
-                // Normalize SystemName to lowercase, store as varchar(100)
                 entity.Property(t => t.SystemName)
                       .HasConversion(v => v.ToLowerInvariant(), v => v)
                       .IsUnicode(false)
                       .HasMaxLength(100);
 
-                // DisplayName is required and max 200 chars
                 entity.Property(t => t.DisplayName)
                       .IsRequired()
                       .HasMaxLength(200);
@@ -94,20 +90,16 @@ namespace LYRA.Server.Data.LyraDb
                 entity.Property(t => t.SignatureType)
                       .HasConversion<string>();
 
-                // Soft delete flag defaults to false
                 entity.Property(t => t.IsDeleted)
                       .HasDefaultValue(false);
 
-                // CreatedAt defaults to current UTC timestamp by database
                 entity.Property(t => t.CreatedAt)
                       .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                // Audit properties are optional
                 entity.Property(t => t.CreatedBy).IsRequired(false);
                 entity.Property(t => t.ModifiedAt).IsRequired(false);
                 entity.Property(t => t.ModifiedBy).IsRequired(false);
 
-                // Navigation properties for outgoing and incoming policies
                 entity.HasMany(t => t.OutgoingPolicies)
                       .WithOne(p => p.Caller)
                       .HasForeignKey(p => p.CallerId)
@@ -118,7 +110,6 @@ namespace LYRA.Server.Data.LyraDb
                       .HasForeignKey(p => p.TargetId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                // Unique filtered index on SystemName (only active, not deleted)
                 entity.HasIndex(t => t.SystemName)
                       .IsUnique()
                       .HasFilter("[IsDeleted] = 0 AND [IsActive] = 1")
@@ -128,40 +119,28 @@ namespace LYRA.Server.Data.LyraDb
             // ------------------- AccessPolicy -------------------
             modelBuilder.Entity<AccessPolicyEntity>(entity =>
             {
-                // Caller and Target system names
                 entity.Property(p => p.CallerSystemName)
                       .IsRequired()
                       .IsUnicode(false)
-                      .HasMaxLength(100);
+                      .HasMaxLength(100)
+                      .HasConversion(v => v.ToLowerInvariant(), v => v);
 
                 entity.Property(p => p.TargetSystemName)
                       .IsRequired()
                       .IsUnicode(false)
-                      .HasMaxLength(100);
+                      .HasMaxLength(100)
+                      .HasConversion(v => v.ToLowerInvariant(), v => v);
 
-                // Normalize Operation to lowercase, max 200 chars
-                entity.Property(p => p.Operation)
-                      .IsRequired()
-                      .HasMaxLength(2000)
-                      .HasConversion(
-                          v => v.ToLowerInvariant(),
-                          v => v
-                      );
-
-                // IsEnabled defaults to true
                 entity.Property(p => p.IsEnabled)
                       .HasDefaultValue(true);
 
-                // CreatedAt defaults to current UTC timestamp
                 entity.Property(p => p.CreatedAt)
                       .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                // Audit properties are optional
                 entity.Property(p => p.CreatedBy).IsRequired(false);
                 entity.Property(p => p.ModifiedAt).IsRequired(false);
                 entity.Property(p => p.ModifiedBy).IsRequired(false);
 
-                // Composite unique index for fast verification
                 entity.HasIndex(p => new
                 {
                     p.CallerSystemName,
@@ -169,6 +148,36 @@ namespace LYRA.Server.Data.LyraDb
                 })
                 .IsUnique()
                 .HasDatabaseName("IX_AccessPolicy_Key");
+
+                entity.HasMany(p => p.Rules)
+                      .WithOne(r => r.AccessPolicy)
+                      .HasForeignKey(r => r.AccessPolicyId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ------------------- AccessPolicyRule -------------------
+            modelBuilder.Entity<AccessPolicyRuleEntity>(entity =>
+            {
+                entity.Property(r => r.HttpMethod)
+                      .IsRequired()
+                      .IsUnicode(false)
+                      .HasMaxLength(20)
+                      .HasConversion(v => v.ToUpperInvariant(), v => v);
+
+                entity.Property(r => r.PathPattern)
+                      .IsRequired()
+                      .IsUnicode(false)
+                      .HasMaxLength(500)
+                      .HasConversion(v => v.ToLowerInvariant(), v => v);
+
+                entity.HasIndex(r => new
+                {
+                    r.AccessPolicyId,
+                    r.HttpMethod,
+                    r.PathPattern
+                })
+                .IsUnique()
+                .HasDatabaseName("IX_AccessPolicyRule_Unique");
             });
         }
     }

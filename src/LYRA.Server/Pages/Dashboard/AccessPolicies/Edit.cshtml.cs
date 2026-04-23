@@ -55,13 +55,14 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
             if (policy == null)
                 return NotFound();
 
-            // Fill the form
             Input = new AccessPolicyUpdateRequest
             {
                 Id = policy.Id,
                 CallerId = policy.CallerId,
                 TargetId = policy.TargetId,
-                Operations = DelimitedStringParser.Parse(policy.Operation).ToList(),
+                Operations = policy.Rules
+                    .Select(r => $"{r.Method} {r.PathPattern}")
+                    .ToList(),
                 IsEnabled = policy.IsEnabled
             };
 

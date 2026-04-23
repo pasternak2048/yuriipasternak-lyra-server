@@ -32,14 +32,8 @@ namespace LYRA.Server.Models.AccessPolicy
         /// <summary>
         /// Allowed rules in format:
         /// "METHOD /path" or "METHOD /path/*"
-        ///
-        /// Examples:
-        /// - "GET /api/orders"
-        /// - "POST /api/orders/create"
-        /// - "GET /api/catalog/*"
         /// </summary>
         [Required]
-        [MaxLength(2000)]
         public List<string> Operations { get; set; } = new();
 
         /// <summary>

@@ -12,15 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LYRA.Server.Data.LyraCachedDb.Migrations
 {
     [DbContext(typeof(LyraCachedDbContext))]
-    [Migration("20250805141331_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260423211558_InitialLyraCachedV2")]
+    partial class InitialLyraCachedV2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.17")
+                .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -55,10 +55,9 @@ namespace LYRA.Server.Data.LyraCachedDb.Migrations
                     b.Property<bool>("IsEnabled")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Operation")
+                    b.Property<string>("RulesJson")
                         .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SignatureType")
                         .IsRequired()

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace LYRA.Server.Data.LyraDb.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialLyraV2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -216,7 +216,6 @@ namespace LYRA.Server.Data.LyraDb.Migrations
                     TargetId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CallerSystemName = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: false),
                     TargetSystemName = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: false),
-                    Operation = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
                     IsEnabled = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     CreatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
@@ -240,6 +239,26 @@ namespace LYRA.Server.Data.LyraDb.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "AccessPolicyRules",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AccessPolicyId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    HttpMethod = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
+                    PathPattern = table.Column<string>(type: "varchar(500)", unicode: false, maxLength: 500, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AccessPolicyRules", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AccessPolicyRules_AccessPolicies_AccessPolicyId",
+                        column: x => x.AccessPolicyId,
+                        principalTable: "AccessPolicies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AccessPolicies_CallerId",
                 table: "AccessPolicies",
@@ -254,6 +273,12 @@ namespace LYRA.Server.Data.LyraDb.Migrations
                 name: "IX_AccessPolicy_Key",
                 table: "AccessPolicies",
                 columns: new[] { "CallerSystemName", "TargetSystemName" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AccessPolicyRule_Unique",
+                table: "AccessPolicyRules",
+                columns: new[] { "AccessPolicyId", "HttpMethod", "PathPattern" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -319,7 +344,7 @@ namespace LYRA.Server.Data.LyraDb.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AccessPolicies");
+                name: "AccessPolicyRules");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
@@ -337,13 +362,16 @@ namespace LYRA.Server.Data.LyraDb.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "TrustedTouchpoints");
+                name: "AccessPolicies");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "TrustedTouchpoints");
 
             migrationBuilder.DropTable(
                 name: "Companies");

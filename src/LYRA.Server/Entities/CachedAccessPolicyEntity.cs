@@ -4,6 +4,7 @@ namespace LYRA.Server.Entities
 {
     /// <summary>
     /// Represents a flattened, cache-friendly version of an access policy between two systems.
+    /// Rules are stored as serialized JSON to keep the cache record lightweight.
     /// </summary>
     public class CachedAccessPolicyEntity
     {
@@ -25,14 +26,13 @@ namespace LYRA.Server.Entities
         public string TargetSystemName { get; set; } = null!;
 
         /// <summary>
-        /// Operation identifier (e.g., GET /api/orders/*, order.created).
+        /// Serialized JSON array of route rules.
         /// </summary>
         [Required]
-        [MaxLength(2000)]
-        public string Operation { get; set; } = null!;
+        public string RulesJson { get; set; } = null!;
 
         /// <summary>
-        /// Secret used for verifying the signature of the caller (resolved from Caller or Company).
+        /// Secret used for verifying the signature of the caller.
         /// </summary>
         [Required]
         public string CallerSecret { get; set; } = null!;

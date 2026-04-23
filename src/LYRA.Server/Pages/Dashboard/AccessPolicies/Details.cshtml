@@ -51,9 +51,9 @@
 
                 <dt class="col-sm-3">Allowed Routes</dt>
                 <dd class="col-sm-9">
-                    @foreach (var op in LYRA.Server.Utilities.DelimitedStringParser.Parse(Model.Policy.Operation))
+                    @foreach (var rule in Model.Policy.Rules)
                     {
-                        <div><code>@op</code></div>
+                        <div><code>@rule.Method @rule.PathPattern</code></div>
                     }
                 </dd>
 

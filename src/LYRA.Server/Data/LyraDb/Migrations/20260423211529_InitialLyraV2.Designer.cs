@@ -12,15 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LYRA.Server.Data.LyraDb.Migrations
 {
     [DbContext(typeof(LyraDbContext))]
-    [Migration("20250805141303_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260423211529_InitialLyraV2")]
+    partial class InitialLyraV2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.17")
+                .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -59,11 +59,6 @@ namespace LYRA.Server.Data.LyraDb.Migrations
                     b.Property<Guid?>("ModifiedBy")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Operation")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
                     b.Property<Guid>("TargetId")
                         .HasColumnType("uniqueidentifier");
 
@@ -84,6 +79,36 @@ namespace LYRA.Server.Data.LyraDb.Migrations
                         .HasDatabaseName("IX_AccessPolicy_Key");
 
                     b.ToTable("AccessPolicies");
+                });
+
+            modelBuilder.Entity("LYRA.Server.Entities.AccessPolicyRuleEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AccessPolicyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("HttpMethod")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("PathPattern")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccessPolicyId", "HttpMethod", "PathPattern")
+                        .IsUnique()
+                        .HasDatabaseName("IX_AccessPolicyRule_Unique");
+
+                    b.ToTable("AccessPolicyRules");
                 });
 
             modelBuilder.Entity("LYRA.Server.Entities.CompanyEntity", b =>
@@ -429,6 +454,17 @@ namespace LYRA.Server.Data.LyraDb.Migrations
                     b.Navigation("Target");
                 });
 
+            modelBuilder.Entity("LYRA.Server.Entities.AccessPolicyRuleEntity", b =>
+                {
+                    b.HasOne("LYRA.Server.Entities.AccessPolicyEntity", "AccessPolicy")
+                        .WithMany("Rules")
+                        .HasForeignKey("AccessPolicyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AccessPolicy");
+                });
+
             modelBuilder.Entity("LYRA.Server.Entities.TrustedTouchpointEntity", b =>
                 {
                     b.HasOne("LYRA.Server.Entities.CompanyEntity", "Company")
@@ -489,6 +525,11 @@ namespace LYRA.Server.Data.LyraDb.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("LYRA.Server.Entities.AccessPolicyEntity", b =>
+                {
+                    b.Navigation("Rules");
                 });
 
             modelBuilder.Entity("LYRA.Server.Entities.CompanyEntity", b =>
