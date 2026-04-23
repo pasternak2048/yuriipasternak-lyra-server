@@ -19,12 +19,15 @@ namespace LYRA.Server.Data.LyraDb
             var cacheSync = serviceProvider.GetRequiredService<IAccessPolicyCacheSyncService>();
             var logger = serviceProvider.GetRequiredService<ILogService>();
 
-            context.Database.EnsureCreated();
-            await logger.WriteAsync("System", "Info", "Database ensured created", source: "DbInitializer");
+            await logger.WriteAsync("System", "Info", "Database migrations already applied", source: "DbInitializer");
 
             if (await context.Companies.AnyAsync())
             {
                 await logger.WriteAsync("System", "Info", "Seed skipped: companies already exist", source: "DbInitializer");
+
+                await cacheSync.SyncFromDbAsync();
+                await logger.WriteAsync("System", "Success", "Access policy cache synchronized", source: "DbInitializer");
+
                 return;
             }
 
