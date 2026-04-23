@@ -33,7 +33,7 @@
 
         /// <summary>
         /// Base64-encoded SHA-512 hash of the request body or payload.
-        /// Use empty string if there is no payload.
+        /// If there is no payload, use the SHA-512 hash of an empty string.
         /// </summary>
         public required string BodyHash { get; init; }
 

@@ -86,8 +86,9 @@ namespace LYRA.Server.Data.Core.Caching
             {
                 var oldCaller = e.OriginalValues.GetValue<string>(nameof(AccessPolicyEntity.CallerSystemName));
                 var oldTarget = e.OriginalValues.GetValue<string>(nameof(AccessPolicyEntity.TargetSystemName));
+
                 if (!string.IsNullOrWhiteSpace(oldCaller) && !string.IsNullOrWhiteSpace(oldTarget))
-                    state.MemoryKeysToInvalidate.Add((oldCaller, oldTarget));
+                    state.OldCallerTargetKeysToInvalidate.Add((oldCaller, oldTarget));
             }
 
             return new(result);
@@ -118,22 +119,25 @@ namespace LYRA.Server.Data.Core.Caching
                     state.PolicyIdsToDelete.Add(p.Id);
             }
 
-            if (toUpsert.Count > 0) await _cache.UpsertManyAsync(toUpsert, ct);
-            if (state.PolicyIdsToDelete.Count > 0) await _cache.DeleteManyAsync(state.PolicyIdsToDelete, ct);
+            if (toUpsert.Count > 0)
+                await _cache.UpsertManyAsync(toUpsert, ct);
+
+            if (state.PolicyIdsToDelete.Count > 0)
+                await _cache.DeleteManyAsync(state.PolicyIdsToDelete, ct);
 
             var keysToRemove = new HashSet<string>();
 
-            foreach (var (caller, target) in state.MemoryKeysToInvalidate)
-                keysToRemove.Add(_keyBuilder.ForCallerTarget(caller, target));
+            var currentUpsertCallerTargetKeys = toUpsert
+                .Select(x => _keyBuilder.ForCallerTarget(x.CallerSystemName, x.TargetSystemName))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-            foreach (var entity in toUpsert)
+            foreach (var (caller, target) in state.OldCallerTargetKeysToInvalidate)
             {
-                keysToRemove.Add(_keyBuilder.ForCallerTarget(entity.CallerSystemName, entity.TargetSystemName));
-                keysToRemove.Add(_keyBuilder.ForId(entity.Id));
-            }
+                var oldKey = _keyBuilder.ForCallerTarget(caller, target);
 
-            foreach (var id in state.PolicyIdsToDelete)
-                keysToRemove.Add(_keyBuilder.ForId(id));
+                if (!currentUpsertCallerTargetKeys.Contains(oldKey))
+                    keysToRemove.Add(oldKey);
+            }
 
             foreach (var key in keysToRemove)
                 await _milanoCache.RemoveAsync(key, ct);
@@ -148,13 +152,13 @@ namespace LYRA.Server.Data.Core.Caching
 
             public HashSet<Guid> PolicyIdsToDelete { get; } = new();
 
-            public HashSet<(string caller, string target)> MemoryKeysToInvalidate { get; } = new();
+            public HashSet<(string caller, string target)> OldCallerTargetKeysToInvalidate { get; } = new();
 
             public void Clear()
             {
                 PolicyIdsToRebuild.Clear();
                 PolicyIdsToDelete.Clear();
-                MemoryKeysToInvalidate.Clear();
+                OldCallerTargetKeysToInvalidate.Clear();
             }
         }
     }

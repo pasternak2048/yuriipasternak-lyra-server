@@ -18,16 +18,21 @@ namespace LYRA.Server.Services.Verify
     /// </summary>
     public class VerifyService : IVerifyService
     {
+        private static readonly TimeSpan AllowedTimestampSkew = TimeSpan.FromHours(2);
+
         private readonly ICachedAccessPolicyStore _policyStore;
+        private readonly IReplayProtectionStore _replayProtectionStore;
         private readonly ILogQueue _logQueue;
         private readonly ILogger<VerifyService> _logger;
 
         public VerifyService(
             ICachedAccessPolicyStore policyStore,
+            IReplayProtectionStore replayProtectionStore,
             ILogQueue logQueue,
             ILogger<VerifyService> logger)
         {
             _policyStore = policyStore;
+            _replayProtectionStore = replayProtectionStore;
             _logQueue = logQueue;
             _logger = logger;
         }
@@ -42,6 +47,9 @@ namespace LYRA.Server.Services.Verify
             {
                 var meta = request.Metadata;
 
+                if (string.IsNullOrWhiteSpace(request.RequestId))
+                    return Fail("Missing request ID", request, reason: "MissingRequestId");
+
                 if (!long.TryParse(meta.Timestamp, NumberStyles.Integer, CultureInfo.InvariantCulture, out var tsSeconds))
                     return Fail("Invalid timestamp format (expected Unix seconds)", request, reason: "BadTimestamp");
 
@@ -49,22 +57,33 @@ namespace LYRA.Server.Services.Verify
                 var nowUtc = DateTime.UtcNow;
                 var hourDiff = Math.Abs((nowUtc - requestTimeUtc).TotalHours);
 
-                if (hourDiff > 2)
+                if (hourDiff > AllowedTimestampSkew.TotalHours)
                     return Fail("Request timestamp is outside the allowed ±2 hours window", request, reason: "Expired",
                         details: $"offsetHours={hourDiff:F2}");
+
+                var replayTtl = CalculateReplayTtl(requestTimeUtc, nowUtc);
+
+                var requestIdAccepted = await _replayProtectionStore.TryMarkAsUsedAsync(
+                    meta.CallerSystemName,
+                    meta.TargetSystemName,
+                    request.RequestId,
+                    replayTtl);
+
+                if (!requestIdAccepted)
+                    return Fail("Replay detected: request ID was already used", request, reason: "ReplayDetected");
 
                 var policy = await _policyStore.FindAsync(meta.CallerSystemName, meta.TargetSystemName);
                 if (policy is null || !policy.IsEnabled)
                     return Fail("Access denied: no policy or disabled", request, reason: "PolicyDenied");
 
-                var requestedMethod = OperationParser.NormalizeMethod(meta.Method);
-                var requestedPath = OperationParser.NormalizePath(meta.Path);
+                var requestedMethod = RouteRuleMatcher.NormalizeMethod(meta.Method);
+                var requestedPath = RouteRuleMatcher.NormalizePath(meta.Path);
 
                 var rules = JsonSerializer.Deserialize<List<AccessRule>>(policy.RulesJson) ?? new List<AccessRule>();
 
                 var isAllowed = rules.Any(rule =>
-                    OperationParser.MethodMatches(requestedMethod, rule.Method) &&
-                    OperationParser.PathMatches(requestedPath, rule.PathPattern));
+                    RouteRuleMatcher.MethodMatches(requestedMethod, rule.Method) &&
+                    RouteRuleMatcher.PathMatches(requestedPath, rule.PathPattern));
 
                 if (!isAllowed)
                     return Fail(
@@ -109,6 +128,16 @@ namespace LYRA.Server.Services.Verify
                 return Fail("Exception during verification", request,
                     reason: "Error", exception: ex.ToString(), signatureHash: request.Signed?.Signature);
             }
+        }
+
+        private static TimeSpan CalculateReplayTtl(DateTime requestTimeUtc, DateTime nowUtc)
+        {
+            var expiresAtUtc = requestTimeUtc.Add(AllowedTimestampSkew);
+
+            if (expiresAtUtc <= nowUtc)
+                return TimeSpan.FromMinutes(1);
+
+            return expiresAtUtc - nowUtc;
         }
 
         private VerifyResponse Fail(

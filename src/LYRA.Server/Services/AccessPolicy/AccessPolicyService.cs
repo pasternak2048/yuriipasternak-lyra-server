@@ -208,8 +208,8 @@ namespace LYRA.Server.Services.AccessPolicy
         /// <inheritdoc />
         public async Task<bool> IsAuthorizedAsync(string caller, string target, string method, string path)
         {
-            var requestedMethod = OperationParser.NormalizeMethod(method);
-            var requestedPath = OperationParser.NormalizePath(path);
+            var requestedMethod = RouteRuleMatcher.NormalizeMethod(method);
+            var requestedPath = RouteRuleMatcher.NormalizePath(path);
 
             var rules = await _context.AccessPolicies
                 .AsNoTracking()
@@ -225,8 +225,8 @@ namespace LYRA.Server.Services.AccessPolicy
                 .ToListAsync();
 
             return rules.Any(rule =>
-                OperationParser.MethodMatches(requestedMethod, rule.Method) &&
-                OperationParser.PathMatches(requestedPath, rule.PathPattern));
+                RouteRuleMatcher.MethodMatches(requestedMethod, rule.Method) &&
+                RouteRuleMatcher.PathMatches(requestedPath, rule.PathPattern));
         }
 
         /// <inheritdoc />
@@ -262,8 +262,8 @@ namespace LYRA.Server.Services.AccessPolicy
                 .Where(r => !string.IsNullOrWhiteSpace(r.Method) || !string.IsNullOrWhiteSpace(r.PathPattern))
                 .Select(r => new AccessRule
                 {
-                    Method = OperationParser.NormalizeMethod(r.Method),
-                    PathPattern = OperationParser.NormalizePath(r.PathPattern)
+                    Method = RouteRuleMatcher.NormalizeMethod(r.Method),
+                    PathPattern = RouteRuleMatcher.NormalizePath(r.PathPattern)
                 })
                 .Where(r => !string.IsNullOrWhiteSpace(r.Method))
                 .DistinctBy(r => $"{r.Method}|{r.PathPattern}")

@@ -21,8 +21,9 @@ namespace LYRA.Security.Signing
         public required SignedMetadata Signed { get; init; }
 
         /// <summary>
-        /// Raw payload data (e.g., JSON body). Used only for server-side body hash verification.
-        /// Not included in the canonical metadata or signature directly.
+        /// Raw payload data (e.g., JSON body).
+        /// Used only for server-side body hash verification.
+        /// Null payload is treated as an empty string during hash verification.
         /// </summary>
         public string? Payload { get; init; }
 

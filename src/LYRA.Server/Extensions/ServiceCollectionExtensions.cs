@@ -26,118 +26,120 @@ using System.Text.Json.Serialization;
 
 namespace LYRA.Server.Extensions
 {
-	public static class ServiceCollectionExtensions
-	{
-		public static IServiceCollection AddLyraCoreServices(this IServiceCollection services)
-		{
-			services.AddScoped<ICurrentUserService, CurrentUserService>();
-			services.AddScoped<IIdentityService, IdentityService>();
-			services.AddScoped<ICompanyService, CompanyService>();
-			services.AddScoped<ITrustedTouchpointService, TrustedTouchpointService>();
-			services.AddScoped<IAccessPolicyService, AccessPolicyService>();
-			services.AddScoped<IVerifyService, VerifyService>();
-			services.AddScoped<ICachedAccessPolicyBuilder, CachedAccessPolicyBuilder>();
-			services.AddSingleton<IAccessPolicyCacheKeyBuilder, AccessPolicyCacheKeyBuilder>();
-			services.AddScoped<CachedAccessPolicyStore>();
-			services.AddScoped<ICachedAccessPolicyStore>(provider =>
-			{
-				var store = provider.GetRequiredService<CachedAccessPolicyStore>();
-				var cache = provider.GetRequiredService<IMilanoCacheClient>();
-				var keyBuilder = provider.GetRequiredService<IAccessPolicyCacheKeyBuilder>();
-				return new CachedAccessPolicyStoreDecorator(store, cache, keyBuilder);
-			});
-			services.AddScoped<IAccessPolicyCacheSyncService, AccessPolicyCacheSyncService>();
-			services.AddScoped<ILogService, LogService>();
-			services.AddSingleton<ILogQueue, InMemoryLogQueue>();
-			services.AddHostedService<BackgroundLogWriterService>();
+    public static class ServiceCollectionExtensions
+    {
+        public static IServiceCollection AddLyraCoreServices(this IServiceCollection services)
+        {
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<IIdentityService, IdentityService>();
+            services.AddScoped<ICompanyService, CompanyService>();
+            services.AddScoped<ITrustedTouchpointService, TrustedTouchpointService>();
+            services.AddScoped<IAccessPolicyService, AccessPolicyService>();
+            services.AddScoped<IVerifyService, VerifyService>();
+            services.AddScoped<IReplayProtectionStore, ReplayProtectionStore>();
 
-			return services;
-		}
+            services.AddScoped<ICachedAccessPolicyBuilder, CachedAccessPolicyBuilder>();
+            services.AddSingleton<IAccessPolicyCacheKeyBuilder, AccessPolicyCacheKeyBuilder>();
+            services.AddScoped<CachedAccessPolicyStore>();
+            services.AddScoped<ICachedAccessPolicyStore>(provider =>
+            {
+                var store = provider.GetRequiredService<CachedAccessPolicyStore>();
+                var cache = provider.GetRequiredService<IMilanoCacheClient>();
+                var keyBuilder = provider.GetRequiredService<IAccessPolicyCacheKeyBuilder>();
+                return new CachedAccessPolicyStoreDecorator(store, cache, keyBuilder);
+            });
+            services.AddScoped<IAccessPolicyCacheSyncService, AccessPolicyCacheSyncService>();
+            services.AddScoped<ILogService, LogService>();
+            services.AddSingleton<ILogQueue, InMemoryLogQueue>();
+            services.AddHostedService<BackgroundLogWriterService>();
 
-		public static IServiceCollection AddLyraAuthentication(this IServiceCollection services)
-		{
-			services.AddAuthentication(IdentityConstants.ApplicationScheme);
-			services.AddAuthorization();
-			return services;
-		}
+            return services;
+        }
 
-		public static IServiceCollection AddLyraIdentity(this IServiceCollection services)
-		{
-			services.AddIdentity<ApplicationUser, IdentityRole>()
-				.AddEntityFrameworkStores<LyraDbContext>()
-				.AddDefaultTokenProviders();
+        public static IServiceCollection AddLyraAuthentication(this IServiceCollection services)
+        {
+            services.AddAuthentication(IdentityConstants.ApplicationScheme);
+            services.AddAuthorization();
+            return services;
+        }
 
-			services.Configure<IdentityOptions>(options =>
-			{
-				options.Password.RequireDigit = false;
-				options.Password.RequiredLength = 4;
-				options.Password.RequireNonAlphanumeric = false;
-				options.Password.RequireUppercase = false;
-				options.Password.RequireLowercase = false;
-			});
+        public static IServiceCollection AddLyraIdentity(this IServiceCollection services)
+        {
+            services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<LyraDbContext>()
+                .AddDefaultTokenProviders();
 
-			services.ConfigureApplicationCookie(options =>
-			{
-				options.LoginPath = "/account/login";
-				options.Cookie.HttpOnly = true;
-			});
+            services.Configure<IdentityOptions>(options =>
+            {
+                options.Password.RequireDigit = false;
+                options.Password.RequiredLength = 4;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireLowercase = false;
+            });
 
-			return services;
-		}
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = "/account/login";
+                options.Cookie.HttpOnly = true;
+            });
 
-		public static IServiceCollection AddLyraDbContexts(this IServiceCollection services, IConfiguration configuration)
-		{
-			services.AddScoped<AuditableEntitySaveChangesInterceptor>();
-			services.AddScoped<AccessPolicyCacheSyncInterceptor>();
+            return services;
+        }
 
-			services.AddDbContext<LyraDbContext>((provider, options) =>
-			{
-				var audit = provider.GetRequiredService<AuditableEntitySaveChangesInterceptor>();
-				var cacheSync = provider.GetRequiredService<AccessPolicyCacheSyncInterceptor>();
-				options.UseSqlServer(configuration.GetConnectionString("Database"))
-					   .AddInterceptors(audit, cacheSync);
-			});
+        public static IServiceCollection AddLyraDbContexts(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddScoped<AuditableEntitySaveChangesInterceptor>();
+            services.AddScoped<AccessPolicyCacheSyncInterceptor>();
 
-			services.AddDbContext<LyraCachedDbContext>(options =>
-			{
-				options.UseSqlServer(configuration.GetConnectionString("CachedDatabase"));
-			});
+            services.AddDbContext<LyraDbContext>((provider, options) =>
+            {
+                var audit = provider.GetRequiredService<AuditableEntitySaveChangesInterceptor>();
+                var cacheSync = provider.GetRequiredService<AccessPolicyCacheSyncInterceptor>();
+                options.UseSqlServer(configuration.GetConnectionString("Database"))
+                       .AddInterceptors(audit, cacheSync);
+            });
 
-			services.AddDbContext<LyraLogsDbContext>(options =>
-			{
-				options.UseSqlServer(configuration.GetConnectionString("LogsDatabase"));
-			});
+            services.AddDbContext<LyraCachedDbContext>(options =>
+            {
+                options.UseSqlServer(configuration.GetConnectionString("CachedDatabase"));
+            });
 
-			return services;
-		}
+            services.AddDbContext<LyraLogsDbContext>(options =>
+            {
+                options.UseSqlServer(configuration.GetConnectionString("LogsDatabase"));
+            });
 
-		public static IServiceCollection AddLyraMilanoCache(this IServiceCollection services, IConfiguration config)
-		{
-			var options = config.GetSection("MilanoClient").Get<MilanoClientOptions>();
+            return services;
+        }
 
-			services.AddMilanoCacheClient(opt =>
-			{
-				opt.ServerHost = options.ServerHost;
-				opt.ApiKey = options.ApiKey;
-				opt.Timeout = options.Timeout;
-			});
+        public static IServiceCollection AddLyraMilanoCache(this IServiceCollection services, IConfiguration config)
+        {
+            var options = config.GetSection("MilanoClient").Get<MilanoClientOptions>();
 
-			return services;
-		}
+            services.AddMilanoCacheClient(opt =>
+            {
+                opt.ServerHost = options.ServerHost;
+                opt.ApiKey = options.ApiKey;
+                opt.Timeout = options.Timeout;
+            });
 
-		public static IServiceCollection AddLyraRealTime(this IServiceCollection services)
-		{
-			services.AddSignalR();
-			return services;
-		}
+            return services;
+        }
 
-		public static IServiceCollection AddLyraWebApi(this IServiceCollection services)
-		{
-			services.AddControllers().AddJsonOptions(options =>
-			{
-				options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-			});
-			return services;
-		}
-	}
+        public static IServiceCollection AddLyraRealTime(this IServiceCollection services)
+        {
+            services.AddSignalR();
+            return services;
+        }
+
+        public static IServiceCollection AddLyraWebApi(this IServiceCollection services)
+        {
+            services.AddControllers().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
+            return services;
+        }
+    }
 }

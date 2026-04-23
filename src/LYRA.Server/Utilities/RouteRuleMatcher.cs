@@ -4,7 +4,7 @@
     /// Normalizes and matches route rules.
     /// Supports ANY method via "*" and wildcard paths like "/*" or "/api/orders/*".
     /// </summary>
-    public static class OperationParser
+    public static class RouteRuleMatcher
     {
         public static string NormalizeMethod(string method)
         {
