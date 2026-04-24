@@ -1,4 +1,4 @@
-# LYRA - Let Yourself Remain Authenticated
+# 🛡 LYRA - Let Yourself Remain Authenticated
 
 ---
 
@@ -426,4 +426,4 @@ MIT License - see [LICENSE](LICENSE).
 
 ---
 
-**LYRA. Let Yourself Remain Authenticated.**
+** 🛡 LYRA. Let Yourself Remain Authenticated.**
