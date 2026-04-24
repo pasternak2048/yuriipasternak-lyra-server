@@ -31,10 +31,9 @@
         public string TargetSystemName { get; set; } = null!;
 
         /// <summary>
-        /// Identifier of the operation this policy applies to 
-        /// (e.g., HTTP path, event topic, or method name).
+        /// Allowed route rules.
         /// </summary>
-        public string Operation { get; set; } = null!;
+        public List<AccessRule> Rules { get; set; } = new();
 
         /// <summary>
         /// Indicates if the policy is currently enabled.

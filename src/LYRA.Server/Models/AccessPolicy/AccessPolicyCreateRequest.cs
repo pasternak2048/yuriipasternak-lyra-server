@@ -30,11 +30,10 @@ namespace LYRA.Server.Models.AccessPolicy
         public Guid? TargetId { get; set; }
 
         /// <summary>
-        /// Operation identifier, such as an HTTP path, event topic, or method name.
+        /// Allowed route rules.
         /// </summary>
         [Required]
-        [MaxLength(2000)]
-        public List<string> Operations { get; set; } = new();
+        public List<AccessRuleInput> Rules { get; set; } = new();
 
         /// <summary>
         /// Indicates whether this access policy is enabled.

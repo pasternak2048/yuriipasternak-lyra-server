@@ -5,7 +5,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace LYRA.Server.Entities
 {
     /// <summary>
-    /// Defines a permission rule between two trusted touchpoints.
+    /// Defines a permission relationship between two trusted touchpoints.
+    /// Route rules are stored separately in <see cref="AccessPolicyRuleEntity"/>.
     /// </summary>
     public class AccessPolicyEntity : IAuditableEntity
     {
@@ -51,16 +52,9 @@ namespace LYRA.Server.Entities
         public string TargetSystemName { get; set; } = null!;
 
         /// <summary>
-        /// Operation identifier — path, topic, key or method.
-        /// Examples:
-        ///   - "GET /api/orders/*" (http)
-        ///   - "order.created" (event)
-        ///   - "SET cache:user:*" (cache)
-        ///   - "OrderService.CreateOrder" (grpc/internal)
+        /// Route rules allowed for this caller -> target policy.
         /// </summary>
-        [Required]
-        [MaxLength(2000)]
-        public string Operation { get; set; } = null!;
+        public ICollection<AccessPolicyRuleEntity> Rules { get; set; } = new List<AccessPolicyRuleEntity>();
 
         /// <summary>
         /// Whether this policy is currently enabled.

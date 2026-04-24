@@ -58,33 +58,66 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Allowed Operations</label>
-                <div id="operationList">
-                    @for (int i = 0; i < Model.Input.Operations.Count; i++)
+                <label class="form-label">Allowed Routes</label>
+                <div id="routeRuleList">
+                    @for (int i = 0; i < Model.Input.Rules.Count; i++)
                     {
                         var key = Guid.NewGuid().ToString("N");
-                        <input type="hidden" name="Input.Operations.index" value="@key" />
-                        <div class="input-group mb-2" id="op-@key">
-                            <input type="text" class="form-control" name="Input.Operations[@key]" value="@Model.Input.Operations[i]" />
-                            <button type="button" class="btn btn-outline-danger" onclick="lyra.removeOperation('@key')">
+                        var method = Model.Input.Rules[i].Method;
+                        <input type="hidden" name="Input.Rules.index" value="@key" />
+                        <div class="input-group mb-2" id="rule-@key">
+                            <select class="form-select" name="Input.Rules[@key].Method" style="max-width: 140px;">
+                                <option value="ANY" selected="@(method is "ANY" or "*")">ANY</option>
+                                <option value="GET" selected="@(method == "GET")">GET</option>
+                                <option value="POST" selected="@(method == "POST")">POST</option>
+                                <option value="PUT" selected="@(method == "PUT")">PUT</option>
+                                <option value="PATCH" selected="@(method == "PATCH")">PATCH</option>
+                                <option value="DELETE" selected="@(method == "DELETE")">DELETE</option>
+                                <option value="HEAD" selected="@(method == "HEAD")">HEAD</option>
+                                <option value="OPTIONS" selected="@(method == "OPTIONS")">OPTIONS</option>
+                            </select>
+
+                            <input type="text"
+                                   class="form-control"
+                                   name="Input.Rules[@key].PathPattern"
+                                   value="@Model.Input.Rules[i].PathPattern"
+                                   placeholder="/api/orders/* or /*" />
+
+                            <button type="button" class="btn btn-outline-danger" onclick="lyra.removeRouteRule('@key')">
                                 <i class="bi bi-x"></i>
                             </button>
                         </div>
                     }
 
-                    @if (Model.Input.Operations.Count == 0)
+                    @if (Model.Input.Rules.Count == 0)
                     {
                         var key = Guid.NewGuid().ToString("N");
-                        <input type="hidden" name="Input.Operations.index" value="@key" />
-                        <div class="input-group mb-2" id="op-@key">
-                            <input type="text" class="form-control" name="Input.Operations[@key]" />
-                            <button type="button" class="btn btn-outline-danger" onclick="lyra.removeOperation('@key')">
+                        <input type="hidden" name="Input.Rules.index" value="@key" />
+                        <div class="input-group mb-2" id="rule-@key">
+                            <select class="form-select" name="Input.Rules[@key].Method" style="max-width: 140px;">
+                                <option value="ANY">ANY</option>
+                                <option value="GET" selected>GET</option>
+                                <option value="POST">POST</option>
+                                <option value="PUT">PUT</option>
+                                <option value="PATCH">PATCH</option>
+                                <option value="DELETE">DELETE</option>
+                                <option value="HEAD">HEAD</option>
+                                <option value="OPTIONS">OPTIONS</option>
+                            </select>
+
+                            <input type="text"
+                                   class="form-control"
+                                   name="Input.Rules[@key].PathPattern"
+                                   placeholder="/api/orders/* or /*" />
+
+                            <button type="button" class="btn btn-outline-danger" onclick="lyra.removeRouteRule('@key')">
                                 <i class="bi bi-x"></i>
                             </button>
                         </div>
                     }
                 </div>
-                <button type="button" class="btn btn-outline-light btn-sm" onclick="lyra.addOperation()">Add Operation</button>
+
+                <button type="button" class="btn btn-outline-light btn-sm" onclick="lyra.addRouteRule()">Add Route</button>
             </div>
 
             <div class="form-check form-switch mb-3">
@@ -94,7 +127,7 @@
 
             <div class="d-flex justify-content-between mt-4">
                 <a asp-page="Index" class="btn btn-outline-light">Cancel</a>
-                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
             </div>
         </form>
     </div>

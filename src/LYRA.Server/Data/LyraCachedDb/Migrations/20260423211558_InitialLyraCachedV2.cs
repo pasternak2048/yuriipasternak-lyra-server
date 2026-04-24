@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace LYRA.Server.Data.LyraCachedDb.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialLyraCachedV2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,7 +18,7 @@ namespace LYRA.Server.Data.LyraCachedDb.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CallerSystemName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     TargetSystemName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Operation = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
+                    RulesJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CallerSecret = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SignatureType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     IsEnabled = table.Column<bool>(type: "bit", nullable: false),

@@ -9,19 +9,14 @@ using Microsoft.EntityFrameworkCore;
 namespace LYRA.Server.Services.AccessPolicy
 {
     /// <summary>
-    /// Service responsible for managing access policies that define allowed operations 
-    /// between trusted touchpoints across different access contexts.
+    /// Service responsible for managing access policies that define allowed routes
+    /// between trusted touchpoints.
     /// </summary>
     public class AccessPolicyService : IAccessPolicyService
     {
         private readonly LyraDbContext _context;
         private readonly ILogger<AccessPolicyService> _logger;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AccessPolicyService"/> class.
-        /// </summary>
-        /// <param name="context">The database context.</param>
-        /// <param name="logger">The logger for audit and diagnostics.</param>
         public AccessPolicyService(LyraDbContext context, ILogger<AccessPolicyService> logger)
         {
             _context = context;
@@ -32,7 +27,8 @@ namespace LYRA.Server.Services.AccessPolicy
         public async Task<PaginatedResult<AccessPolicyDto>> GetPagedAsync(AccessPolicyFilters filters)
         {
             var query = _context.AccessPolicies
-                .AsNoTracking().AsQueryable();
+                .AsNoTracking()
+                .AsQueryable();
 
             if (filters.CallerId.HasValue)
                 query = query.Where(p => p.CallerId == filters.CallerId.Value);
@@ -40,12 +36,10 @@ namespace LYRA.Server.Services.AccessPolicy
             if (filters.TargetId.HasValue)
                 query = query.Where(p => p.TargetId == filters.TargetId.Value);
 
-            if (!string.IsNullOrWhiteSpace(filters.Operation))
-                query = query.Where(p => p.Operation.Contains(filters.Operation));
-
             var totalItems = await query.CountAsync();
 
             var items = await query
+                .Include(p => p.Rules)
                 .OrderBy(p => p.CallerSystemName)
                 .ThenBy(p => p.TargetSystemName)
                 .Skip((filters.Page - 1) * filters.PageSize)
@@ -57,7 +51,15 @@ namespace LYRA.Server.Services.AccessPolicy
                     CallerSystemName = p.CallerSystemName,
                     TargetId = p.TargetId,
                     TargetSystemName = p.TargetSystemName,
-                    Operation = p.Operation,
+                    Rules = p.Rules
+                        .OrderBy(r => r.HttpMethod)
+                        .ThenBy(r => r.PathPattern)
+                        .Select(r => new AccessRule
+                        {
+                            Method = r.HttpMethod,
+                            PathPattern = r.PathPattern
+                        })
+                        .ToList(),
                     IsEnabled = p.IsEnabled,
                     CreatedAt = p.CreatedAt
                 })
@@ -77,6 +79,7 @@ namespace LYRA.Server.Services.AccessPolicy
         {
             var policy = await _context.AccessPolicies
                 .AsNoTracking()
+                .Include(p => p.Rules)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             return policy == null ? null : MapToDto(policy);
@@ -93,6 +96,8 @@ namespace LYRA.Server.Services.AccessPolicy
                 if (await PolicyExists(null, caller.SystemName, target.SystemName))
                     throw new InvalidOperationException("Such policy already exists.");
 
+                var normalizedRules = NormalizeRules(request.Rules);
+
                 var entity = new AccessPolicyEntity
                 {
                     Id = Guid.NewGuid(),
@@ -100,16 +105,23 @@ namespace LYRA.Server.Services.AccessPolicy
                     CallerSystemName = caller.SystemName,
                     TargetId = target.Id,
                     TargetSystemName = target.SystemName,
-                    Operation = DelimitedStringParser.Join(request.Operations),
                     IsEnabled = request.IsEnabled,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    Rules = normalizedRules
+                        .Select(r => new AccessPolicyRuleEntity
+                        {
+                            Id = Guid.NewGuid(),
+                            HttpMethod = r.Method,
+                            PathPattern = r.PathPattern
+                        })
+                        .ToList()
                 };
 
                 _context.AccessPolicies.Add(entity);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Created access policy {Caller} → {Target}: {Operation}",
-                    caller.SystemName, target.SystemName, request.Operations);
+                _logger.LogInformation("Created access policy {Caller} → {Target} with {RuleCount} rules",
+                    caller.SystemName, target.SystemName, entity.Rules.Count);
 
                 return MapToDto(entity);
             }
@@ -125,7 +137,9 @@ namespace LYRA.Server.Services.AccessPolicy
         {
             try
             {
-                var entity = await _context.AccessPolicies.FirstOrDefaultAsync(p => p.Id == request.Id);
+                var entity = await _context.AccessPolicies
+                    .FirstOrDefaultAsync(p => p.Id == request.Id);
+
                 if (entity == null)
                     throw new KeyNotFoundException($"Policy with ID '{request.Id}' not found.");
 
@@ -135,14 +149,33 @@ namespace LYRA.Server.Services.AccessPolicy
                 if (await PolicyExists(request.Id, caller.SystemName, target.SystemName))
                     throw new InvalidOperationException("Such policy already exists.");
 
+                var normalizedRules = NormalizeRules(request.Rules);
+
                 entity.CallerId = caller.Id;
                 entity.CallerSystemName = caller.SystemName;
                 entity.TargetId = target.Id;
                 entity.TargetSystemName = target.SystemName;
-                entity.Operation = DelimitedStringParser.Join(request.Operations);
                 entity.IsEnabled = request.IsEnabled;
+                entity.ModifiedAt = DateTime.UtcNow;
+
+                await _context.AccessPolicyRules
+                    .Where(r => r.AccessPolicyId == entity.Id)
+                    .ExecuteDeleteAsync();
+
+                var newRules = normalizedRules
+                    .Select(r => new AccessPolicyRuleEntity
+                    {
+                        Id = Guid.NewGuid(),
+                        AccessPolicyId = entity.Id,
+                        HttpMethod = r.Method,
+                        PathPattern = r.PathPattern
+                    })
+                    .ToList();
+
+                await _context.AccessPolicyRules.AddRangeAsync(newRules);
 
                 await _context.SaveChangesAsync();
+
                 _logger.LogInformation("Updated access policy: {PolicyId}", entity.Id);
             }
             catch (Exception ex)
@@ -173,15 +206,27 @@ namespace LYRA.Server.Services.AccessPolicy
         }
 
         /// <inheritdoc />
-        public async Task<bool> IsAuthorizedAsync(string caller, string target, string operation)
+        public async Task<bool> IsAuthorizedAsync(string caller, string target, string method, string path)
         {
-            var normalizedOperation = operation.ToLowerInvariant().Trim();
+            var requestedMethod = RouteRuleMatcher.NormalizeMethod(method);
+            var requestedPath = RouteRuleMatcher.NormalizePath(path);
 
-            return await _context.AccessPolicies.AsNoTracking().AnyAsync(p =>
-                p.CallerSystemName == caller &&
-                p.TargetSystemName == target &&
-                p.Operation == normalizedOperation &&
-                p.IsEnabled);
+            var rules = await _context.AccessPolicies
+                .AsNoTracking()
+                .Where(p => p.CallerSystemName == caller &&
+                            p.TargetSystemName == target &&
+                            p.IsEnabled)
+                .SelectMany(p => p.Rules)
+                .Select(r => new AccessRule
+                {
+                    Method = r.HttpMethod,
+                    PathPattern = r.PathPattern
+                })
+                .ToListAsync();
+
+            return rules.Any(rule =>
+                RouteRuleMatcher.MethodMatches(requestedMethod, rule.Method) &&
+                RouteRuleMatcher.PathMatches(requestedPath, rule.PathPattern));
         }
 
         /// <inheritdoc />
@@ -197,22 +242,44 @@ namespace LYRA.Server.Services.AccessPolicy
             TargetSystemName = p.TargetSystemName,
             CallerId = p.CallerId,
             TargetId = p.TargetId,
-            Operation = p.Operation,
+            Rules = p.Rules
+                .OrderBy(r => r.HttpMethod)
+                .ThenBy(r => r.PathPattern)
+                .Select(r => new AccessRule
+                {
+                    Method = r.HttpMethod,
+                    PathPattern = r.PathPattern
+                })
+                .ToList(),
             IsEnabled = p.IsEnabled,
             CreatedAt = p.CreatedAt
         };
 
-        /// <summary>
-        /// Returns a base query for only active (not deleted) touchpoints.
-        /// </summary>
+        private static List<AccessRule> NormalizeRules(IEnumerable<AccessRuleInput> rules)
+        {
+            var normalized = rules
+                .Where(r => r is not null)
+                .Where(r => !string.IsNullOrWhiteSpace(r.Method) || !string.IsNullOrWhiteSpace(r.PathPattern))
+                .Select(r => new AccessRule
+                {
+                    Method = RouteRuleMatcher.NormalizeMethod(r.Method),
+                    PathPattern = RouteRuleMatcher.NormalizePath(r.PathPattern)
+                })
+                .Where(r => !string.IsNullOrWhiteSpace(r.Method))
+                .DistinctBy(r => $"{r.Method}|{r.PathPattern}")
+                .ToList();
+
+            if (normalized.Count == 0)
+                throw new InvalidOperationException("At least one route is required.");
+
+            return normalized;
+        }
+
         private IQueryable<TrustedTouchpointEntity> ActiveTouchpoints()
         {
             return _context.TrustedTouchpoints.AsNoTracking().Where(t => !t.IsDeleted);
         }
 
-        /// <summary>
-        /// Returns whether a policy already exists for given parameters (excluding a specific ID).
-        /// </summary>
         private async Task<bool> PolicyExists(Guid? policyId, string caller, string target)
         {
             return await _context.AccessPolicies.AsNoTracking().AnyAsync(p =>

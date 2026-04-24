@@ -19,12 +19,15 @@ namespace LYRA.Server.Data.LyraDb
             var cacheSync = serviceProvider.GetRequiredService<IAccessPolicyCacheSyncService>();
             var logger = serviceProvider.GetRequiredService<ILogService>();
 
-            context.Database.EnsureCreated();
-            await logger.WriteAsync("System", "Info", "Database ensured created", source: "DbInitializer");
+            await logger.WriteAsync("System", "Info", "Database migrations already applied", source: "DbInitializer");
 
             if (await context.Companies.AnyAsync())
             {
                 await logger.WriteAsync("System", "Info", "Seed skipped: companies already exist", source: "DbInitializer");
+
+                await cacheSync.SyncFromDbAsync();
+                await logger.WriteAsync("System", "Success", "Access policy cache synchronized", source: "DbInitializer");
+
                 return;
             }
 
@@ -122,7 +125,7 @@ namespace LYRA.Server.Data.LyraDb
             for (int i = 0; i < touchpoints.Count; i++)
             {
                 var caller = touchpoints[i];
-                var target = touchpoints[(i + 1) % touchpoints.Count]; // next one or wrap
+                var target = touchpoints[(i + 1) % touchpoints.Count];
 
                 var policy = new AccessPolicyEntity
                 {
@@ -131,10 +134,18 @@ namespace LYRA.Server.Data.LyraDb
                     TargetId = target.Id,
                     CallerSystemName = caller.SystemName,
                     TargetSystemName = target.SystemName,
-                    Operation = "POST /api/verify",
                     IsEnabled = true,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = systemUserId
+                    CreatedBy = systemUserId,
+                    Rules = new List<AccessPolicyRuleEntity>
+                    {
+                        new()
+                        {
+                            Id = Guid.NewGuid(),
+                            HttpMethod = "POST",
+                            PathPattern = "/api/verify"
+                        }
+                    }
                 };
 
                 policies.Add(policy);

@@ -1,5 +1,7 @@
 ﻿using LYRA.Server.Entities;
+using LYRA.Server.Models.AccessPolicy;
 using LYRA.Server.Services.AccessPolicy.Interfaces;
+using System.Text.Json;
 
 namespace LYRA.Server.Services.AccessPolicy
 {
@@ -31,12 +33,22 @@ namespace LYRA.Server.Services.AccessPolicy
                 ? callerCompany.Secret
                 : caller.Secret;
 
+            var rules = policy.Rules
+                .OrderBy(r => r.HttpMethod)
+                .ThenBy(r => r.PathPattern)
+                .Select(r => new AccessRule
+                {
+                    Method = r.HttpMethod,
+                    PathPattern = r.PathPattern
+                })
+                .ToList();
+
             return new CachedAccessPolicyEntity
             {
                 Id = policy.Id,
                 CallerSystemName = policy.CallerSystemName,
                 TargetSystemName = policy.TargetSystemName,
-                Operation = policy.Operation.ToLowerInvariant(),
+                RulesJson = JsonSerializer.Serialize(rules),
                 CallerSecret = secret,
                 SignatureType = caller.SignatureType.ToString(),
                 IsEnabled = true,

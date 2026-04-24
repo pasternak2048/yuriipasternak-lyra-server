@@ -19,9 +19,6 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         private readonly ITrustedTouchpointService _touchpointService;
         private readonly ILogger<CreateModel> _logger;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CreateModel"/> class.
-        /// </summary>
         public CreateModel(
             IAccessPolicyService policyService,
             ITrustedTouchpointService touchpointService,
@@ -33,10 +30,17 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         }
 
         /// <summary>
-        /// Access policy creation request model bound from form input.
+        /// Input model bound from form input.
         /// </summary>
         [BindProperty(SupportsGet = true)]
-        public AccessPolicyCreateRequest Input { get; set; } = new();
+        public AccessPolicyCreateRequest Input { get; set; } = new()
+        {
+            Rules = new List<AccessRuleInput>
+            {
+                new() { Method = "GET", PathPattern = "/" }
+            },
+            IsEnabled = true
+        };
 
         /// <summary>
         /// Optional preselected caller ID (provided via query string).
@@ -49,11 +53,6 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         /// </summary>
         [BindProperty(SupportsGet = true)]
         public Guid? TargetId { get; set; }
-
-        /// <summary>
-        /// List of selectable access contexts (Http, Event, Grpc, etc).
-        /// </summary>
-        public List<SelectListItem> AccessContexts { get; set; } = new();
 
         /// <summary>
         /// Preview list containing selected caller (used to render label).
@@ -97,19 +96,15 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
         /// <returns>Redirects to index on success, or redisplays form on failure.</returns>
         public async Task<IActionResult> OnPostAsync()
         {
-            if (Input.CallerId.HasValue)
-            {
-                var caller = await _touchpointService.GetByIdAsync(Input.CallerId.Value);
-                if (caller != null)
-                    Callers.Add(caller);
-            }
+            await LoadSelectedTouchpointsAsync();
 
-            if (Input.TargetId.HasValue)
-            {
-                var target = await _touchpointService.GetByIdAsync(Input.TargetId.Value);
-                if (target != null)
-                    Targets.Add(target);
-            }
+            Input.Rules = Input.Rules
+                .Where(r => r is not null)
+                .Where(r => !string.IsNullOrWhiteSpace(r.Method) || !string.IsNullOrWhiteSpace(r.PathPattern))
+                .ToList();
+
+            if (Input.Rules.Count == 0)
+                ModelState.AddModelError(string.Empty, "At least one route is required.");
 
             if (!ModelState.IsValid)
                 return Page();
@@ -125,6 +120,23 @@ namespace LYRA.Server.Pages.Dashboard.AccessPolicies
                 _logger.LogError(ex, "Failed to create access policy.");
                 ModelState.AddModelError(string.Empty, ex.Message);
                 return Page();
+            }
+        }
+
+        private async Task LoadSelectedTouchpointsAsync()
+        {
+            if (Input.CallerId.HasValue)
+            {
+                var caller = await _touchpointService.GetByIdAsync(Input.CallerId.Value);
+                if (caller != null)
+                    Callers.Add(caller);
+            }
+
+            if (Input.TargetId.HasValue)
+            {
+                var target = await _touchpointService.GetByIdAsync(Input.TargetId.Value);
+                if (target != null)
+                    Targets.Add(target);
             }
         }
     }
